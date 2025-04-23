@@ -1,0 +1,200 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'deal_list' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-journal-check  me-1"></i> Deal
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-journal-check me-1"></i> Deal
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Client Information -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Client Information</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Client Name<span class="mandy">*</span></label>
+            <div class="col-sm-9">
+              <input type="text" name="clientName" class="form-control" value="{{ form.clientName.value|default:'' }}" required>
+              {% if form.clientName.errors %}
+              <div class="text-danger mt-1">{{ form.clientName.errors.as_text|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Segment</label>
+            <div class="col-sm-9">
+              {{ form.segment|add_class:"form-control" }}
+              {% if form.segment.errors %}
+              <div class="text-danger mt-1">{{ form.segment.errors.as_text|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Deal Information -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Information</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Deal Type</label>
+            <div class="col-sm-9">
+              {{ form.dealType|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Deal Won Date</label>
+            <div class="col-sm-9">
+              {{ form.dealWonDate|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Setup Charges</label>
+            <div class="col-sm-9">
+              {{ form.setupCharges|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Monthly Subscription</label>
+            <div class="col-sm-9">
+              {{ form.monthlySubscription|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">New Market Penetration?</label>
+            <div class="col-sm-9 d-flex align-items-center">
+              <div class="form-check me-3">
+                <input type="radio" name="newMarketPenetration" id="newMarketYes" class="form-check-input" value="Yes"
+                  {% if form.newMarketPenetration.value == 'Yes' %}checked{% endif %}>
+                <label for="newMarketYes" class="form-check-label">Yes</label>
+              </div>
+              <div class="form-check">
+                <input type="radio" name="newMarketPenetration" id="newMarketNo" class="form-check-input" value="No"
+                  {% if form.newMarketPenetration.value == 'No' %}checked{% endif %}>
+                <label for="newMarketNo" class="form-check-label">No</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center" id="newMarketCountryDiv"
+            style="display: {% if form.newMarketPenetration.value == 'Yes' %}flex{% else %}none{% endif %};">
+            <label class="col-sm-3 col-form-label">Country</label>
+            <div class="col-sm-9">
+              {{ form.newMarketCountry|add_class:"form-control" }}
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Sales Person Performance -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Sales Person Performance</legend>
+      
+         
+
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Deal Owner</label>
+            <div class="col-sm-9">
+              {{ form.dealownerSalesPerson }}
+              {% if form.dealownerSalesPerson.errors %}
+              <div class="text-danger mt-1">
+                {{ form.dealownerSalesPerson.errors.as_text|striptags }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Follow Up</label>
+            <div class="col-sm-9">
+              {{ form.followUpSalesPerson }}
+              {% if form.followUpSalesPerson.errors %}
+              <div class="text-danger mt-1">
+                {{ form.followUpSalesPerson.errors.as_text|striptags }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 1</label>
+            <div class="col-sm-9">
+              {{ form.demo1SalesPerson }}
+              {% if form.demo1SalesPerson.errors %}
+              <div class="text-danger mt-1">
+                {{ form.demo1SalesPerson.errors.as_text|striptags }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 2</label>
+            <div class="col-sm-9">
+              {{ form.demo2SalesPerson }}
+              {% if form.demo2SalesPerson.errors %}
+              <div class="text-danger mt-1">
+                {{ form.demo2SalesPerson.errors.as_text|striptags }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+        </fieldset>
+
+        <!-- Submit Buttons -->
+        <div class="row">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-9">
+            <button type="submit" class="btn btn-custom me-2">Submit</button>
+            <a href="{% url 'deal_list' %}" class="btn btn-danger">Cancel</a>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const marketRadios = document.querySelectorAll('input[name="newMarketPenetration"]');
+  const countryDiv = document.getElementById("newMarketCountryDiv");
+
+  marketRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      countryDiv.style.display = radio.value === "Yes" ? "flex" : "none";
+    });
+  });
+</script>
+{% endblock %}

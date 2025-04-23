@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-bs-theme="light" data-color-theme="Blue_Theme" data-layout="vertical">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>San Incentive</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  
+  <style>
+    #main-wrapper {
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .page-wrapper {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .body-wrapper {
+      flex-grow: 25;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="main-wrapper">
+    {% include 'layouts/sidebar.html' %}
+
+    <div class="page-wrapper">
+      {% include 'layouts/topnavbar.html' %}
+
+      <div class="body-wrapper">
+        <div class="container-fluid mt-100">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dark-transparent sidebartoggler"></div>
+
+  <!-- Scripts -->
+  <script>
+    function handleColorTheme(e) {
+      document.documentElement.setAttribute("data-color-theme", e);
+    }
+  </script>
+
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/vendor.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/libs/simplebar/dist/simplebar.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/theme/app.init.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/theme/theme.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/theme/app.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/theme/sidebarmenu.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/highlights/highlight.min.js"></script>
+
+  <script>
+    hljs.initHighlightingOnLoad();
+    document.querySelectorAll("pre.code-view > code").forEach((codeBlock) => {
+      codeBlock.textContent = codeBlock.innerHTML;
+    });
+  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/libs/owl.carousel/dist/owl.carousel.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/libs/apexcharts/dist/apexcharts.min.js"></script>
+  <script src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/js/dashboards/dashboard.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('.select2').select2({
+        placeholder: "-- Select --",
+        allowClear: true,
+        width: '100%'
+      });
+    });
+  </script>
+  
+</body>
+
+</html>

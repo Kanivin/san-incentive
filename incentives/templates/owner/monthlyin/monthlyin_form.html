@@ -1,0 +1,157 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'monthlyin_list' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-gift  me-1"></i> Monthly Incentives
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-gift me-1"></i> {{ title }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- General Settings -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">General Settings</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Deal Type</label>
+            <div class="col-sm-9">
+              {{ form.deal_type|add_class:"form-control" }}
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Financial Year</label>
+            <div class="col-sm-9">
+              {{ form.financial_year|add_class:"form-control" }}
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Setup Charge Slabs -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Setup Charge Slabs</legend>
+          <div id="setup-slabs">
+            <div class="mb-2 row slab-row">
+              <div class="col"><input type="number" class="form-control" placeholder="Min Amount (₹)"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="Max Amount (₹)"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="% Incentive"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addRow('setup-slabs')">+ Add Slab</button>
+        </fieldset>
+
+        <!-- New Market Penetration -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">New Market Penetration</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Per Deal Incentive (₹)</label>
+            <div class="col-sm-9">
+              <input type="number" name="new_market_value" class="form-control" placeholder="e.g. 20000">
+              <small class="text-muted">Rs. 20000/- per deal for entering new domain (country).</small>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Topper of the Month -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Topper of the Month</legend>
+          <div id="topper-month-slabs">
+            <div class="row mb-2 slab-row">
+              <div class="col"><input type="text" class="form-control" placeholder="Segment"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="Min Subscription (₹)"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="% Incentive"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addRow('topper-month-slabs')">+ Add Slab</button>
+        </fieldset>
+
+        <!-- Single High Value Deals -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Single High Value Deals</legend>
+          <div id="high-value-slabs">
+            <div class="row mb-2 slab-row">
+              <div class="col"><input type="number" class="form-control" placeholder="Min Value (₹)"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="Max Value (₹)"></div>
+              <div class="col"><input type="number" class="form-control" placeholder="% Incentive"></div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addRow('high-value-slabs')">+ Add Slab</button>
+        </fieldset>
+
+        <!-- Deal Bifurcation Rules -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules</legend>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
+            <div class="col-sm-9"><input type="number" class="form-control" placeholder="e.g., 20" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Follow Up %</label>
+            <div class="col-sm-9"><input type="number" class="form-control" placeholder="e.g., 40" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 1 %</label>
+            <div class="col-sm-9"><input type="number" class="form-control" placeholder="e.g., 15" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 2 %</label>
+            <div class="col-sm-9"><input type="number" class="form-control" placeholder="e.g., 25" /></div>
+          </div>
+        </fieldset>
+
+        <!-- Submit Buttons -->
+        <div class="row">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-9">
+            <button type="submit" class="btn btn-custom me-2">Save</button>
+            <a href="{% url 'monthlyin_list' %}" class="btn btn-danger">Cancel</a>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function addRow(sectionId) {
+    const container = document.getElementById(sectionId);
+    const row = document.createElement("div");
+    row.className = "row mb-2 slab-row";
+    row.innerHTML = `
+      <div class="col"><input type="number" class="form-control" placeholder="Min Value (₹)" /></div>
+      <div class="col"><input type="number" class="form-control" placeholder="Max Value (₹)" /></div>
+      <div class="col"><input type="number" class="form-control" placeholder="% Incentive" /></div>
+    `;
+    container.appendChild(row);
+  }
+</script>
+{% endblock %}

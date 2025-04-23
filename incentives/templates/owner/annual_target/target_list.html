@@ -1,0 +1,82 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+       
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-bullseye me-1"></i> Annual Target
+        </li>
+        
+      </ol>
+    </nav>
+  </div>
+</div>
+
+  <h2>Annual Target List</h2>
+  <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+      <thead>
+        <tr>
+          <th>SNo.</th>
+          <th>Employee Name</th>
+          <th>Financial Year</th>
+          <th>Annual Target Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for target in annual_targets %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ target.employee_name }}</td>
+          <td>{{ target.financial_year }}</td>
+          <td>₹{{ target.annual_target_amount }}</td>
+          <td>
+            <a class="btn btn-primary btn-sm me-1" href="{% url 'annual_target_update' target.pk %}">Edit</a>
+            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ target.id }}">
+              Delete
+            </button>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal fade" id="confirmDeleteModal{{ target.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ target.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="post" action="{% url 'annual_target_delete' target.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title" id="confirmDeleteLabel{{ target.id }}">Confirm Delete</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      Are you sure you want to delete <strong>{{ target.employee_name }}</strong>'s target?
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No annual targets found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

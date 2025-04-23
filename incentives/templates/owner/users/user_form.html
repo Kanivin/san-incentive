@@ -1,0 +1,172 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="card mb-4 shadow-sm">
+<div class="card-body py-2 px-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item">
+        <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+          <i class="bi bi-house-door-fill me-1"></i> Home
+        </a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'user_list' %}" class="text-decoration-none text-primary">
+          <i class="bi bi-people-fill me-1"></i> Users
+        </a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        <i class="bi bi-people-fill me-1"></i> {{ title }}
+      </li>
+    </ol>
+  </nav>
+</div>
+</div>
+
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Employee ID<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="text" name="employee_id" class="form-control" value="{{ form.employee_id.value|default:'' }}" required>
+            {% if form.employee_id.errors %}
+            <div class="text-danger mt-1">
+              {{ form.employee_id.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Full Name<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="text" name="fullname" class="form-control" value="{{ form.fullname.value|default:'' }}" required>
+            {% if form.fullname.errors %}
+            <div class="text-danger mt-1">
+              {{ form.fullname.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Username<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="text" name="username" class="form-control" value="{{ form.username.value|default:'' }}" required>
+            {% if form.username.errors %}
+            <div class="text-danger mt-1">
+              {{ form.username.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Email<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="email" name="mail_id" class="form-control" value="{{ form.mail_id.value|default:'' }}" required>
+            {% if form.mail_id.errors %}
+            <div class="text-danger mt-1">
+              {{ form.mail_id.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Phone<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="tel" name="phone" class="form-control" value="{{ form.phone.value|default:'' }}" required>
+            {% if form.phone.errors %}
+            <div class="text-danger mt-1">
+              {{ form.phone.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">User Type<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <select name="user_type" class="form-control" required>
+              <option value="">-- Select User Type --</option>
+              <option value="admin" {% if form.user_type.value == "admin" %}selected{% endif %}>Admin</option>
+              <option value="accounts" {% if form.user_type.value == "accounts" %}selected{% endif %}>Accounts</option>
+              <option value="salesperson" {% if form.user_type.value == "salesperson" %}selected{% endif %}>Salesperson</option>
+            </select>
+            
+            {% if form.user_type.errors %}
+            <div class="text-danger mt-1">
+              {{ form.user_type.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Date of Joining</label>
+          <div class="col-sm-9">
+            <input type="date" name="doj" class="form-control"
+                   value="{{ form.doj.value|date:'Y-m-d'|default:'' }}">
+          </div>
+          {% if form.doj.errors %}
+          <div class="text-danger mt-1">
+            {{ form.doj.errors.as_text|striptags }}
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Password</label>
+          <div class="col-sm-9 position-relative">
+            <input type="password" name="password" class="form-control" id="password">
+            <button type="button" class="btn btn-link position-absolute" id="togglePassword" style="top: 50%; right: 10px; transform: translateY(-50%);">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+            {% if form.password.errors %}
+            <div class="text-danger mt-1">
+              {{ form.password.errors.as_text|striptags }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-sm-3"></div>
+          <div class="col-sm-9">
+            <button type="submit" class="btn btn-custom me-2">Save</button>
+            <a href="{% url 'user_list' %}" class="btn btn-danger">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById("togglePassword").addEventListener("click", function () {
+    const passwordField = document.getElementById("password");
+    const eyeIcon = document.getElementById("eyeIcon");
+
+    if (passwordField.type === "password") {
+      passwordField.type = "text";
+      eyeIcon.classList.remove("fa-eye");
+      eyeIcon.classList.add("fa-eye-slash");
+    } else {
+      passwordField.type = "password";
+      eyeIcon.classList.remove("fa-eye-slash");
+      eyeIcon.classList.add("fa-eye");
+    }
+  });
+</script>
+{% endblock %}

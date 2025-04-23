@@ -1,0 +1,106 @@
+{% load static %}
+<aside class="left-sidebar with-vertical">
+    <div><!-- ---------------------------------- -->
+      <!-- Start Vertical Layout Sidebar -->
+      <!-- ---------------------------------- -->
+      <div class="brand-logo d-flex align-items-center justify-content-between">
+        <a href="{% url 'admin_dashboard' %}" class="text-nowrap logo-img">
+          <img src="https://www.saneforce.com/assets/images/saneforce-logo.svg" class="dark-logo" alt="Logo-Dark" />
+          <img src="https://www.saneforce.com/assets/images/saneforce-logo.svg" class="light-logo" alt="Logo-light" />
+        </a>
+        <a href="javascript:void(0)" class="sidebartoggler ms-auto text-decoration-none fs-5 d-block d-xl-none">
+          <i class="ti ti-x"></i>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav scroll-sidebar" data-simplebar>
+        <ul id="sidebarnav">
+         
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'admin_dashboard' %}" id="get-url" aria-expanded="false">
+              <span>
+                <i class="fas fa-tachometer-alt"></i>
+              </span>
+              <span class="hide-menu">Dashbaord</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'user_list' %}" aria-expanded="false">
+              <span>
+                <i class="fas fa-users"></i>
+              </span>
+              <span class="hide-menu">Users</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'deal_list' %}" aria-expanded="false">
+              <span>
+                <i class="fas fa-handshake"></i>
+              </span>
+              <span class="hide-menu">Deal</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'target_list' %}" aria-expanded="false">
+              <span>
+                <i class="fas fa-bullseye"></i>
+              </span>
+              <span class="hide-menu">Annusl Target</span>
+            </a>
+          </li>
+   
+          <li class="sidebar-item">
+            <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
+              <span class="d-flex">
+                <i class="fas fa-cogs"></i>
+              </span>
+              <span class="hide-menu">Settings</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level">
+              <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Site Settings</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Permission</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="{% url 'monthlyin_list' %}" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Monthly Incentive Setup</span>
+                </a>
+              </li>
+            
+              <li class="sidebar-item">
+                <a href="{% url 'yearlyin_list' %}" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Yearly Incentive Setup</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+     
+
+        </ul>
+      </nav>
+
+   
+      <!-- ---------------------------------- -->
+      <!-- Start Vertical Layout Sidebar -->
+      <!-- ---------------------------------- -->
+    </div>
+  </aside>
