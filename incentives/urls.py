@@ -49,7 +49,17 @@ urlpatterns = [
     path('monthlyin-edit/<int:pk>/', views.monthlyin_update, name='monthlyin_update'),
     path('monthlyin-delete/<int:pk>/', views.monthlyin_delete, name='monthlyin_delete'),
 
+    # Admin Segements Target
+    path('segments/', views.segment_list, name='segment_list'),
+    path('segments/create/', views.segment_create, name='segment_create'),
+    path('segments/edit/<int:pk>/', views.segment_edit, name='segment_edit'),
+    path('segments/delete/<int:pk>/', views.segment_delete, name='segment_delete'),
 
+     # Admin Leadsource Target   
+    path('leadsources/', views.leadsource_list, name='leadsource_list'),
+    path('leadsources/create/', views.leadsource_create, name='leadsource_create'),
+    path('leadsources/edit/<int:pk>/', views.leadsource_edit, name='leadsource_edit'),
+    path('leadsources/delete/<int:pk>/', views.leadsource_delete, name='leadsource_delete'),
     
 ]
 

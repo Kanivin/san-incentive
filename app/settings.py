@@ -122,7 +122,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "app" / "incentives" / "static",  # Adjust if your structure changes
+    BASE_DIR / "static",  # Adjust to your actual static directory
+    "F:/KANIVIN/san-incentive/app/incentives/static",
 ]
 
 LOGIN_REDIRECT_URL = '/dashboard/'

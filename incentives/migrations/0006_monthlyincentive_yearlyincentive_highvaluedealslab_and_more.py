@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='SetupChargeSlab',
+            name='SetupChargeRule',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('min_amount', models.PositiveIntegerField()),
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='TopperMonthSlab',
+            name='TopperMonthRule',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('segment', models.CharField(max_length=50)),

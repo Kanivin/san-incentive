@@ -1,51 +1,111 @@
 from django.db import models
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 
-class SiteSettings(models.Model):
-    theme_color = models.CharField(max_length=7, default="#007bff", help_text="Hex color code for the theme")
+class AuditMixin(models.Model):
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class Role(AuditMixin):
+    name = models.CharField(max_length=50, unique=True)
+    is_selectable = models.BooleanField(default=True)  # Hide 'superadmin' from UI
 
     def __str__(self):
-        return f"Site Settings (Theme Color: {self.theme_color})"
+        return self.name
 
-USER_TYPE_CHOICES = [
-    ('admin', 'Admin'),
-    ('accounts', 'Accounts'),
-    ('salesperson', 'Salesperson'),
-]
 
-class UserProfile(models.Model):
+class Module(AuditMixin):
+    module = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.module
+
+
+class Permission(AuditMixin):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    can_add = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
+    can_view = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('role', 'module')
+
+
+class UserProfile(AuditMixin):
     fullname = models.CharField(max_length=100)
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100)  # Use hashed passwords in production!
     phone = models.CharField(max_length=15)
     mail_id = models.EmailField(unique=True)
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+    password = models.CharField(max_length=100)
+    user_type = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
     doj = models.DateField(verbose_name="Date of Joining")
     employee_id = models.CharField(max_length=50, unique=True)
+    enable_login = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.password.startswith('pbkdf2_'):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.fullname} ({self.user_type})"
     
-class Deal(models.Model):
-    SEGMENT_CHOICES = [
-        ('Pharma', 'Pharma SFA'),
-        ('FMCG', 'FMCG'),
-        ('Payroll', 'Payroll'),
-    ]
 
-    DEAL_TYPE_CHOICES = [
-        ('Domestic', 'Domestic'),
-        ('International', 'International'),
-    ]
+
+class ChangeLog(models.Model):
+    model_name = models.CharField(max_length=255)
+    object_id = models.PositiveBigIntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    change_type = models.CharField(max_length=50)
+    changed_data = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Automatically set content_type if not set but content_object is available
+        if not self.content_type_id and self.content_object:
+            self.content_type = ContentType.objects.get_for_model(self.content_object.__class__)
+        super().save(*args, **kwargs)
+
+
+
+class Segment(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class LeadSource(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Deal(AuditMixin):
+    DEAL_TYPE_CHOICES = [('Domestic', 'Domestic'), ('International', 'International')]
 
     clientName = models.CharField(max_length=255)
-    segment = models.CharField(max_length=255, choices=SEGMENT_CHOICES)
+    segment = models.ForeignKey(Segment, on_delete=models.SET_NULL, null=True, blank=True)
+    leadSource = models.ForeignKey(LeadSource, on_delete=models.SET_NULL, null=True, blank=True)
     dealType = models.CharField(max_length=255, choices=DEAL_TYPE_CHOICES)
     dealWonDate = models.DateField()
     setupCharges = models.DecimalField(max_digits=10, decimal_places=2)
     monthlySubscription = models.DecimalField(max_digits=10, decimal_places=2)
     newMarketPenetration = models.CharField(max_length=3, choices=[('Yes', 'Yes'), ('No', 'No')], default='No')
     newMarketCountry = models.CharField(max_length=255, blank=True, null=True)
+
     dealownerSalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='owner_deals')
     followUpSalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
     demo1SalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='demo1_deals')
@@ -54,51 +114,47 @@ class Deal(models.Model):
     def __str__(self):
         return self.clientName
 
-class AnnualTarget(models.Model):
+
+class AnnualTarget(AuditMixin):
     employee = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     financial_year = models.CharField(max_length=10)
+    net_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     annual_target_amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     def __str__(self):
         return f"{self.employee.fullname} - {self.financial_year}"
-    
-# class YearlyIncentive(models.Model):
-#     # Annual Target Achievement
-#     enable_75_90_achievement = models.BooleanField(default=True)
-#     enable_90_95_achievement = models.BooleanField(default=True)
-#     enable_95_100_achievement = models.BooleanField(default=True)
-#     enable_above100_achievement = models.BooleanField(default=True)
-
-#     # Subscription Incentive (on collection)
-#     enable_8month_achievement = models.BooleanField(default=True)
-#     enable_6month_achievement = models.BooleanField(default=True)
-#     enable_4month_achievement = models.BooleanField(default=True)
-#     enable_0month_achievement = models.BooleanField(default=True)
-
-#     # Best Performer
-#     enable_topper_1 = models.BooleanField(default=True)
-#     enable_topper_2 = models.BooleanField(default=True)
-
-#     # Best Team Leader
-#     enable_leader_1 = models.BooleanField(default=True)
-
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"Yearly Incentive Setup ({self.id})"
-    
 
 
-class RuleSet(models.Model):
+class AnnualTargetIncentive(AuditMixin):
+    financial_year = models.CharField(max_length=50)
+    enable_75_90_achievement = models.BooleanField(default=True)
+    enable_90_95_achievement = models.BooleanField(default=True)
+    enable_95_100_achievement = models.BooleanField(default=True)
+    enable_above100_achievement = models.BooleanField(default=True)
+    enable_8month_achievement = models.BooleanField(default=True)
+    enable_6month_achievement = models.BooleanField(default=True)
+    enable_4month_achievement = models.BooleanField(default=True)
+    enable_0month_achievement = models.BooleanField(default=True)
+    enable_topper_1 = models.BooleanField(default=True)
+    enable_topper_2 = models.BooleanField(default=True)
+    enable_leader_1 = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Annual Incentive Setup ({self.id})"
+
+
+class MonthlyIncentive(AuditMixin):
     DEAL_TYPES = [('domestic', 'Domestic'), ('international', 'International')]
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,blank=True)
     deal_type = models.CharField(max_length=50, choices=DEAL_TYPES)
     financial_year = models.CharField(max_length=50)
     new_market_incentive_fixed = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    lead_source = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
+    deal_owner = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
+    follow_up = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
+    demo_1 = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
+    demo_2 = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
 
     class Meta:
         unique_together = ('deal_type', 'financial_year')
@@ -108,95 +164,31 @@ class RuleSet(models.Model):
         return f"{self.name} - {self.deal_type} ({self.financial_year})"
 
 
-class SetupChargeRule(models.Model):
-    rule_set = models.ForeignKey(RuleSet, on_delete=models.CASCADE, related_name='setup_charge_rules')
-    min_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class SetupChargeRule(AuditMixin):
+    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='setup_charge_rules', null=True)
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
+    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = 'setup_charge_rules'
 
 
-class DealBifurcationRule(models.Model):
-    rule_set = models.OneToOneField(RuleSet, on_delete=models.CASCADE, related_name='deal_bifurcation_rule')
-    deal_owner_lead_pct = models.DecimalField(max_digits=5, decimal_places=2)
-    follow_up_pct = models.DecimalField(max_digits=5, decimal_places=2)
-    demo_1_pct = models.DecimalField(max_digits=5, decimal_places=2)
-    demo_2_pct = models.DecimalField(max_digits=5, decimal_places=2)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class HighValueDealSlab(AuditMixin):
+    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='high_value_slabs', null=True)
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
+    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     class Meta:
-        db_table = 'deal_bifurcation_rules'
+        db_table = 'single_value_rules'
 
 
-class SpecialAwardsRule(models.Model):
-    rule_set = models.OneToOneField(RuleSet, on_delete=models.CASCADE, related_name='special_awards_rule')
-    enable_topper_1 = models.BooleanField()
-    enable_topper_2 = models.BooleanField()
-    enable_team_leader = models.BooleanField()
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'special_awards_rules'
-
-
-class TopperMonthRule(models.Model):
-    rule_set = models.ForeignKey(RuleSet, on_delete=models.CASCADE, related_name='topper_month_rules')
+class TopperMonthRule(AuditMixin):
+    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='topper_month_rules', null=True)
     segment = models.CharField(max_length=100)
-    min_subscription = models.DecimalField(max_digits=10, decimal_places=2)
-    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    min_subscription = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = 'topper_month_rules'
-
-
-class AnnualTargetIncentive(models.Model):
-    rule_set = models.OneToOneField(RuleSet, on_delete=models.CASCADE, related_name='annual_target_incentive')
-    enable_75_90 = models.BooleanField()
-    multiplier_75_90 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    enable_90_95 = models.BooleanField()
-    multiplier_90_95 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    enable_95_100 = models.BooleanField()
-    multiplier_95_100 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    enable_100_plus = models.BooleanField()
-    multiplier_100_plus = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'annual_target_incentives'
-
-
-class SubscriptionIncentive(models.Model):
-    rule_set = models.OneToOneField(RuleSet, on_delete=models.CASCADE, related_name='subscription_incentive')
-    enable_100_plus_annual = models.BooleanField()
-    months_100_plus_annual = models.IntegerField(null=True, blank=True)
-
-    enable_75_99_9_annual = models.BooleanField()
-    months_75_99_9_annual = models.IntegerField(null=True, blank=True)
-
-    enable_50_74_9_annual = models.BooleanField()
-    months_50_74_9_annual = models.IntegerField(null=True, blank=True)
-
-    enable_less_50_annual = models.BooleanField()
-    months_less_50_annual = models.IntegerField(null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = 'subscription_incentives'
-
-
