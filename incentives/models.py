@@ -47,7 +47,7 @@ class UserProfile(AuditMixin):
     phone = models.CharField(max_length=15)
     mail_id = models.EmailField(unique=True)
     password = models.CharField(max_length=100)
-    user_type = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
+    user_type = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True)
     doj = models.DateField(verbose_name="Date of Joining")
     employee_id = models.CharField(max_length=50, unique=True)
     enable_login = models.BooleanField(default=True)
@@ -62,57 +62,57 @@ class UserProfile(AuditMixin):
     
 
 
-class ChangeLog(models.Model):
+class ChangeLog(AuditMixin):
     model_name = models.CharField(max_length=255)
-    object_id = models.PositiveBigIntegerField()
+    object_id = models.CharField(max_length=100)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
     change_type = models.CharField(max_length=50)
     changed_data = models.JSONField(default=dict)
+    new_data = models.JSONField(default=dict, blank=True, null=True)  # <-- Add this line
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # Automatically set content_type if not set but content_object is available
         if not self.content_type_id and self.content_object:
             self.content_type = ContentType.objects.get_for_model(self.content_object.__class__)
         super().save(*args, **kwargs)
 
 
 
-class Segment(models.Model):
+class Segment(AuditMixin):
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
 
 
-class LeadSource(models.Model):
+class LeadSource(AuditMixin):
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
-
 
 class Deal(AuditMixin):
-    DEAL_TYPE_CHOICES = [('Domestic', 'Domestic'), ('International', 'International')]
-
     clientName = models.CharField(max_length=255)
-    segment = models.ForeignKey(Segment, on_delete=models.SET_NULL, null=True, blank=True)
-    leadSource = models.ForeignKey(LeadSource, on_delete=models.SET_NULL, null=True, blank=True)
-    dealType = models.CharField(max_length=255, choices=DEAL_TYPE_CHOICES)
+    segment = models.ForeignKey(Segment, related_name='deal_segment', on_delete=models.CASCADE, null=True, blank=True)
+    dealType = models.CharField(max_length=255)
     dealWonDate = models.DateField()
     setupCharges = models.DecimalField(max_digits=10, decimal_places=2)
     monthlySubscription = models.DecimalField(max_digits=10, decimal_places=2)
-    newMarketPenetration = models.CharField(max_length=3, choices=[('Yes', 'Yes'), ('No', 'No')], default='No')
+    newMarketPenetration = models.CharField(max_length=3, choices=[('Yes', 'Yes'), ('No', 'No')])
     newMarketCountry = models.CharField(max_length=255, blank=True, null=True)
 
-    dealownerSalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='owner_deals')
-    followUpSalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
-    demo1SalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='demo1_deals')
-    demo2SalesPerson = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='demo2_deals')
+    dealownerSalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_owner', on_delete=models.CASCADE, null=True, blank=True)
+    followUpSalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_followup', on_delete=models.CASCADE, null=True, blank=True)
+    demo1SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo1', on_delete=models.CASCADE, null=True, blank=True)
+    demo2SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo2', on_delete=models.CASCADE, null=True, blank=True)
+    
+
+    leadSource = models.ForeignKey(LeadSource, related_name='deals', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.clientName
+
 
 
 class AnnualTarget(AuditMixin):
@@ -127,6 +127,7 @@ class AnnualTarget(AuditMixin):
 
 class AnnualTargetIncentive(AuditMixin):
     financial_year = models.CharField(max_length=50)
+    reduction_period = models.CharField(max_length=50,null=True)
     enable_75_90_achievement = models.BooleanField(default=True)
     enable_90_95_achievement = models.BooleanField(default=True)
     enable_95_100_achievement = models.BooleanField(default=True)
@@ -186,7 +187,7 @@ class HighValueDealSlab(AuditMixin):
 
 class TopperMonthRule(AuditMixin):
     rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='topper_month_rules', null=True)
-    segment = models.CharField(max_length=100)
+    segment = models.ForeignKey(Segment, related_name='top_segment', on_delete=models.CASCADE, null=True, blank=True)
     min_subscription = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 

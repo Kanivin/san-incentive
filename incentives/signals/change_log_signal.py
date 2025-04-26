@@ -14,13 +14,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 EXCLUDED_MODELS = ['ChangeLog','Role','Module','Permission','UserProfile','Segment','LeadSource']  # prevent recursion
 
 def clean_dict(data):
+    clean = {}
     for key, value in data.items():
-        if isinstance(value, datetime):  # datetime class should be used here, not the module
-            if is_naive(value):
-                data[key] = value.isoformat()
-            else:
-                data[key] = make_naive(value).isoformat()
-    return data
+        if isinstance(value, datetime):
+            clean[key] = value.isoformat()  # Convert datetime to ISO 8601 string
+        else:
+            clean[key] = value
+    return clean
 
 def log_change(instance, action):
     # Prepare change data and serialize datetime properly
@@ -40,12 +40,12 @@ def log_change(instance, action):
     # Log the change
     ChangeLog.objects.create(
         model_name=instance.__class__.__name__,
-        object_id=instance.pk,
-        new_data=clean_dict(model_to_dict(instance)),
+        object_id=str(instance.pk),
+        content_object=instance,
         change_type=action,
-        changed_data=data
-    )
-
+        changed_data=clean_dict(data),
+        new_data=clean_dict(model_to_dict(instance))        
+        )
 @receiver(post_save)
 def auto_log_save(sender, instance, created, **kwargs):
     # Skip during migrate or makemigrations

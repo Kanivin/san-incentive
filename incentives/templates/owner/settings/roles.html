@@ -1,0 +1,101 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+
+<!-- Breadcrumb and Top Card -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-shield-lock-fill me-1"></i> Roles
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<!-- Form Section -->
+<div class="col-lg-12 mb-4">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{{ form.instance.id|default:'' }}">
+        <input type="hidden" name="is_selectable" value="{{ form.is_selectable.value|default:'True' }}">
+        
+        <div class="mb-3 row align-items-center">
+          <label class="col-sm-3 col-form-label">Role Name<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="text" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+            {% if form.name.errors %}
+            <div class="text-danger mt-1">{{ form.name.errors.as_text|striptags }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary">{{ button_label }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Table Section -->
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">Role List</h4>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead>
+            <tr>
+              <th>SNo.</th>
+              <th>Role Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for role in roles %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ role.name }}</td>
+              <td>
+                <!-- Edit button: reloads same page with edit id -->
+                <a class="btn btn-primary btn-sm me-1" href="?edit={{ role.id }}">Edit</a>
+
+                <!-- Delete button: submits a hidden form -->
+                <form method="post" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="delete_id" value="{{ role.id }}">
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this role?')">Delete</button>
+                </form>
+
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="text-center">No roles found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

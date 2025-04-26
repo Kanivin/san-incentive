@@ -1,0 +1,71 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h4 class="card-title mb-4">Role Permission Management</h4>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+          <thead class="table-light">
+            <tr>
+              <th>Role \ Module</th>
+              {% for module in modules %}
+              <th>{{ module.module }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for role in roles %}
+            <tr>
+              <td class="text-start fw-bold">{{ role.name }}</td>
+              {% for module in modules %}
+              <td>
+                {% with perms=permission_matrix|get_item:role.id|get_item:module.id %}
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="permissions_{{ role.id }}_{{ module.id }}_add"
+                      {% if perms and perms.can_add %}checked{% endif %}>
+                    <label class="form-check-label small">Add</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="permissions_{{ role.id }}_{{ module.id }}_edit"
+                      {% if perms and perms.can_edit %}checked{% endif %}>
+                    <label class="form-check-label small">Edit</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="permissions_{{ role.id }}_{{ module.id }}_delete"
+                      {% if perms and perms.can_delete %}checked{% endif %}>
+                    <label class="form-check-label small">Delete</label>
+                  </div>
+
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="permissions_{{ role.id }}_{{ module.id }}_view"
+                      {% if perms and perms.can_view %}checked{% endif %}>
+                    <label class="form-check-label small">View</label>
+                  </div>
+                {% endwith %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-end mt-3">
+        <button type="submit" class="btn btn-custom">Save Permissions</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -31,7 +31,7 @@
           <th>S.No</th>
           <th>Employee ID</th>
           <th>Name</th>
-          <th>Username</th>
+          <th>Mail</th>
           <th>Type</th>
           <th>Email</th>
           <th>Actions</th>
@@ -43,8 +43,8 @@
           <td>{{ forloop.counter }}</td> <!-- Serial Number -->
           <td>{{ user.employee_id }}</td> <!-- Employee ID -->
           <td>{{ user.fullname }}</td>
-          <td>{{ user.username }}</td>
-          <td>{{ user.get_user_type_display }}</td>
+          <td>{{ user.mail_id }}</td>
+          <td>{{ user.user_type.name }}</td>
           <td>{{ user.mail_id }}</td>
           <td>
             <a class="btn btn-primary btn-sm me-1" href="{% url 'user_edit' user.pk %}">Edit</a>

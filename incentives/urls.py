@@ -16,6 +16,7 @@ urlpatterns = [
 
     # Dashboards
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('superadmin-dashboard/', views.admin_dashboard, name='superadmin_dashboard'),
     path('accounts-dashboard/', views.accounts_dashboard, name='accounts_dashboard'),
     path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
 
@@ -50,16 +51,24 @@ urlpatterns = [
     path('monthlyin-delete/<int:pk>/', views.monthlyin_delete, name='monthlyin_delete'),
 
     # Admin Segements Target
-    path('segments/', views.segment_list, name='segment_list'),
-    path('segments/create/', views.segment_create, name='segment_create'),
-    path('segments/edit/<int:pk>/', views.segment_edit, name='segment_edit'),
-    path('segments/delete/<int:pk>/', views.segment_delete, name='segment_delete'),
+    path('segments/', views.segment, name='segment'),
+
 
      # Admin Leadsource Target   
-    path('leadsources/', views.leadsource_list, name='leadsource_list'),
-    path('leadsources/create/', views.leadsource_create, name='leadsource_create'),
-    path('leadsources/edit/<int:pk>/', views.leadsource_edit, name='leadsource_edit'),
-    path('leadsources/delete/<int:pk>/', views.leadsource_delete, name='leadsource_delete'),
+    path('leadsources/', views.leadsource, name='leadsource'),
+
+    
+     # Admin Leadsource Target   
+    path('module/', views.module, name='module'),
+    path('module/<int:pk>/', views.module, name='module_edit'),
+
+    
+     # Admin Leadsource Target   
+    path('roles/', views.roles, name='roles'),
+
+    
+     # Admin Leadsource Target   
+    path('permission/', views.permission, name='permission'),
     
 ]
 

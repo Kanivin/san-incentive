@@ -18,7 +18,7 @@ for name, selectable in roles.items():
 
 
 # Create modules
-modules = ['Users', 'Deals', 'Incentives', 'Reports', 'Settings']
+modules = ['Users', 'Deals', 'Annual Tragets', 'Roles', 'Site Settings', 'Permissions','Lead Sources','Segments','Modules','Monthly Incentive Setup','Yearly Incentive Setup']
 for mod in modules:
     Module.objects.get_or_create(module=mod)
     
