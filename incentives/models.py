@@ -93,9 +93,21 @@ class LeadSource(AuditMixin):
         return self.name
 
 class Deal(AuditMixin):
+    DOMESTIC = 'domestic'
+    INTERNATIONAL = 'international'
+
+    DEAL_TYPE_CHOICES = [
+        (DOMESTIC, 'Domestic'),
+        (INTERNATIONAL, 'International'),
+    ]
+    
     clientName = models.CharField(max_length=255)
     segment = models.ForeignKey(Segment, related_name='deal_segment', on_delete=models.CASCADE, null=True, blank=True)
-    dealType = models.CharField(max_length=255)
+    dealType = models.CharField(
+        max_length=15,
+        choices=DEAL_TYPE_CHOICES,
+        default=DOMESTIC,  # or any default you prefer
+    )
     dealWonDate = models.DateField()
     setupCharges = models.DecimalField(max_digits=10, decimal_places=2)
     monthlySubscription = models.DecimalField(max_digits=10, decimal_places=2)

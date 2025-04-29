@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import ModelForm
+from decimal import Decimal
+
 from .models import (
     UserProfile, Deal, AnnualTarget, AnnualTargetIncentive, MonthlyIncentive,
     SetupChargeRule, HighValueDealSlab, TopperMonthRule, Role, LeadSource, Segment, Module
@@ -23,7 +25,8 @@ class UserProfileForm(forms.ModelForm):
             raise forms.ValidationError("This email is already in use.")
         return mail_id
 
-class DealForm(ModelForm):
+
+class DealForm(forms.ModelForm):
     class Meta:
         model = Deal
         fields = [
@@ -36,27 +39,67 @@ class DealForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Get only 'salesperson' and 'saleshead' users for the dropdowns
         super().__init__(*args, **kwargs)
-        self.fields['dealownerSalesPerson'].queryset = UserProfile.objects.filter(user_type__in=['salesperson', 'saleshead'])
-        self.fields['followUpSalesPerson'].queryset = UserProfile.objects.filter(user_type__in=['salesperson', 'saleshead'])
-        self.fields['demo1SalesPerson'].queryset = UserProfile.objects.filter(user_type__in=['salesperson', 'saleshead'])
-        self.fields['demo2SalesPerson'].queryset = UserProfile.objects.filter(user_type__in=['salesperson', 'saleshead'])
+
+        # Filter user profiles for salesperson and saleshead only
+        user_types = ['salesperson', 'saleshead']
+        salesperson_queryset = UserProfile.objects.filter(user_type__name__in=user_types)
+        self.fields['dealownerSalesPerson'].queryset = salesperson_queryset
+        self.fields['followUpSalesPerson'].queryset = salesperson_queryset
+        self.fields['demo1SalesPerson'].queryset = salesperson_queryset
+        self.fields['demo2SalesPerson'].queryset = salesperson_queryset
+
+        # Important: Initially make 'newMarketPenetration' not required
+        self.fields['newMarketPenetration'].required = False
+        self.fields['newMarketCountry'].required = False
 
     def clean_clientName(self):
         client_name = self.cleaned_data.get('clientName')
-        if Deal.objects.filter(clientName=client_name).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("This deal already exists.")
+        if Deal.objects.filter(clientName=client_name).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("A deal with this client name already exists.")
         return client_name
 
+    def clean(self):
+        cleaned_data = super().clean()
+        deal_type = cleaned_data.get('dealType')
+        new_market_penetration = cleaned_data.get('newMarketPenetration')
+        new_market_country = cleaned_data.get('newMarketCountry')
 
-class AnnualTargetForm(ModelForm):
+        # Only if dealType is 'international', then newMarketPenetration is required
+        if deal_type and deal_type.lower() == 'international':
+            if not new_market_penetration:
+                self.add_error('newMarketPenetration', 'This field is required for International deals.')
+
+            # If "newMarketPenetration" is "Yes", then newMarketCountry must also be filled
+            if new_market_penetration == 'yes' and not new_market_country:
+                self.add_error('newMarketCountry', 'Please specify the new market country.')
+
+        return cleaned_data
+       
+class AnnualTargetForm(forms.ModelForm):
     class Meta:
         model = AnnualTarget
         fields = ['employee', 'financial_year', 'net_salary', 'annual_target_amount']
         widgets = {
             'annual_target_amount': forms.NumberInput(attrs={'min': 0}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Adjust the employee queryset for selecting only specific user types
+        self.fields['employee'].queryset = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
+
+    def clean_annual_target_amount(self):
+        annual_target_amount = self.cleaned_data['annual_target_amount']
+        if isinstance(annual_target_amount, Decimal):
+            return float(annual_target_amount)  # Convert Decimal to float
+        return annual_target_amount
+
+    def clean_net_salary(self):
+        net_salary = self.cleaned_data['net_salary']
+        if isinstance(net_salary, Decimal):
+            return float(net_salary)  # Convert Decimal to float
+        return net_salary
 
     def clean_annual_target_amount(self):
         amount = self.cleaned_data.get('annual_target_amount')

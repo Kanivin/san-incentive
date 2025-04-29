@@ -21,7 +21,6 @@
         <li class="breadcrumb-item active" aria-current="page">
           <i class="bi bi-bullseye me-1"></i> {{ title }}
         </li>
-        
       </ol>
     </nav>
   </div>
@@ -35,72 +34,68 @@
       <form method="post" novalidate>
         {% csrf_token %}
 
-      <legend class="mb-3">Employee and Year</legend>
-      <div class="mb-3 row align-items-center">
-        <label for="employee" class="col-sm-3 col-form-label">Employee Name<span class="mandy">*</span></label>
-        <div class="col-sm-9">
-          <select name="employee" id="employee" class="form-control select2" required>
-            <option value="">-- Select Employee --</option>
-            {% for emp in employees %}
-              <option value="{{ emp.id }}">{{ emp.fullname }}</option>
-            {% endfor %}
-          </select>
-          {% if form.employee.errors %}
-            <div class="text-danger mt-1">
-              {{ form.employee.errors.as_text|striptags }}
-            </div>
-          {% endif %}
+        <legend class="mb-3">Employee and Year</legend>
+        <div class="mb-3 row align-items-center">
+          <label for="employee" class="col-sm-3 col-form-label">Employee Name<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <select name="employee" class="form-select" required>
+              {% for user in users %}
+                <option value="{{ user.id }}" {% if employee == user.id %}selected{% endif %}>
+                  {{ user.fullname }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if form.employee.errors %}
+              <div class="text-danger mt-1">
+                {{ form.employee.errors.as_text|striptags }}
+              </div>
+            {% endif %}
+          </div>
         </div>
-      </div>
- 
-      {% load custom_filters %}
 
-      <div class="mb-3 row align-items-center">
-        <label for="financial_year" class="col-sm-3 col-form-label">Financial Year<span class="mandy">*</span></label>
-        <div class="col-sm-9">
-          <select name="financial_year" id="financial_year" class="form-control select2" required>
-            <option value="">-- Select Year --</option>
-            {% for year in financial_years %}
-              <option value="{{ year }}">{{ year }}</option>
-            {% endfor %}
-          </select>
-          {% if form.financial_years.errors %}
-          <div class="text-danger mt-1">
-            {{ form.financial_years.errors.as_text|striptags }}
+        {% load custom_filters %}
+
+        <div class="mb-3 row align-items-center">
+          <label for="financial_year" class="col-sm-3 col-form-label">Financial Year<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <select name="financial_year" id="financial_year" class="form-control select2" required>
+              <option value="">-- Select Year --</option>
+              {% for year in financial_years %}
+                <option value="{{ year }}">{{ year }}</option>
+              {% endfor %}
+            </select>
+            {% if form.financial_year.errors %}
+              <div class="text-danger mt-1">
+                {{ form.financial_year.errors.as_text|striptags }}
+              </div>
+            {% endif %}
           </div>
-        {% endif %}
         </div>
-      </div>
-      
-      
-  
-      <div class="mb-3 row align-items-center">
-        <label for="annual_target_amount" class="col-sm-3 col-form-label">Annual Target Amount<span class="mandy">*</span></label>
-        <div class="col-sm-9">
-          <input type="number" id="annual_target_amount" name="annual_target_amount" min="0" step="0.01" class="form-control" placeholder="Enter amount in Rs." value="{{ form.annual_target_amount.value|default:'' }}" required>
-          <small class="form-text text-muted">This is the target amount, not the achievement percentage.</small>
-          {% if form.annual_target_amount.errors %}
-          <div class="text-danger mt-1">
-            {{ form.annual_target_amount.errors.as_text|striptags }}
+
+        <div class="mb-3 row align-items-center">
+          <label for="annual_target_amount" class="col-sm-3 col-form-label">Annual Target Amount<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="number" id="annual_target_amount" name="annual_target_amount" min="0" step="0.01" class="form-control" placeholder="Enter amount in Rs." value="{{ form.annual_target_amount.value|default:'' }}" required>
+            <small class="form-text text-muted">This is the target amount, not the achievement percentage.</small>
+            {% if form.annual_target_amount.errors %}
+              <div class="text-danger mt-1">
+                {{ form.annual_target_amount.errors.as_text|striptags }}
+              </div>
+            {% endif %}
           </div>
-        {% endif %}
         </div>
-      </div>
-    </fieldset>
-  
-  
-    <div class="mb-3 row align-items-center">
-      <label for="net_salary" class="col-sm-3 col-form-label">Net Salary<span class="mandy">*</span></label>
-      <div class="col-sm-9">
-        <input type="number" id="net_salary" name="net_salary" min="0" step="0.01" class="form-control" placeholder="Enter amount in Rs." value="{{ form.net_salary.value|default:'' }}" required>
-        {% if form.net_salary.errors %}
-        <div class="text-danger mt-1">
-          {{ form.net_salary.errors.as_text|striptags }}
+
+        <div class="mb-3 row align-items-center">
+          <label for="net_salary" class="col-sm-3 col-form-label">Net Salary<span class="mandy">*</span></label>
+          <div class="col-sm-9">
+            <input type="number" id="net_salary" name="net_salary" min="0" step="0.01" class="form-control" placeholder="Enter amount in Rs." value="{{ form.net_salary.value|default:'' }}" required>
+            {% if form.net_salary.errors %}
+              <div class="text-danger mt-1">
+                {{ form.net_salary.errors.as_text|striptags }}
+              </div>
+            {% endif %}
+          </div>
         </div>
-      {% endif %}
-      </div>
-    </div>
-  </fieldset>
 
         <!-- Submit Buttons -->
         <div class="row">
@@ -110,9 +105,9 @@
             <a href="{% url 'target_list' %}" class="btn btn-danger">Cancel</a>
           </div>
         </div>
-  </form>
-</div>
-</div>
+      </form>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

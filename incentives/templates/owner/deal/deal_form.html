@@ -3,7 +3,6 @@
 {% load form_filters %}
 
 {% block content %}
-
 <div class="card mb-4 shadow-sm">
   <div class="card-body py-2 px-3">
     <nav aria-label="breadcrumb">
@@ -38,13 +37,12 @@
         <!-- Client Information -->
         <fieldset class="border p-3 mb-4">
           <legend class="float-none w-auto px-3">Client Information</legend>
-
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Client Name<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <input type="text" name="clientName" class="form-control" value="{{ form.clientName.value|default:'' }}" required>
               {% if form.clientName.errors %}
-              <div class="text-danger mt-1">{{ form.clientName.errors.as_text|striptags }}</div>
+                <div class="text-danger mt-1">{{ form.clientName.errors.as_text|striptags }}</div>
               {% endif %}
             </div>
           </div>
@@ -54,7 +52,7 @@
             <div class="col-sm-9">
               {{ form.segment|add_class:"form-control" }}
               {% if form.segment.errors %}
-              <div class="text-danger mt-1">{{ form.segment.errors.as_text|striptags }}</div>
+                <div class="text-danger mt-1">{{ form.segment.errors.as_text|striptags }}</div>
               {% endif %}
             </div>
           </div>
@@ -63,13 +61,21 @@
         <!-- Deal Information -->
         <fieldset class="border p-3 mb-4">
           <legend class="float-none w-auto px-3">Deal Information</legend>
-
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Deal Type</label>
             <div class="col-sm-9">
-              {{ form.dealType|add_class:"form-control" }}
+              <select name="dealType" id="dealType" class="form-control" required>
+                <option value="">Select Deal Type</option>
+                {% for choice in form.fields.dealType.choices %}
+                  <option value="{{ choice.0 }}" {% if form.dealType.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                {% endfor %}
+              </select>
+              {% if form.dealType.errors %}
+                <div class="text-danger mt-1">{{ form.dealType.errors.as_text|striptags }}</div>
+              {% endif %}
             </div>
           </div>
+          
 
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Deal Won Date</label>
@@ -92,10 +98,9 @@
             </div>
           </div>
 
-          <div id="newMarketPenetrationFieldset" style="display: {% if form.dealType.value == 'International' %}block{% else %}none{% endif %};">
+          <div id="newMarketPenetrationFieldset" style="display: none;">
             <fieldset class="border p-3 mb-4">
               <legend class="float-none w-auto px-3">New Market Penetration</legend>
-          
               <div class="mb-3 row align-items-center">
                 <label class="col-sm-3 col-form-label">New Market Penetration?</label>
                 <div class="col-sm-9 d-flex align-items-center">
@@ -122,92 +127,92 @@
             </fieldset>
           </div>
 
-  <!-- Sales Person Performance -->
-  <fieldset class="border p-3 mb-4">
-    <legend class="float-none w-auto px-3">Sales Person Performance</legend>
-  
-    <!-- Deal Owner -->
-  <div class="mb-4 row align-items-center">
-    <label class="form-label col-sm-3 col-form-label">Deal Owner</label>
-    <div class="col-sm-9">
-      <select name="dealownerSalesPerson" class="form-select" required>
-        <option value="">Select Deal Owner</option>
-        {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_dealowner == user.id %}selected{% endif %}>
-            {{ user.fullname }}
-          </option>
-        {% endfor %}
-      </select>
-      {% if form.dealownerSalesPerson.errors %}
-        <div class="text-danger mt-1">
-          {{ form.dealownerSalesPerson.errors.as_text|striptags }}
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Follow Up -->
-  <div class="mb-4 row align-items-center">
-    <label class="form-label col-sm-3 col-form-label">Follow Up</label>
-    <div class="col-sm-9">
-      <select name="followUpSalesPerson" class="form-select" required>
-        <option value="">Select Follow Up Person</option>
-        {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_followup == user.id %}selected{% endif %}>
-            {{ user.fullname }}
-          </option>
-        {% endfor %}
-      </select>
-      {% if form.followUpSalesPerson.errors %}
-        <div class="text-danger mt-1">
-          {{ form.followUpSalesPerson.errors.as_text|striptags }}
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Demo 1 -->
-  <div class="mb-4 row align-items-center">
-    <label class="form-label col-sm-3 col-form-label">Demo 1</label>
-    <div class="col-sm-9">
-      <select name="demo1SalesPerson" class="form-select" required>
-        <option value="">Select Demo 1 Person</option>
-        {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_demo1 == user.id %}selected{% endif %}>
-            {{ user.fullname }}
-          </option>
-        {% endfor %}
-      </select>
-      {% if form.demo1SalesPerson.errors %}
-        <div class="text-danger mt-1">
-          {{ form.demo1SalesPerson.errors.as_text|striptags }}
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Demo 2 -->
-  <div class="mb-4 row align-items-center">
-    <label class="form-label col-sm-3 col-form-label">Demo 2</label>
-    <div class="col-sm-9">
-      <select name="demo2SalesPerson" class="form-select" required>
-        <option value="">Select Demo 2 Person</option>
-        {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_demo2 == user.id %}selected{% endif %}>
-            {{ user.fullname }}
-          </option>
-        {% endfor %}
-      </select>
-      {% if form.demo2SalesPerson.errors %}
-        <div class="text-danger mt-1">
-          {{ form.demo2SalesPerson.errors.as_text|striptags }}
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-</fieldset>
+        </fieldset>
 
+        <!-- Sales Person Performance -->
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Sales Person Performance</legend>
+
+          <!-- Deal Owner -->
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Deal Owner</label>
+            <div class="col-sm-9">
+              <select name="dealownerSalesPerson" class="form-select" required>
+                <option value="">Select Deal Owner</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if form.dealownerSalesPerson.value == user.id %}selected{% endif %}>
+                    {{ user.fullname }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.dealownerSalesPerson.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.dealownerSalesPerson.errors.as_text|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Follow Up -->
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Follow Up</label>
+            <div class="col-sm-9">
+              <select name="followUpSalesPerson" class="form-select" required>
+                <option value="">Select Follow Up Person</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if form.followUpSalesPerson.value == user.id %}selected{% endif %}>
+                    {{ user.fullname }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.followUpSalesPerson.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.followUpSalesPerson.errors.as_text|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Demo 1 -->
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 1</label>
+            <div class="col-sm-9">
+              <select name="demo1SalesPerson" class="form-select" required>
+                <option value="">Select Demo 1 Person</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if form.demo1SalesPerson.value == user.id %}selected{% endif %}>
+                    {{ user.fullname }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.demo1SalesPerson.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.demo1SalesPerson.errors.as_text|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Demo 2 -->
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 2</label>
+            <div class="col-sm-9">
+              <select name="demo2SalesPerson" class="form-select" required>
+                <option value="">Select Demo 2 Person</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if form.demo2SalesPerson.value == user.id %}selected{% endif %}>
+                    {{ user.fullname }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.demo2SalesPerson.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.demo2SalesPerson.errors.as_text|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </fieldset>
 
         <!-- Submit Buttons -->
         <div class="row">
@@ -217,38 +222,31 @@
             <a href="{% url 'deal_list' %}" class="btn btn-danger">Cancel</a>
           </div>
         </div>
-
       </form>
     </div>
   </div>
 </div>
 
 <script>
-  const marketRadios = document.querySelectorAll('input[name="newMarketPenetration"]');
-  const countryDiv = document.getElementById("newMarketCountryDiv");
+document.addEventListener('DOMContentLoaded', function() {
+    const dealTypeSelect = document.getElementById("dealType");
+    const newMarketPenetrationFieldset = document.getElementById("newMarketPenetrationFieldset");
 
-  marketRadios.forEach(radio => {
-    radio.addEventListener("change", () => {
-      countryDiv.style.display = radio.value === "Yes" ? "flex" : "none";
+    function toggleNewMarketPenetration() {
+        if (dealTypeSelect.value.toLowerCase() === "international") {
+            newMarketPenetrationFieldset.style.display = "block";
+        } else {
+            newMarketPenetrationFieldset.style.display = "none";
+        }
+    }
+
+    // Run on page load
+    toggleNewMarketPenetration();
+
+    // Trigger on both click and change
+    ['click', 'change'].forEach(event => {
+        dealTypeSelect.addEventListener(event, toggleNewMarketPenetration);
     });
-  });
-
-  const dealTypeSelect = document.getElementById("id_dealType"); // Django will generate id="id_dealType" for form.dealType
-const newMarketPenetrationFieldset = document.getElementById("newMarketPenetrationFieldset");
-
-function toggleNewMarketPenetration() {
-  if (dealTypeSelect.value === "International") {
-    newMarketPenetrationFieldset.style.display = "block";
-  } else {
-    newMarketPenetrationFieldset.style.display = "none";
-  }
-}
-
-// Run it once on page load
-toggleNewMarketPenetration();
-
-// Also run when dealType changes
-dealTypeSelect.addEventListener("change", toggleNewMarketPenetration);
-
+});
 </script>
 {% endblock %}
