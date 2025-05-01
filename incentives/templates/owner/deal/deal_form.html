@@ -226,27 +226,44 @@
     </div>
   </div>
 </div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dealTypeSelect = document.getElementById("dealType");
-    const newMarketPenetrationFieldset = document.getElementById("newMarketPenetrationFieldset");
-
-    function toggleNewMarketPenetration() {
-        if (dealTypeSelect.value.toLowerCase() === "international") {
-            newMarketPenetrationFieldset.style.display = "block";
-        } else {
-            newMarketPenetrationFieldset.style.display = "none";
-        }
-    }
-
-    // Run on page load
-    toggleNewMarketPenetration();
-
-    // Trigger on both click and change
-    ['click', 'change'].forEach(event => {
-        dealTypeSelect.addEventListener(event, toggleNewMarketPenetration);
-    });
-});
-</script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const dealTypeSelect = document.getElementById("dealType");
+      const newMarketPenetrationFieldset = document.getElementById("newMarketPenetrationFieldset");
+      const newMarketCountryDiv = document.getElementById("newMarketCountryDiv");
+      const newMarketYes = document.getElementById("newMarketYes");
+      const newMarketNo = document.getElementById("newMarketNo");
+  
+      function toggleNewMarketFieldset() {
+          if (dealTypeSelect.value.toLowerCase() === "international") {
+              newMarketPenetrationFieldset.style.display = "block";
+          } else {
+              newMarketPenetrationFieldset.style.display = "none";
+          }
+      }
+  
+      function toggleNewMarketCountry() {
+          if (newMarketYes.checked) {
+              newMarketCountryDiv.style.display = "flex";
+          } else {
+              newMarketCountryDiv.style.display = "none";
+          }
+      }
+  
+      // Initial load
+      toggleNewMarketFieldset();
+      toggleNewMarketCountry();
+  
+      // Deal type change
+      dealTypeSelect.addEventListener('change', function () {
+          toggleNewMarketFieldset();
+      });
+  
+      // New Market Penetration radio change
+      [newMarketYes, newMarketNo].forEach(radio => {
+          radio.addEventListener('change', toggleNewMarketCountry);
+      });
+  });
+  </script>
+  
 {% endblock %}

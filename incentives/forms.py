@@ -49,13 +49,13 @@ class DealForm(forms.ModelForm):
         self.fields['demo1SalesPerson'].queryset = salesperson_queryset
         self.fields['demo2SalesPerson'].queryset = salesperson_queryset
 
-        # Important: Initially make 'newMarketPenetration' not required
+        # Initially make these fields not required
         self.fields['newMarketPenetration'].required = False
         self.fields['newMarketCountry'].required = False
 
     def clean_clientName(self):
         client_name = self.cleaned_data.get('clientName')
-        if Deal.objects.filter(clientName=client_name).exclude(id=self.instance.id).exists():
+        if client_name and Deal.objects.filter(clientName=client_name).exclude(id=self.instance.id).exists():
             raise forms.ValidationError("A deal with this client name already exists.")
         return client_name
 
@@ -65,13 +65,16 @@ class DealForm(forms.ModelForm):
         new_market_penetration = cleaned_data.get('newMarketPenetration')
         new_market_country = cleaned_data.get('newMarketCountry')
 
-        # Only if dealType is 'international', then newMarketPenetration is required
-        if deal_type and deal_type.lower() == 'international':
+        # Normalize strings
+        deal_type = deal_type.lower().strip() if deal_type else ''
+        penetration_value = new_market_penetration.lower().strip() if new_market_penetration else ''
+
+        # Apply conditional validation
+        if deal_type == 'international':
             if not new_market_penetration:
                 self.add_error('newMarketPenetration', 'This field is required for International deals.')
 
-            # If "newMarketPenetration" is "Yes", then newMarketCountry must also be filled
-            if new_market_penetration == 'yes' and not new_market_country:
+            if penetration_value == 'yes' and not new_market_country:
                 self.add_error('newMarketCountry', 'Please specify the new market country.')
 
         return cleaned_data
@@ -82,12 +85,15 @@ class AnnualTargetForm(forms.ModelForm):
         fields = ['employee', 'financial_year', 'net_salary', 'annual_target_amount']
         widgets = {
             'annual_target_amount': forms.NumberInput(attrs={'min': 0}),
+            'net_salary': forms.NumberInput(attrs={'min': 0}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Adjust the employee queryset for selecting only specific user types
         self.fields['employee'].queryset = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
+   
+        self.fields['employee'].empty_label = "Select Employee"
+        self.fields['financial_year'].empty_label = "-- Select Year --"
 
     def clean_annual_target_amount(self):
         annual_target_amount = self.cleaned_data['annual_target_amount']

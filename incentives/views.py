@@ -8,6 +8,7 @@ from .forms import UserProfileForm,LeadSourceForm, SegmentForm,DealForm, AnnualT
 from django.forms import modelformset_factory
 from decimal import Decimal
 import json
+from django.db.models import Count
 # ---------- Authentication Views ----------
 
 def login_view(request):
@@ -112,56 +113,73 @@ def user_delete(request, pk):
 
 
 # ---------- Deal Management Views ----------
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import DealForm
+from .models import Deal, UserProfile
+from pprint import pprint
 
 def deal_list(request):
     deals = Deal.objects.all()
+
+    # Manually convert date fields to string to avoid JSON serialization errors
+    for deal in deals:
+        if deal.dealWonDate:
+            deal.dealWonDate = deal.dealWonDate.isoformat()  # Convert to string (iso format)
+
     return render(request, 'owner/deal/deal_list.html', {'deals': deals})
 
 def deal_create(request):
-    # Fetch the users that are either salesperson or saleshead
+    # Fetch users with user_type 'salesperson' or 'saleshead'
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
 
     if request.method == 'POST':
         form = DealForm(request.POST)
-        
+
         if form.is_valid():
-            # Save the form data, which includes saving the foreign keys
             deal = form.save(commit=False)
-            
-            # Manually handle the foreign keys if necessary
-            # deal.dealownerSalesPerson = UserProfile.objects.get(id=form.cleaned_data['dealownerSalesPerson'].id)
-            # deal.followUpSalesPerson = UserProfile.objects.get(id=form.cleaned_data['followUpSalesPerson'].id)
-            # deal.demo1SalesPerson = UserProfile.objects.get(id=form.cleaned_data['demo1SalesPerson'].id)
-            # deal.demo2SalesPerson = UserProfile.objects.get(id=form.cleaned_data['demo2SalesPerson'].id)
-            
-            # Save the deal after setting the foreign keys
+
+            # Save the deal instance
             deal.save()
-            
-            return redirect('deal_list')  # Redirect to the deal list after successful form submission
+            return redirect('deal_list')  # Success: redirect to deal list
         else:
-            # In case of form validation errors, print or log the form errors for debugging
-            print(form.errors)
+            # For safe debugging without JSON serialization issues
+            pprint(form.errors)
+            # You can also safely view cleaned_data as a dict:
+            # pprint({k: str(v) if isinstance(v, date) else v for k, v in form.cleaned_data.items()})
+
     else:
-        # Initialize the form on a GET request
         form = DealForm()
 
     return render(request, 'owner/deal/deal_form.html', {
         'form': form,
-        'action': 'Create',  # Indicate this is a 'Create' action
-        'title': 'Create Deal',  # Page title
-        'users': users,  # Pass users to the template for the dropdown options
+        'action': 'Create',
+        'title': 'Create Deal',
+        'users': users,
     })
 
 def deal_update(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
+
+    # Fetch the users that are either salesperson or saleshead
+    users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
+
     if request.method == 'POST':
         form = DealForm(request.POST, instance=deal)
         if form.is_valid():
             form.save()
             return redirect('deal_list')
+        else:
+            print(form.errors)  # Optional: Debugging form errors
     else:
         form = DealForm(instance=deal)
-    return render(request, 'owner/deal/deal_form.html', {'form': form, 'action': 'Update', 'deal': deal, 'title': 'Update Deal'})
+
+    return render(request, 'owner/deal/deal_form.html', {
+        'form': form,
+        'action': 'Update',
+        'title': 'Update Deal',
+        'deal': deal,
+        'users': users,  # Pass users to populate dropdowns
+    })
 
 def deal_delete(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
@@ -170,14 +188,26 @@ def deal_delete(request, pk):
         return redirect('deal_list')
     return render(request, 'owner/deal/deal_confirm_delete.html', {'deal': deal})
 
-
 # ---------- Annual Target Views ----------
 
 def target_list(request):
-    targets = AnnualTarget.objects.all()
-    return render(request, 'owner/annual_target/target_list.html', {'targets': targets})
+    # Step 1: Fetch all records ordered by employee and financial year
+    targets = AnnualTarget.objects.all().order_by('employee', 'financial_year')
+    
+    # Step 2: Manually filter out duplicates based on employee and financial year
+    unique_targets = []
+    seen = set()
+    
+    for target in targets:
+        # Create a tuple of employee ID and financial year to check uniqueness
+        identifier = (target.employee.id, target.financial_year)
+        
+        if identifier not in seen:
+            unique_targets.append(target)
+            seen.add(identifier)
 
-
+    # Pass the filtered unique targets to the template
+    return render(request, 'owner/annual_target/target_list.html', {'targets': unique_targets})
 
 
     
@@ -188,14 +218,17 @@ class DecimalEncoder(json.JSONEncoder):
         return super().default(obj)
 
 def target_create(request):
-    # Your logic for form submission and saving data
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
     if request.method == 'POST':
         form = AnnualTargetForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Log the form data before saving
+            print("Form data:", form.cleaned_data)
+            annual_target = form.save()
+            print(f"Annual target saved: {annual_target}")  # Log the saved instance
             return redirect('target_list')
         else:
+            print("Form errors:", form.errors)  # Log form errors
             return render(request, 'owner/annual_target/target_form.html', {
                 'form': form,
                 'users': users,
@@ -214,21 +247,26 @@ def target_create(request):
         'action': 'Create'
     })
 
-def generate_financial_years():
-    current_year = datetime.now().year
-    return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-
 def target_update(request, pk):
     target = get_object_or_404(AnnualTarget, pk=pk)
+    users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
     if request.method == 'POST':
         form = AnnualTargetForm(request.POST, instance=target)
         if form.is_valid():
+            # Save the form if it's valid
             form.save()
-            return redirect('target_list')
+            return redirect('target_list')  # Redirect after saving
     else:
         form = AnnualTargetForm(instance=target)
-    return render(request, 'owner/annual_target/target_form.html', {'form': form, 'action': 'Update', 'target': target, 'title': 'Update Annual Target'})
 
+    return render(request, 'owner/annual_target/target_form.html', {
+        'form': form,
+        'action': 'Update',
+        'target': target,
+        'users': users,
+        'financial_years': generate_financial_years(),
+        'title': 'Update Annual Target'
+    })
 def target_delete(request, pk):
     target = get_object_or_404(AnnualTarget, pk=pk)
     if request.method == 'POST':
@@ -236,7 +274,9 @@ def target_delete(request, pk):
         return redirect('target_list')
     return render(request, 'owner/annual_target/target_confirm_delete.html', {'target': target})
 
-
+def generate_financial_years():
+    current_year = datetime.now().year
+    return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
 # ---------- Monthly Incentive Views ----------
 
 def monthlyin_create(request):
