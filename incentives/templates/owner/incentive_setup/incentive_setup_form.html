@@ -32,8 +32,15 @@
       <h4 class="card-title mb-0">{{ title }}</h4>
     </div>
     <div class="card-body">
+      
       <form method="post" novalidate>
         {% csrf_token %}
+ <!-- Main form errors -->
+ {% if form.non_field_errors %}
+ <div class="alert alert-danger">
+     {{ form.non_field_errors }}
+ </div>
+{% endif %}
 
         <!-- General Settings -->
         <fieldset class="border p-3 mb-4">
@@ -59,12 +66,16 @@
           <legend class="float-none w-auto px-3">Setup Charge Slabs</legend>
           <div id="setup-slabs">
             {% if setup_formset_slabs %}
+            {{ setup_formset_slabs.management_form }}
               {% for slab in setup_formset_slabs %}
            
                 <div class="mb-2 row slab-row">
                   <div class="col">
-                    {{ slab.deal_type_setup|add_class:"form-control" }}
-                  </div>
+                    <select name="deal_type_setup[]" class="form-control">
+                        <option value="domestic" {% if slab.deal_type_setup == 'domestic' %}selected{% endif %}>Domestic</option>
+                        <option value="international" {% if slab.deal_type_setup == 'international' %}selected{% endif %}>International</option>
+                    </select>
+                </div>
                   <div class="col">
                     <input type="number" name="setup_min_amount[]" class="form-control" placeholder="Min Amount (₹)" value="{{ slab.min_amount }}">
                   </div>
@@ -107,13 +118,13 @@
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label"> Minimum Eligibility of  new market Penetration of  months</label>
             <div class="col-sm-9">
-              <input type="number" name="new_market_value" class="form-control"  value="{{ form.new_market_value.value }}" placeholder="3">
+              <input type="number" name="new_market_eligibility_months" class="form-control"  value="{{ form.new_market_eligibility_months.value }}" placeholder="3">
             </div>
           </div>
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Per Deal Incentive (₹)</label>
             <div class="col-sm-9">
-              <input type="number" name="new_market_value" class="form-control"  value="{{ form.new_market_value.value }}" placeholder="e.g. 20000">
+              <input type="number" name="new_market_deal_incentive" class="form-control"  value="{{ form.new_market_deal_incentive.value }}" placeholder="e.g. 20000">
               <small class="text-muted">Rs. 20000/- per deal for entering new domain (country).</small>
             </div>
           </div>
@@ -123,11 +134,15 @@
           <legend class="float-none w-auto px-3">Topper of the Month</legend>
           <div id="topper-month-slabs">
             {% if topper_month_slabs %}
+            {{ topper_month_slabs.management_form }}
               {% for slab in topper_month_slabs %}
                 <div class="row mb-2 slab-row">
                   <div class="col">
-                    {{ slab.deal_type_top|add_class:"form-control" }}
-                  </div>
+                    <select name="deal_type_top[]" class="form-control">
+                        <option value="domestic" {% if slab.deal_type_top == 'domestic' %}selected{% endif %}>Domestic</option>
+                        <option value="international" {% if slab.deal_type_top == 'international' %}selected{% endif %}>International</option>
+                    </select>
+                </div>
                   <div class="col">
                     <select name="segment[]" class="form-control">
                       <option value="">-- Select Segment --</option>
@@ -139,10 +154,10 @@
                     </select>
                   </div>
                   <div class="col">
-                    <input type="number" name="topper_min_subscription[]" class="form-control" placeholder="Min Subscription (₹)" value="{{ slab.min_subscription }}">
+                    <input type="number" name="min_subscription[]" class="form-control" placeholder="Min Subscription (₹)" value="{{ slab.min_subscription }}">
                   </div>
                   <div class="col">
-                    <input type="number" name="topper_incentive_percentage[]" class="form-control" placeholder="% Incentive" value="{{ slab.incentive_percentage }}">
+                    <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive" value="{{ slab.incentive_percentage }}">
                   </div>
                 </div>
               {% endfor %}
@@ -163,10 +178,10 @@
                   </select>
                 </div>
                 <div class="col">
-                  <input type="number" name="topper_min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
+                  <input type="number" name="min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
                 </div>
                 <div class="col">
-                  <input type="number" name="topper_incentive_percentage[]" class="form-control" placeholder="% Incentive">
+                  <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
                 </div>
               </div>
             {% endif %}
@@ -179,12 +194,16 @@
           <legend class="float-none w-auto px-3">Single High Value Deals</legend>
           <div id="high-value-slabs">
             {% if high_value_slabs %}
+            {{ high_value_slabs.management_form }}
               {% for slab in high_value_slabs %}
                 <div class="row mb-2 slab-row">
                
                   <div class="col">
-                    {{ slab.deal_type_high|add_class:"form-control" }}
-                  </div>
+                    <select name="deal_type_high[]" class="form-control">
+                        <option value="domestic" {% if slab.deal_type_high == 'domestic' %}selected{% endif %}>Domestic</option>
+                        <option value="international" {% if slab.deal_type_high == 'international' %}selected{% endif %}>International</option>
+                    </select>
+                </div>
                   <div class="col">
                     <input type="number" name="high_value_min_amount[]" class="form-control" placeholder="Min Value (₹)" value="{{ slab.min_amount }}">
                   </div>
@@ -248,36 +267,36 @@
           <legend class="w-auto px-2 text-primary">Annual Target Achievement</legend>
         
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="minimum_benchmark" checked>
+            <input class="form-check-input" name="enable_minimum_benchmark" type="checkbox" id="minimum_benchmark" {% if form.enable_minimum_benchmark.value %}checked{% endif %}>
             <label class="form-check-label" for="minimum_benchmark">
               Minimum benchmark for annual incentive is 75% target achievement
             </label>
           </div>
         
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_75_90_achievement" checked>
+            <input class="form-check-input" type="checkbox" id="enable_75_90_achievement" name="enable_75_90_achievement" {% if form.enable_75_90_achievement.value %}checked{% endif %}>
             <label class="form-check-label" for="enable_75_90_achievement">
               Enable incentive for 75%–89.99% achievement (1 month Gross Salary)
             </label>
           </div>
         
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_90_95_achievement" checked>
+            <input class="form-check-input" type="checkbox" id="enable_90_95_achievement" name="enable_90_95_achievement" {% if form.enable_90_95_achievement.value %}checked{% endif %}>
             <label class="form-check-label" for="enable_90_95_achievement">
               Enable incentive for 90%–94.99% achievement (125% of 1 month Gross Salary)
             </label>
           </div>
         
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_95_100_achievement" checked>
+            <input class="form-check-input" type="checkbox" id="enable_95_100_achievement" name="enable_95_100_achievement" {% if form.enable_95_100_achievement.value %}checked{% endif %}>
             <label class="form-check-label" for="enable_95_100_achievement">
               Enable incentive for 95%–99.99% achievement (150% of 1 month Gross Salary)
             </label>
           </div>
         
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enable_above100_achievement" checked>
-            <label class="form-check-label" for="enable_above100_achievement">
+            <input class="form-check-input" type="checkbox" id="enable_above_100_achievement" name="enable_above_100_achievement" {% if form.enable_above_100_achievement.value %}checked{% endif %}>
+            <label class="form-check-label" for="enable_above_100_achievement">
               Enable incentive for 100% and above achievement (200% or 2 months Gross Salary)
             </label>
           </div>
@@ -296,28 +315,29 @@
               <select name="min_subscription_month" class="form-control" required>
                 <option value="">-- Select Months --</option>
                 {% for month in months %}
-                  <option value="{{ month }}" {% if form.min_subscription_month.value == month|stringformat:"s" %}selected{% endif %}>{{ month }}</option>
+                    <option value="{{ month }}" {% if form.min_subscription_month.value|stringformat:"s" == month|stringformat:"s" %}selected{% endif %}>{{ month }}</option>
                 {% endfor %}
-              </select>
+            </select>
+            
             </div>
           </div>
           
           <div class="row mb-3">
             <label class="col-sm-4 col-form-label">100% & above Target Achievement %</label>
-            <div class="col-sm-8"><input type="number" name="100_per_target" value="{{ form.100_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
+            <div class="col-sm-8"><input type="number" name="subscription_100_per_target" value="{{ form.subscription_100_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
          
           <div class="row mb-3">
             <label class="col-sm-4 col-form-label">75%–99.9% Target Achievement %</label>
-            <div class="col-sm-8"><input type="number" name="75_per_target" value="{{ form.75_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
+            <div class="col-sm-8"><input type="number" name="subscription_75_per_target" value="{{ form.subscription_75_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-4 col-form-label">50%–74.9% Target Achievement %</label>
-            <div class="col-sm-8"><input type="number" name="50_per_target" value="{{ form.50_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
+            <div class="col-sm-8"><input type="number" name="subscription_50_per_target" value="{{ form.subscription_50_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-4 col-form-label">Below 50% Target Achievement %</label>
-            <div class="col-sm-8"><input type="number" name="49_per_target" value="{{ form.49_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
+            <div class="col-sm-8"><input type="number" name="subscription_below_50_per" value="{{ form.subscription_below_50_per.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
           
 
@@ -333,19 +353,20 @@
           </p>
         
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_topper_1" checked>
+            <input class="form-check-input" type="checkbox" id="enable_topper_1" name="enable_topper_1" {% if form.enable_topper_1.value %}checked{% endif %}>
             <label class="form-check-label" for="enable_topper_1">
               Surprise Gift for Top Performer 1
             </label>
           </div>
         
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enable_topper_2" checked>
+            <input class="form-check-input" type="checkbox" id="enable_topper_2" name="enable_topper_2" {% if form.enable_topper_2.value %}checked{% endif %}>
             <label class="form-check-label" for="enable_topper_2">
               Surprise Gift for Top Performer 2
             </label>
           </div>
         </fieldset>
+        
         
         
         <fieldset class="border p-3 rounded mb-4">
@@ -356,7 +377,8 @@
           </p>
         
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enable_leader_1" checked>
+            <input class="form-check-input" type="checkbox" id="enable_leader_1" name="enable_leader_1" {% if form.enable_leader_1.value %}checked{% endif %}>
+
             <label class="form-check-label" for="enable_leader_1">
               Award for Best Team Leader (Surprise Gift)
             </label>
@@ -374,6 +396,11 @@
         </div>
 
       </form>
+      {% if form.errors %}
+  <div class="alert alert-danger">
+    {{ form.errors }}
+  </div>
+{% endif %}
     </div>
   </div>
 </div>
@@ -422,10 +449,10 @@
   </select>
 </div>
 <div class="col">
-  <input type="number" name="topper_min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
+  <input type="number" name="min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
 </div>
 <div class="col">
-  <input type="number" name="topper_incentive_percentage[]" class="form-control" placeholder="% Incentive">
+  <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
 </div>
     `;
     container.appendChild(row);

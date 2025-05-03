@@ -120,7 +120,7 @@ class Deal(AuditMixin):
     demo2SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo2', on_delete=models.CASCADE, null=True, blank=True)
     
 
-    leadSource = models.ForeignKey(LeadSource, related_name='deals', on_delete=models.CASCADE, null=True, blank=True)
+    leadSource = models.ForeignKey(UserProfile, related_name='leadsource', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.clientName
@@ -164,53 +164,35 @@ class IncentiveSetup(AuditMixin):
     subscription_100_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     subscription_75_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     subscription_50_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    subscription_below_50_per = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    enable_topper_1 = models.BooleanField(default=False)
+    enable_topper_2 = models.BooleanField(default=False)
+    enable_leader_1 = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class SetupChargeSlab(AuditMixin):
-    DOMESTIC = 'domestic'
-    INTERNATIONAL = 'international'
-    
-    DEAL_TYPE_CHOICES = [
-        (DOMESTIC, 'Domestic'),
-        (INTERNATIONAL, 'International'),
-    ]
-
     incentive_setup = models.ForeignKey(IncentiveSetup, related_name="setup_slabs", on_delete=models.CASCADE)
-    deal_type_setup = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
+    deal_type_setup = models.CharField(max_length=20, default='domestic')
     min_amount = models.DecimalField(max_digits=10, decimal_places=2)
     max_amount = models.DecimalField(max_digits=10, decimal_places=2)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
 
 
 class TopperMonthSlab(AuditMixin):
-    DOMESTIC = 'domestic'
-    INTERNATIONAL = 'international'
-    
-    DEAL_TYPE_CHOICES = [
-        (DOMESTIC, 'Domestic'),
-        (INTERNATIONAL, 'International'),
-    ]
-
     incentive_setup = models.ForeignKey(IncentiveSetup, related_name="topper_slabs", on_delete=models.CASCADE)
-    deal_type_top = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
+    deal_type_top = models.CharField(max_length=20, default='domestic')
     segment = models.ForeignKey('Segment', on_delete=models.SET_NULL, null=True)  # assuming a Segment model exists
     min_subscription = models.DecimalField(max_digits=10, decimal_places=2)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
 
 
 class HighValueDealSlab(AuditMixin):
-    DOMESTIC = 'domestic'
-    INTERNATIONAL = 'international'
-    
-    DEAL_TYPE_CHOICES = [
-        (DOMESTIC, 'Domestic'),
-        (INTERNATIONAL, 'International'),
-    ]
-    deal_type_high = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
     incentive_setup = models.ForeignKey(IncentiveSetup, related_name="high_value_slabs", on_delete=models.CASCADE,null=True)
+    deal_type_high = models.CharField(max_length=20, default='domestic')
     min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     max_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)

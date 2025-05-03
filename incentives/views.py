@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from datetime import datetime
-from .models import UserProfile, Deal, Role, LeadSource, Segment, Module, AnnualTarget, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
-from .forms import UserProfileForm,LeadSourceForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
+from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
+from .forms import UserProfileForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
 from django.forms import modelformset_factory
 from decimal import Decimal
 import json
@@ -277,70 +277,6 @@ def target_delete(request, pk):
 def generate_financial_years():
     current_year = datetime.now().year
     return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-# ---------- Monthly Incentive Views ----------
-
-def incentive_setup_create(request):
-    current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-    segments = Segment.objects.all()
-    if request.method == 'POST':
-        form = IncentiveSetupForm(request.POST)
-        if form.is_valid():
-            monthly_incentive = form.save()
-
-            # Save SetupChargeSlabs
-            min_amounts = request.POST.getlist('setup_min_amount[]')
-            max_amounts = request.POST.getlist('setup_max_amount[]')
-            incentive_percentages = request.POST.getlist('setup_incentive_percentage[]')
-
-            for min_amt, max_amt, inc_perc in zip(min_amounts, max_amounts, incentive_percentages):
-                SetupChargeSlab.objects.create(
-                    incentive_setup=monthly_incentive,
-                    min_amount=min_amt or 0,
-                    max_amount=max_amt or 0,
-                    incentive_percentage=inc_perc or 0
-                )
-
-            # Save TopperMonthRules
-            topper_segments = request.POST.getlist('topper_segment[]')
-            min_subs = request.POST.getlist('topper_min_subscription[]')
-            incentives = request.POST.getlist('topper_incentive_percentage[]')
-
-            for segment_id, min_sub, inc_perc in zip(topper_segments, min_subs, incentives):
-                if segment_id:  # Only if segment is selected
-                    TopperMonthSlab.objects.create(
-                        incentive_setup=monthly_incentive,
-                        segment_id=segment_id,
-                        min_subscription=min_sub or 0,
-                        incentive_percentage=inc_perc or 0
-                    )
-
-            # Save HighValueDealSlabs
-            min_values = request.POST.getlist('high_value_min_amount[]')
-            max_values = request.POST.getlist('high_value_max_amount[]')
-            high_value_incentives = request.POST.getlist('high_value_incentive_percentage[]')
-
-            for min_val, max_val, inc_perc in zip(min_values, max_values, high_value_incentives):
-                HighValueDealSlab.objects.create(
-                    incentive_setup=monthly_incentive,
-                    min_amount=min_val or 0,
-                    max_amount=max_val or 0,
-                    incentive_percentage=inc_perc or 0
-                )
-
-            return redirect('incentive_setup_list')
-        else:
-            print("Form errors:", form.errors)
-    else:
-        form = IncentiveSetupForm()
-
-    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
-        'form': form,
-        'financial_years': financial_years,
-        'title':'Create Incentive Setup',
-        'segments': segments,
-    })
-
 
 
 def module(request):
@@ -518,6 +454,81 @@ def permission(request):
         'modules': modules,
         'permission_matrix': permission_matrix,
     })
+from django.shortcuts import render, redirect
+from datetime import datetime
+from .forms import IncentiveSetupForm
+from .models import IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Segment
+
+def incentive_setup_create(request):
+    current_year = datetime.now().year
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    months = [month for month in range(1, 13)]
+    segments = Segment.objects.all()
+
+    if request.method == 'POST':
+        form = IncentiveSetupForm(request.POST)
+        if form.is_valid():
+            monthly_incentive = form.save()
+
+            # ✅ Save SetupChargeSlabs with deal_type_setup
+            deal_type_setup = request.POST.getlist('deal_type_setup[]')
+            min_amounts = request.POST.getlist('setup_min_amount[]')
+            max_amounts = request.POST.getlist('setup_max_amount[]')
+            incentive_percentages = request.POST.getlist('setup_incentive_percentage[]')
+
+            for deal_type, min_amt, max_amt, inc_perc in zip(deal_type_setup, min_amounts, max_amounts, incentive_percentages):
+                SetupChargeSlab.objects.create(
+                    incentive_setup=monthly_incentive,
+                    deal_type_setup=deal_type,  # <-- This was missing
+                    min_amount=min_amt or 0,
+                    max_amount=max_amt or 0,
+                    incentive_percentage=inc_perc or 0
+                )
+
+            # ✅ Save TopperMonthSlabs
+            deal_type_top = request.POST.getlist('deal_type_top[]')
+            topper_segments = request.POST.getlist('segment[]')
+            min_subs = request.POST.getlist('min_subscription[]')
+            incentives = request.POST.getlist('incentive_percentage[]')
+
+            for deal_type, segment_id, min_sub, inc_perc in zip(deal_type_top,topper_segments, min_subs, incentives):
+                if segment_id:
+                    TopperMonthSlab.objects.create(
+                        incentive_setup=monthly_incentive,
+                        deal_type_top=deal_type,
+                        segment_id=segment_id,
+                        min_subscription=min_sub or 0,
+                        incentive_percentage=inc_perc or 0
+                    )
+
+            # ✅ Save HighValueDealSlabs
+            deal_types_high = request.POST.getlist('deal_type_high[]')
+            min_values = request.POST.getlist('high_value_min_amount[]')
+            max_values = request.POST.getlist('high_value_max_amount[]')
+            high_value_incentives = request.POST.getlist('high_value_incentive_percentage[]')
+
+            for deal_type, min_val, max_val, inc_perc in zip(deal_types_high, min_values, max_values, high_value_incentives):
+                HighValueDealSlab.objects.create(
+                    incentive_setup=monthly_incentive,
+                    deal_type_high=deal_type,
+                    min_amount=min_val or 0,
+                    max_amount=max_val or 0,
+                    incentive_percentage=inc_perc or 0
+                )
+
+            return redirect('incentive_setup_list')
+        else:
+            print("Form errors:", form.errors)
+    else:
+        form = IncentiveSetupForm()
+
+    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
+        'form': form,
+        'financial_years': financial_years,
+        'title': 'Create Incentive Setup',
+        'months': months,
+        'segments': segments,
+    })
 
 def incentive_setup_update(request, pk):
     # Fetch the IncentiveSetup instance or 404 if not found
@@ -526,7 +537,8 @@ def incentive_setup_update(request, pk):
     # Financial year options (next 10 years from current year)
     current_year = datetime.now().year
     financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-    
+    segments = Segment.objects.all()
+    months = [month for month in range(1, 13)]
     # Modelformset factories for formsets
     SetupSlabFormSet = modelformset_factory(SetupChargeSlab, form=SetupChargeSlabForm, extra=0, can_delete=True)
     TopperFormSet = modelformset_factory(TopperMonthSlab, form=TopperMonthSlabForm, extra=0, can_delete=True)
@@ -579,6 +591,25 @@ def incentive_setup_update(request, pk):
 
             messages.success(request, "Incentive Setup updated successfully.")
             return redirect('incentive_setup_list')
+        else:
+            print("Form errors:")
+            print("IncentiveSetupForm errors:", form.errors)
+            print("SetupSlabFormSet errors:")
+        for f in setup_formset:
+            print(f.errors)
+
+        print("TopperMonthSlabFormSet errors:")
+        for f in topper_formset:
+            print(f.errors)
+
+        print("HighValueDealSlabFormSet errors:")
+        for f in highvalue_formset:
+            print(f.errors)
+
+        print("Non-form errors:")
+        print("SetupSlabFormSet non-form errors:", setup_formset.non_form_errors())
+        print("TopperFormSet non-form errors:", topper_formset.non_form_errors())
+        print("HighValueFormSet non-form errors:", highvalue_formset.non_form_errors())
 
     else:
         # GET request, initialize form and formsets with existing data
@@ -601,7 +632,9 @@ def incentive_setup_update(request, pk):
         'high_value_slabs': high_value_slabs,
         'topper_month_slabs': topper_month_slabs,
         'setup_formset_slabs': setup_formset_slabs,
+        'segments':segments,
         'financial_years': financial_years,
+        'months':months,
         'title': 'Update Incentive Setup'
     })
 

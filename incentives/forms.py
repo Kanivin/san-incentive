@@ -46,7 +46,9 @@ class DealForm(forms.ModelForm):
         self.fields['followUpSalesPerson'].queryset = salesperson_queryset
         self.fields['demo1SalesPerson'].queryset = salesperson_queryset
         self.fields['demo2SalesPerson'].queryset = salesperson_queryset
-
+        lead_types = ['salesperson', 'saleshead','admin']
+        leadperson_queryset = UserProfile.objects.filter(user_type__name__in=lead_types)
+        self.fields['leadSource'].queryset = leadperson_queryset
         # Initially make these fields not required
         self.fields['newMarketPenetration'].required = False
         self.fields['newMarketCountry'].required = False
@@ -141,14 +143,15 @@ class IncentiveSetupForm(forms.ModelForm):
     class Meta:
         model = IncentiveSetup
         fields = [
-           'financial_year', 
-           'lead_source',
+            'financial_year', 
+            'lead_source',
             'new_market_eligibility_months', 'new_market_deal_incentive', 
             'deal_owner', 'follow_up', 'demo_1', 'demo_2',
             'enable_minimum_benchmark', 'enable_75_90_achievement', 'enable_90_95_achievement',
             'enable_95_100_achievement', 'enable_above_100_achievement',
             'min_subscription_month', 'subscription_100_per_target',
-            'subscription_75_per_target', 'subscription_50_per_target'
+            'subscription_75_per_target', 'subscription_50_per_target',
+            'subscription_below_50_per', 'enable_topper_1', 'enable_topper_2', 'enable_leader_1'
         ]
         widgets = {
             'financial_year': forms.TextInput(attrs={'class': 'form-control'}),
@@ -168,7 +171,20 @@ class IncentiveSetupForm(forms.ModelForm):
             'subscription_100_per_target': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'subscription_75_per_target': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'subscription_50_per_target': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'subscription_below_50_per': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'enable_topper_1': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enable_topper_2': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enable_leader_1': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Make all fields optional except 'financial_year'
+        for field_name in self.fields:
+            if field_name != 'financial_year':
+                self.fields[field_name].required = False
+
 
 class SetupChargeSlabForm(forms.ModelForm):
     class Meta:
