@@ -5,11 +5,23 @@ from django.contrib.auth.hashers import check_password
 from datetime import datetime
 from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
 from .forms import UserProfileForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
-from django.forms import modelformset_factory
+from django.forms import ValidationError, modelformset_factory
 from decimal import Decimal
 import json
+import logging
 from django.db.models import Count
+
+logger = logging.getLogger(__name__)
 # ---------- Authentication Views ----------
+def validate_form_data_length(*args):
+    """
+    Validates that all input lists are of the same non-zero length.
+    Returns True if valid, False otherwise.
+    """
+    if not args:
+        return False
+    length = len(args[0])
+    return all(len(lst) == length and length > 0 for lst in args)
 
 def login_view(request):
     if request.method == 'POST':
@@ -496,7 +508,7 @@ def incentive_setup_create(request):
                     TopperMonthSlab.objects.create(
                         incentive_setup=monthly_incentive,
                         deal_type_top=deal_type,
-                        segment_id=segment_id,
+                        segment=segment_id,
                         min_subscription=min_sub or 0,
                         incentive_percentage=inc_perc or 0
                     )
@@ -530,113 +542,7 @@ def incentive_setup_create(request):
         'segments': segments,
     })
 
-def incentive_setup_update(request, pk):
-    # Fetch the IncentiveSetup instance or 404 if not found
-    incentive = get_object_or_404(IncentiveSetup, pk=pk)
 
-    # Financial year options (next 10 years from current year)
-    current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-    segments = Segment.objects.all()
-    months = [month for month in range(1, 13)]
-    # Modelformset factories for formsets
-    SetupSlabFormSet = modelformset_factory(SetupChargeSlab, form=SetupChargeSlabForm, extra=0, can_delete=True)
-    TopperFormSet = modelformset_factory(TopperMonthSlab, form=TopperMonthSlabForm, extra=0, can_delete=True)
-    HighValueFormSet = modelformset_factory(HighValueDealSlab, form=HighValueDealSlabForm, extra=0, can_delete=True)
-
-    if request.method == 'POST':
-        # Main form for IncentiveSetup
-        print(request.POST)
-        form = IncentiveSetupForm(request.POST, instance=incentive)
-        
-        # Initialize formsets with POST data and prefixes
-        setup_formset = SetupSlabFormSet(request.POST, queryset=SetupChargeSlab.objects.filter(incentive_setup=incentive), prefix='setup')
-        topper_formset = TopperFormSet(request.POST, queryset=TopperMonthSlab.objects.filter(incentive_setup=incentive), prefix='topper')
-        highvalue_formset = HighValueFormSet(request.POST, queryset=HighValueDealSlab.objects.filter(incentive_setup=incentive), prefix='highvalue')
-
-        # Check if all forms and formsets are valid
-        if form.is_valid() and setup_formset.is_valid() and topper_formset.is_valid() and highvalue_formset.is_valid():
-            # Save the main IncentiveSetup form
-            form.save()
-
-            # Save or delete records in SetupSlab formset
-            for setup_form in setup_formset:
-                obj = setup_form.save(commit=False)
-                if setup_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.incentive_setup = incentive
-                    obj.save()
-
-            # Save or delete records in TopperMonthSlab formset
-            for topper_form in topper_formset:
-                obj = topper_form.save(commit=False)
-                if topper_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.incentive_setup = incentive
-                    obj.save()
-
-            # Save or delete records in HighValueDealSlab formset
-            for highvalue_form in highvalue_formset:
-                obj = highvalue_form.save(commit=False)
-                if highvalue_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.incentive_setup = incentive
-                    obj.save()
-
-            messages.success(request, "Incentive Setup updated successfully.")
-            return redirect('incentive_setup_list')
-        else:
-            print("Form errors:")
-            print("IncentiveSetupForm errors:", form.errors)
-            print("SetupSlabFormSet errors:")
-        for f in setup_formset:
-            print(f.errors)
-
-        print("TopperMonthSlabFormSet errors:")
-        for f in topper_formset:
-            print(f.errors)
-
-        print("HighValueDealSlabFormSet errors:")
-        for f in highvalue_formset:
-            print(f.errors)
-
-        print("Non-form errors:")
-        print("SetupSlabFormSet non-form errors:", setup_formset.non_form_errors())
-        print("TopperFormSet non-form errors:", topper_formset.non_form_errors())
-        print("HighValueFormSet non-form errors:", highvalue_formset.non_form_errors())
-
-    else:
-        # GET request, initialize form and formsets with existing data
-        form = IncentiveSetupForm(instance=incentive)
-
-        setup_formset = SetupSlabFormSet(queryset=SetupChargeSlab.objects.filter(incentive_setup=incentive), prefix='setup')
-        topper_formset = TopperFormSet(queryset=TopperMonthSlab.objects.filter(incentive_setup=incentive), prefix='topper')
-        highvalue_formset = HighValueFormSet(queryset=HighValueDealSlab.objects.filter(incentive_setup=incentive), prefix='highvalue')
-
-    # Fetch all relevant slabs for rendering
-    high_value_slabs = HighValueDealSlab.objects.filter(incentive_setup=incentive)
-    topper_month_slabs = TopperMonthSlab.objects.filter(incentive_setup=incentive)
-    setup_formset_slabs = SetupChargeSlab.objects.filter(incentive_setup=incentive)
-
-    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
-        'form': form,
-        'setup_formset': setup_formset,
-        'topper_formset': topper_formset,
-        'highvalue_formset': highvalue_formset,
-        'high_value_slabs': high_value_slabs,
-        'topper_month_slabs': topper_month_slabs,
-        'setup_formset_slabs': setup_formset_slabs,
-        'segments':segments,
-        'financial_years': financial_years,
-        'months':months,
-        'title': 'Update Incentive Setup'
-    })
 
 def incentive_setup_list(request):
     # List all IncentiveSetups
@@ -655,3 +561,140 @@ def incentive_setup_delete(request, pk):
 
     # Confirmation page to delete
     return render(request, 'owner/incentive_setup/incentive_setup_confirm_delete.html', {'incentive': incentive})
+
+
+
+def incentive_setup_update(request, pk):
+    incentive = get_object_or_404(IncentiveSetup, pk=pk)
+
+    current_year = datetime.now().year
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    segments = Segment.objects.all()
+    months = list(range(1, 13))
+
+    if request.method == 'POST':
+        form = IncentiveSetupForm(request.POST, instance=incentive)
+
+        if form.is_valid():
+            form.save()
+
+            # --- Setup Slabs ---
+            ids = request.POST.getlist('setup_id[]')
+            deal_type_setup = request.POST.getlist('deal_type_setup[]')
+            min_amounts = request.POST.getlist('setup_min_amount[]')
+            max_amounts = request.POST.getlist('setup_max_amount[]')
+            setup_incentive_percentage = request.POST.getlist('setup_incentive_percentage[]')
+
+            if not validate_form_data_length(deal_type_setup, ids, min_amounts, max_amounts, setup_incentive_percentage):
+                messages.error(request, "Setup slab data is incomplete or incorrectly structured.")
+                return redirect('incentive_setup_update', pk=pk)
+
+            for i in range(len(deal_type_setup)):
+                try:
+                    sid = ids[i]
+                    slab = SetupChargeSlab.objects.get(id=sid) if sid else SetupChargeSlab(incentive_setup=incentive)
+                    slab.deal_type_setup = deal_type_setup[i]
+                    slab.min_amount = min_amounts[i]
+                    slab.max_amount = max_amounts[i]
+                    slab.incentive_percentage = setup_incentive_percentage[i]
+                    slab.save()
+                except Exception as e:
+                    logger.error(f"[Setup Slab] Error at index {i}: {e}")
+                    messages.error(request, f"Error saving Setup Slab #{i+1}: {e}")
+                    return redirect('incentive_setup_update', pk=pk)
+
+            # --- Topper Month Slabs ---
+            ids = request.POST.getlist('topper_id[]')
+            deal_type_top = request.POST.getlist('deal_type_top[]')
+            segment_ids = request.POST.getlist('segment[]')
+            min_subscription = request.POST.getlist('min_subscription[]')
+            incentive_percentage = request.POST.getlist('incentive_percentage[]')
+            print("hiii1")
+            if not validate_form_data_length(deal_type_top, ids, segment_ids, min_subscription, incentive_percentage):
+                messages.error(request, "Topper slab data is incomplete or incorrectly structured.")
+                print(request, "Topper slab data is incomplete or incorrectly structured.")
+                return redirect('incentive_setup_update', pk=pk)
+
+            for i in range(len(deal_type_top)):
+                try:
+                    print(f"Processing deal {i+1} / {len(deal_type_top)}")
+                    tid = ids[i]
+                    print(f"tid: {tid}, deal_type_top: {deal_type_top[i]}, segment_id: {segment_ids[i]}")
+
+                    slab = TopperMonthSlab.objects.get(id=tid) if tid else TopperMonthSlab(incentive_setup=incentive)
+
+                    try:
+                        segment_instance = Segment.objects.get(id=segment_ids[i])
+                        print(f"Found segment: {segment_instance}")
+                    except Segment.DoesNotExist:
+                        error_msg = f"Segment with ID {segment_ids[i]} not found."
+                        logger.error(f"[Topper Slab] {error_msg}")
+                        messages.error(request, error_msg)
+                        return redirect('incentive_setup_update', pk=pk)
+
+                    slab.deal_type_top = deal_type_top[i]
+                    slab.segment = segment_instance
+                    slab.min_subscription = min_subscription[i]
+                    slab.incentive_percentage = incentive_percentage[i]
+                    slab.save()
+                    print(f"Saved slab: {slab}")
+                except Exception as e:
+                    logger.error(f"[Topper Slab] Error at index {i}: {e}")
+                    messages.error(request, f"Error saving Topper Slab #{i+1}: {e}")
+                    return redirect('incentive_setup_update', pk=pk)
+
+            # --- High Value Deal Slabs ---
+            ids = request.POST.getlist('highvalue_id[]')
+            deal_type_high = request.POST.getlist('deal_type_high[]')
+            high_value_min_amount = request.POST.getlist('high_value_min_amount[]')
+            high_value_max_amount = request.POST.getlist('high_value_max_amount[]')
+            high_value_incentive_percentage = request.POST.getlist('high_value_incentive_percentage[]')
+
+            if not validate_form_data_length(deal_type_high, ids, high_value_min_amount, high_value_max_amount, high_value_incentive_percentage):
+                messages.error(request, "High value slab data is incomplete or incorrectly structured.")
+                return redirect('incentive_setup_update', pk=pk)
+
+            for i in range(len(deal_type_high)):
+                try:
+                    hid = ids[i]
+                    slab = HighValueDealSlab.objects.get(id=hid) if hid else HighValueDealSlab(incentive_setup=incentive)
+                    slab.deal_type_high = deal_type_high[i]
+                    slab.min_amount = high_value_min_amount[i]
+                    slab.max_amount = high_value_max_amount[i]
+                    slab.incentive_percentage = high_value_incentive_percentage[i]
+                    slab.save()
+                except Exception as e:
+                    logger.error(f"[High Value Slab] Error at index {i}: {e}")
+                    messages.error(request, f"Error saving High Value Slab #{i+1}: {e}")
+                    return redirect('incentive_setup_update', pk=pk)
+
+            messages.success(request, "Incentive Setup updated successfully.")
+            return redirect('incentive_setup_list')
+        else:
+            messages.error(request, "Please fix the errors in the form.")
+    else:
+        form = IncentiveSetupForm(instance=incentive)
+
+    setup_slabs = SetupChargeSlab.objects.filter(incentive_setup=incentive)
+    topper_slabs = TopperMonthSlab.objects.filter(incentive_setup=incentive)
+    highvalue_slabs = HighValueDealSlab.objects.filter(incentive_setup=incentive)
+
+    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
+        'form': form,
+        'setup_formset_slabs': setup_slabs,
+        'topper_month_slabs': topper_slabs,
+        'high_value_slabs': highvalue_slabs,
+        'segments': segments,
+        'financial_years': financial_years,
+        'months': months,
+        'title': 'Update Incentive Setup',
+    })
+
+
+def deal_approve(request, pk):
+    deal = get_object_or_404(Deal, pk=pk)
+    if deal.status != 'Approved':
+        deal.status = 'Approved'
+        deal.updated_by = request.user  # Set the current user as the one approving
+        deal.save()
+    return redirect('deal_list')

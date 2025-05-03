@@ -65,6 +65,8 @@ urlpatterns = [
     
      # Admin Leadsource Target   
     path('permission/', views.permission, name='permission'),
+
+    path('deal/approve/<int:pk>/', views.deal_approve, name='deal_approve'),
     
 ]
 

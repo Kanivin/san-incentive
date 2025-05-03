@@ -1,4 +1,5 @@
 {% extends 'layouts/layout.html' %}
+
 {% block content %}
 
 <div class="card mb-4 shadow-sm">
@@ -18,65 +19,116 @@
   </div>
 </div>
 
- 
-  <h2>Deal List</h2>
-  <a class="btn btn-custom mb-3" href="{% url 'deal_create' %}">+ Add Deal</a>
+<h2>Deal List</h2>
+<a class="btn btn-custom mb-3" href="{% url 'deal_create' %}">+ Add Deal</a>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead>
-        <tr>
-          <th>SNo.</th>
-          <th>Client Name</th>
-          <th>Segment</th>
-          <th>Deal Type</th>
-          <th>Deal Won Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for deal in deals %}
-        <tr>
-          <td>{{ forloop.counter }}</td>  <!-- This adds the serial number -->
-          <td>{{ deal.clientName }}</td>
-          <td>{{ deal.segment }}</td>
-          <td>{{ deal.dealType }}</td>
-          <td>{{ deal.dealWonDate }}</td>
-          <td>
-            <a class="btn btn-primary btn-sm me-1" href="{% url 'deal_update' deal.pk %}">Edit</a>
-            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ deal.id }}">
-              Delete
-            </button>
+<div class="table-responsive">
+  <table class="table table-bordered table-striped align-middle">
+    <thead>
+      <tr>
+        <th>SNo.</th>
+        <th>Client Name</th>
+        <th>Segment</th>
+        <th>Deal Type</th>
+        <th>Deal Won Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for deal in deals %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ deal.clientName }}</td>
+        <td>{{ deal.segment }}</td>
+        <td>{{ deal.dealType }}</td>
+        <td>{{ deal.dealWonDate }}</td>
+        <td>{{ deal.status }}</td>
+        <td>
+          <a class="btn btn-primary btn-sm me-1" href="{% url 'deal_update' deal.pk %}">Edit</a>
+          <button class="btn btn-warning btn-sm me-1" 
+          onclick="checkApprovalStatus('{{ deal.status }}', '{{ deal.updated_by }}', '{{ deal.pk }}')">
+      Change Status
+  </button>
+          <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ deal.id }}">
+            Delete
+          </button>
 
-            <!-- Delete Confirmation Modal -->
-            <div class="modal fade" id="confirmDeleteModal{{ deal.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ deal.id }}" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form method="post" action="{% url 'deal_delete' deal.pk %}">
-                    {% csrf_token %}
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title" id="confirmDeleteLabel{{ deal.id }}">Confirm Delete</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      Are you sure you want to delete <strong>{{ deal.clientName }}</strong>?
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                      <button type="submit" class="btn btn-danger">Delete</button>
-                    </div>
-                  </form>
-                </div>
+          <!-- Delete Confirmation Modal -->
+          <div class="modal fade" id="confirmDeleteModal{{ deal.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ deal.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="post" action="{% url 'deal_delete' deal.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteLabel{{ deal.id }}">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    Are you sure you want to delete <strong>{{ deal.clientName }}</strong>?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </div>
+                </form>
               </div>
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="text-center">No deals found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center">No deals found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Approval Confirmation Modal -->
+<!-- Approval Confirmation Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'deal_approve' 0 %}" id="approveForm">
+        {% csrf_token %}
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="approveModalLabel">Confirm Approval</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to approve this deal?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">Approve</button>
+        </div>
+      </form>
+    </div>
   </div>
+</div>
+
+
+
+
+{% block extra_js %}
+<script>
+ function checkApprovalStatus(status, updatedBy, dealPk) {
+    alert("hi");
+    if (status === 'Non Approve') {
+      // Dynamically set the form action with the correct deal pk
+      var form = document.getElementById('approveForm');
+      var url = "{% url 'deal_approve' 0 %}".replace('0', dealPk);
+      form.action = url;
+
+      // Show the approval confirmation modal
+      $('#approveModal').modal('show');
+    } else if (status === 'Approved') {
+      // Alert that the deal is already approved
+      alert('This deal is already approved by ' + updatedBy);
+    }
+  }
+</script>
+{% endblock %}
 {% endblock %}

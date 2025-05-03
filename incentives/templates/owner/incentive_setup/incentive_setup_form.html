@@ -66,10 +66,11 @@
           <legend class="float-none w-auto px-3">Setup Charge Slabs</legend>
           <div id="setup-slabs">
             {% if setup_formset_slabs %}
-            {{ setup_formset_slabs.management_form }}
+            
               {% for slab in setup_formset_slabs %}
            
                 <div class="mb-2 row slab-row">
+                  <input type="hidden" name="setup_id[]" value="{{ slab.id }}"/>
                   <div class="col">
                     <select name="deal_type_setup[]" class="form-control">
                         <option value="domestic" {% if slab.deal_type_setup == 'domestic' %}selected{% endif %}>Domestic</option>
@@ -134,15 +135,15 @@
           <legend class="float-none w-auto px-3">Topper of the Month</legend>
           <div id="topper-month-slabs">
             {% if topper_month_slabs %}
-            {{ topper_month_slabs.management_form }}
               {% for slab in topper_month_slabs %}
                 <div class="row mb-2 slab-row">
                   <div class="col">
+                    <input type="hidden" name="topper_id[]" value="{{ slab.id }}"/>
                     <select name="deal_type_top[]" class="form-control">
-                        <option value="domestic" {% if slab.deal_type_top == 'domestic' %}selected{% endif %}>Domestic</option>
-                        <option value="international" {% if slab.deal_type_top == 'international' %}selected{% endif %}>International</option>
+                      <option value="domestic" {% if slab.deal_type_top == 'domestic' %}selected{% endif %}>Domestic</option>
+                      <option value="international" {% if slab.deal_type_top == 'international' %}selected{% endif %}>International</option>
                     </select>
-                </div>
+                  </div>
                   <div class="col">
                     <select name="segment[]" class="form-control">
                       <option value="">-- Select Segment --</option>
@@ -162,13 +163,14 @@
                 </div>
               {% endfor %}
             {% else %}
+              <!-- New row if no slabs exist -->
               <div class="row mb-2 slab-row">
                 <div class="col">
                   <select name="deal_type_top[]" class="form-control">
-                   <option value="domestic">Domestic</option>
-                   <option value="international">International</option>
+                    <option value="domestic">Domestic</option>
+                    <option value="international">International</option>
                   </select>
-                 </div>
+                </div>
                 <div class="col">
                   <select name="segment[]" class="form-control">
                     <option value="">-- Select Segment --</option>
@@ -186,6 +188,8 @@
               </div>
             {% endif %}
           </div>
+          
+          <!-- Button to dynamically add more rows -->
           <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addRow1('topper-month-slabs')">+ Add Slab</button>
         </fieldset>
         
@@ -194,10 +198,9 @@
           <legend class="float-none w-auto px-3">Single High Value Deals</legend>
           <div id="high-value-slabs">
             {% if high_value_slabs %}
-            {{ high_value_slabs.management_form }}
               {% for slab in high_value_slabs %}
                 <div class="row mb-2 slab-row">
-               
+                  <input type="hidden" name="highvalue_id[]" value="{{ slab.id }}"/>
                   <div class="col">
                     <select name="deal_type_high[]" class="form-control">
                         <option value="domestic" {% if slab.deal_type_high == 'domestic' %}selected{% endif %}>Domestic</option>
@@ -411,6 +414,7 @@
     const row = document.createElement("div");
     row.className = "row mb-2 slab-row";
     row.innerHTML = `
+      <input type="hidden" name="setup_id[]" />
        <div class="col">
                     <select name="deal_type_setup[]" class="form-control">
                      <option value="domestic">Domestic</option>
@@ -434,26 +438,27 @@
     const row = document.createElement("div");
     row.className = "row mb-2 slab-row";
     row.innerHTML = `
-       <div class="col">
-                    <select name="deal_type_top[]" class="form-control">
-                     <option value="domestic">Domestic</option>
-                     <option value="international">International</option>
-                    </select>
-                   </div>
-          <div class="col">
-  <select name="topper_segment[]" class="form-control">
-    <option value="">-- Select Segment --</option>
-    {% for segment in segments %}
-      <option value="{{ segment.id }}">{{ segment.name }}</option>
-    {% endfor %}
-  </select>
-</div>
-<div class="col">
-  <input type="number" name="min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
-</div>
-<div class="col">
-  <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
-</div>
+      <input type="hidden" name="topper_id[]" />
+    <div class="col">
+        <select name="deal_type_top[]" class="form-control">
+          <option value="domestic">Domestic</option>
+          <option value="international">International</option>
+        </select>
+      </div>
+      <div class="col">
+        <select name="segment[]" class="form-control">
+          <option value="">-- Select Segment --</option>
+          {% for segment in segments %}
+            <option value="{{ segment.id }}">{{ segment.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <input type="number" name="min_subscription[]" class="form-control" placeholder="Min Subscription (₹)">
+      </div>
+      <div class="col">
+        <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
+      </div>
     `;
     container.appendChild(row);
   }
@@ -462,6 +467,7 @@
     const row = document.createElement("div");
     row.className = "row mb-2 slab-row";
     row.innerHTML = `
+      <input type="hidden" name="high_id[]" />
        <div class="col">
                     <select name="deal_type_high[]" class="form-control">
                      <option value="domestic">Domestic</option>

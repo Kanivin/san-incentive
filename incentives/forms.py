@@ -28,7 +28,7 @@ class DealForm(forms.ModelForm):
     class Meta:
         model = Deal
         fields = [
-            'clientName', 'segment', 'leadSource', 'dealType', 'dealWonDate',
+            'clientName', 'segment', 'leadSource', 'dealType', 'dealWonDate','status',
             'setupCharges', 'monthlySubscription', 'newMarketPenetration', 'newMarketCountry',
             'dealownerSalesPerson', 'followUpSalesPerson', 'demo1SalesPerson', 'demo2SalesPerson'
         ]
@@ -51,6 +51,7 @@ class DealForm(forms.ModelForm):
         self.fields['leadSource'].queryset = leadperson_queryset
         # Initially make these fields not required
         self.fields['newMarketPenetration'].required = False
+        self.fields['status'].required = False
         self.fields['newMarketCountry'].required = False
 
     def clean_clientName(self):

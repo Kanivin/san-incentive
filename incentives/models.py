@@ -119,7 +119,7 @@ class Deal(AuditMixin):
     demo1SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo1', on_delete=models.CASCADE, null=True, blank=True)
     demo2SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo2', on_delete=models.CASCADE, null=True, blank=True)
     
-
+    status = models.CharField(max_length=255, default="Non Approve")
     leadSource = models.ForeignKey(UserProfile, related_name='leadsource', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
@@ -197,3 +197,101 @@ class HighValueDealSlab(AuditMixin):
     max_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
+
+
+class Transaction(AuditMixin):
+    DEAL_TYPE_CHOICES = [
+        ('Earned', 'Earned'),
+        ('To Recover', 'To Recover'),
+        # Add other transaction types as needed
+    ]
+    
+    ELIGIBILITY_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Eligible', 'Eligible'),
+        ('Not Eligible', 'Not Eligible'),
+    ]
+    
+    TRANSACTION_COMPONENT_CHOICES = [
+        ('setup', 'setup'),
+        ('new_market', 'new_market'),
+        ('topper_month', 'topper_month'),
+        ('single_high', 'single_high'),
+        # Add more component types as needed
+    ]
+
+    deal_id = models.CharField(max_length=255)
+    version = models.IntegerField(default=1)
+    transaction_type = models.CharField(max_length=50, choices=DEAL_TYPE_CHOICES)
+    incentive_component_type = models.CharField(max_length=100, choices=TRANSACTION_COMPONENT_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    freeze = models.BooleanField(default=False)
+    is_latest = models.BooleanField(default=True)
+    eligibility_status = models.CharField(max_length=50, choices=ELIGIBILITY_STATUS_CHOICES, default='Pending')
+    eligibility_message = models.CharField(max_length=50, blank=True, null=True)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+    created_by = models.CharField(max_length=255)
+    updated_by = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Transaction {self.deal_id} - {self.transaction_type}"
+
+    class Meta:
+        verbose_name = 'Transaction'
+        verbose_name_plural = 'Transactions'
+        ordering = ['-transaction_date']  # Orders by transaction_date descending (latest first)
+
+
+
+class PayoutTransaction(AuditMixin):
+    INCENTIVE_PERSON_CHOICES = [
+        ('deal_source', 'Deal Source'),
+        ('deal_owner', 'Deal Owner'),
+        ('follow_up', 'Follow Up'),
+        ('demo_1', 'Demo 1'),
+        ('demo_2', 'Demo 2'),
+        # Add more incentive person types as needed
+    ]
+    
+    PAYOUT_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Hold', 'Hold'),
+        ('Rejected', 'Rejected'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('Bank Transfer', 'Bank Transfer'),
+        ('Cheque', 'Cheque'),
+        # Add more payment methods as needed
+    ]
+
+    deal_id = models.CharField(max_length=255)  # This is the deal reference
+    incentive_transaction = models.ForeignKey('Transaction', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)  # Linking to Django's User model, replace with custom user model if necessary
+    
+    incentive_person_type = models.CharField(max_length=100, choices=INCENTIVE_PERSON_CHOICES)
+    payout_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payout_status = models.CharField(max_length=50, choices=PAYOUT_STATUS_CHOICES, default='Pending')
+    payout_message = models.CharField(max_length=50, blank=True, null=True)
+    payout_date = models.DateTimeField(auto_now_add=True)  # Timestamp of when the payout was processed
+    payment_method = models.CharField(max_length=100, choices=PAYMENT_METHOD_CHOICES, default='Bank Transfer')
+    transaction_date = models.DateTimeField(auto_now_add=True)  # Timestamp of the transaction
+    notes = models.TextField(blank=True, null=True)  # Additional notes or reasons for adjustments
+    version = models.IntegerField(default=1)  # Version control field, default to 1
+    is_latest = models.BooleanField(default=True)  # Ensures that the latest payout is marked
+    created_by = models.CharField(max_length=255)  # User who created the record
+    updated_by = models.CharField(max_length=255)  # User who last updated the record
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp of when the record was created
+    updated_at = models.DateTimeField(auto_now=True)  # Timestamp of the last update
+
+    def __str__(self):
+        return f"Payout {self.deal_id} - {self.incentive_person_type}"
+
+    class Meta:
+        verbose_name = 'Payout Transaction'
+        verbose_name_plural = 'Payout Transactions'
+        ordering = ['-payout_date']  # Orders by payout_date descending (latest first)
