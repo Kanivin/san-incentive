@@ -11,15 +11,15 @@
         </li>
        
         <li class="breadcrumb-item active" aria-current="page">
-          <i class="bi bi-gift me-1"></i> Yearly Incentives
+          <i class="bi bi-gift me-1"></i> Incentives
         </li>
       </ol>
     </nav>
   </div>
 </div>
 
-  <h2>Yearly Incentive Configurations</h2>
-  <a class="btn btn-custom mb-3" href="{% url 'yearlyin_create' %}">+ Add Yearly Incentive</a>
+  <h2>Incentive Configurations</h2>
+  <a class="btn btn-custom mb-3" href="{% url 'incentive_setup_create' %}">+ Add Yearly Incentive</a>
 
   <div class="table-responsive">
     <table class="table table-bordered table-striped align-middle">
@@ -38,7 +38,7 @@
           <td>{{ incentive.financial_year }}</td>
          
           <td>
-            <a class="btn btn-primary btn-sm me-1" href="{% url 'yearlyin_update' incentive.pk %}">Edit</a>
+            <a class="btn btn-primary btn-sm me-1" href="{% url 'incentive_setup_update' incentive.pk %}">Edit</a>
             <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ incentive.id }}">
               Delete
             </button>
@@ -47,7 +47,7 @@
             <div class="modal fade" id="confirmDeleteModal{{ incentive.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ incentive.id }}" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
-                  <form method="post" action="{% url 'yearlyin_delete' incentive.pk %}">
+                  <form method="post" action="{% url 'incentive_setup_delete' incentive.pk %}">
                     {% csrf_token %}
                     <div class="modal-header bg-danger text-white">
                       <h5 class="modal-title" id="confirmDeleteLabel{{ incentive.id }}">Confirm Delete</h5>

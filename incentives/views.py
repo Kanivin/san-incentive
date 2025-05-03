@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from datetime import datetime
-from .models import UserProfile, Deal, Role, Segment, AnnualTarget,Segment, LeadSource,AnnualTargetIncentive, MonthlyIncentive, SetupChargeRule, TopperMonthRule, HighValueDealSlab, Permission, Module,Role,Segment,LeadSource
-from .forms import UserProfileForm,LeadSourceForm, SegmentForm,DealForm, AnnualTargetForm, MonthlyIncentiveForm, SetupChargeRuleForm, TopperMonthRuleForm, HighValueDealSlabForm, YearlyIncentiveForm, RoleForm, ModuleForm
+from .models import UserProfile, Deal, Role, LeadSource, Segment, Module, AnnualTarget, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
+from .forms import UserProfileForm,LeadSourceForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
 from django.forms import modelformset_factory
 from decimal import Decimal
 import json
@@ -279,23 +279,23 @@ def generate_financial_years():
     return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
 # ---------- Monthly Incentive Views ----------
 
-def monthlyin_create(request):
+def incentive_setup_create(request):
     current_year = datetime.now().year
     financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
     segments = Segment.objects.all()
     if request.method == 'POST':
-        form = MonthlyIncentiveForm(request.POST)
+        form = IncentiveSetupForm(request.POST)
         if form.is_valid():
             monthly_incentive = form.save()
 
-            # Save SetupChargeRules
+            # Save SetupChargeSlabs
             min_amounts = request.POST.getlist('setup_min_amount[]')
             max_amounts = request.POST.getlist('setup_max_amount[]')
             incentive_percentages = request.POST.getlist('setup_incentive_percentage[]')
 
             for min_amt, max_amt, inc_perc in zip(min_amounts, max_amounts, incentive_percentages):
-                SetupChargeRule.objects.create(
-                    rule_set=monthly_incentive,
+                SetupChargeSlab.objects.create(
+                    incentive_setup=monthly_incentive,
                     min_amount=min_amt or 0,
                     max_amount=max_amt or 0,
                     incentive_percentage=inc_perc or 0
@@ -308,8 +308,8 @@ def monthlyin_create(request):
 
             for segment_id, min_sub, inc_perc in zip(topper_segments, min_subs, incentives):
                 if segment_id:  # Only if segment is selected
-                    TopperMonthRule.objects.create(
-                        rule_set=monthly_incentive,
+                    TopperMonthSlab.objects.create(
+                        incentive_setup=monthly_incentive,
                         segment_id=segment_id,
                         min_subscription=min_sub or 0,
                         incentive_percentage=inc_perc or 0
@@ -322,164 +322,25 @@ def monthlyin_create(request):
 
             for min_val, max_val, inc_perc in zip(min_values, max_values, high_value_incentives):
                 HighValueDealSlab.objects.create(
-                    rule_set=monthly_incentive,
+                    incentive_setup=monthly_incentive,
                     min_amount=min_val or 0,
                     max_amount=max_val or 0,
                     incentive_percentage=inc_perc or 0
                 )
 
-            return redirect('monthlyin_list')
+            return redirect('incentive_setup_list')
         else:
             print("Form errors:", form.errors)
     else:
-        form = MonthlyIncentiveForm()
+        form = IncentiveSetupForm()
 
-    return render(request, 'owner/monthlyin/monthlyin_form.html', {
+    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
         'form': form,
         'financial_years': financial_years,
-        'title':'Create Monthly Incentive Setup',
+        'title':'Create Incentive Setup',
         'segments': segments,
     })
 
-
-def monthlyin_update(request, pk):
-    incentive = get_object_or_404(MonthlyIncentive, pk=pk)
-    current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
-    
-    # Use modelformset_factory to create formsets
-    SetupSlabFormSet = modelformset_factory(SetupChargeRule, form=SetupChargeRuleForm, extra=0, can_delete=True)
-    TopperFormSet = modelformset_factory(TopperMonthRule, form=TopperMonthRuleForm, extra=0, can_delete=True)
-    HighValueFormSet = modelformset_factory(HighValueDealSlab, form=HighValueDealSlabForm, extra=0, can_delete=True)
-
-    if request.method == 'POST':
-        form = MonthlyIncentiveForm(request.POST, instance=incentive)
-        
-        # Initialize formsets with POST data and prefixes
-        setup_formset = SetupSlabFormSet(request.POST, queryset=SetupChargeRule.objects.filter(rule_set=incentive), prefix='setup')
-        topper_formset = TopperFormSet(request.POST, queryset=TopperMonthRule.objects.filter(rule_set=incentive), prefix='topper')
-        highvalue_formset = HighValueFormSet(request.POST, queryset=HighValueDealSlab.objects.filter(rule_set=incentive), prefix='highvalue')
-
-        if form.is_valid() and setup_formset.is_valid() and topper_formset.is_valid() and highvalue_formset.is_valid():
-            form.save()
-
-            # Save SetupSlab formset
-            for setup_form in setup_formset:
-                obj = setup_form.save(commit=False)
-                if setup_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.rule_set = incentive
-                    obj.save()
-
-            # Save TopperMonthRule formset
-            for topper_form in topper_formset:
-                obj = topper_form.save(commit=False)
-                if topper_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.rule_set = incentive
-                    obj.save()
-
-            # Save HighValueDealSlab formset
-            for highvalue_form in highvalue_formset:
-                obj = highvalue_form.save(commit=False)
-                if highvalue_form.cleaned_data.get('DELETE'):
-                    if obj.pk:
-                        obj.delete()
-                else:
-                    obj.rule_set = incentive
-                    obj.save()
-
-            return redirect('monthlyin_list')
-    else:
-        form = MonthlyIncentiveForm(instance=incentive)
-
-        # Initialize formsets for GET request
-        setup_formset = SetupSlabFormSet(queryset=SetupChargeRule.objects.filter(rule_set=incentive), prefix='setup')
-        topper_formset = TopperFormSet(queryset=TopperMonthRule.objects.filter(rule_set=incentive), prefix='topper')
-        highvalue_formset = HighValueFormSet(queryset=HighValueDealSlab.objects.filter(rule_set=incentive), prefix='highvalue')
-
-    # No matter POST or GET, always load slabs separately
-    high_value_slabs = HighValueDealSlab.objects.filter(rule_set=incentive)
-    topper_month_slabs = TopperMonthRule.objects.filter(rule_set=incentive)
-    setup_formset_slabs = SetupChargeRule.objects.filter(rule_set=incentive)
-
-    return render(request, 'owner/monthlyin/monthlyin_form.html', {
-        'form': form,
-        'setup_formset': setup_formset,
-        'topper_formset': topper_formset,
-        'highvalue_formset': highvalue_formset,
-        'high_value_slabs': high_value_slabs,
-        'topper_month_slabs':topper_month_slabs,
-        'setup_formset_slabs':setup_formset_slabs,
-        'financial_years': financial_years,
-        'title': 'Update Monthly Incentive'
-    })
-
-def monthlyin_list(request):
-    incentives = MonthlyIncentive.objects.all()
-    return render(request, 'owner/monthlyin/monthlyin_list.html', {'monthly_incentives': incentives})
-
-
-def monthlyin_delete(request, pk):
-    incentive = get_object_or_404(MonthlyIncentive, pk=pk)
-    if request.method == "POST":
-        incentive.delete()
-        messages.success(request, "Monthly Incentive deleted successfully.")
-        return redirect('monthlyin_list')
-    return render(request, 'owner/monthlyin/monthlyin_confirm_delete.html', {'incentive': incentive})
-
-
-# ---------- Yearly Incentive Views ----------
-
-# List View
-def yearlyin_list(request):
-    incentives = AnnualTargetIncentive.objects.all()
-    return render(request, 'owner/yearlyin/yearlyin_list.html', {'incentives': incentives})
-
-# Create View
-def yearlyin_create(request):
-    if request.method == 'POST':
-        form = YearlyIncentiveForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('yearlyin_list')
-    else:
-        form = YearlyIncentiveForm()
-    return render(request, 'owner/yearlyin/yearlyin_form.html', {
-        'form': form,
-        'title': 'Create Yearly Incentive',
-        'action': 'Create'
-    })
-
-# Update View
-def yearlyin_update(request, pk):
-    incentive = get_object_or_404(AnnualTargetIncentive, pk=pk)
-    if request.method == 'POST':
-        form = YearlyIncentiveForm(request.POST, instance=incentive)
-        if form.is_valid():
-            form.save()
-            return redirect('yearly_incentive_list')
-    else:
-        form = YearlyIncentiveForm(instance=incentive)
-    return render(request, 'owner/yearlyin/yearlyin_form.html', {
-        'form': form,
-        'action': 'Update',
-        'title': 'Update Yearly Incentive'
-    })
-
-# Delete View
-def yearlyin_delete(request, pk):
-    incentive = get_object_or_404(AnnualTargetIncentive, pk=pk)
-    if request.method == 'POST':
-        incentive.delete()
-        return redirect('yearlyin_list')
-    return render(request, 'owner/yearlyin/yearlyin_confirm_delete.html', {
-        'incentive': incentive
-    })
 
 
 def module(request):
@@ -657,3 +518,107 @@ def permission(request):
         'modules': modules,
         'permission_matrix': permission_matrix,
     })
+
+def incentive_setup_update(request, pk):
+    # Fetch the IncentiveSetup instance or 404 if not found
+    incentive = get_object_or_404(IncentiveSetup, pk=pk)
+
+    # Financial year options (next 10 years from current year)
+    current_year = datetime.now().year
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    
+    # Modelformset factories for formsets
+    SetupSlabFormSet = modelformset_factory(SetupChargeSlab, form=SetupChargeSlabForm, extra=0, can_delete=True)
+    TopperFormSet = modelformset_factory(TopperMonthSlab, form=TopperMonthSlabForm, extra=0, can_delete=True)
+    HighValueFormSet = modelformset_factory(HighValueDealSlab, form=HighValueDealSlabForm, extra=0, can_delete=True)
+
+    if request.method == 'POST':
+        # Main form for IncentiveSetup
+        print(request.POST)
+        form = IncentiveSetupForm(request.POST, instance=incentive)
+        
+        # Initialize formsets with POST data and prefixes
+        setup_formset = SetupSlabFormSet(request.POST, queryset=SetupChargeSlab.objects.filter(incentive_setup=incentive), prefix='setup')
+        topper_formset = TopperFormSet(request.POST, queryset=TopperMonthSlab.objects.filter(incentive_setup=incentive), prefix='topper')
+        highvalue_formset = HighValueFormSet(request.POST, queryset=HighValueDealSlab.objects.filter(incentive_setup=incentive), prefix='highvalue')
+
+        # Check if all forms and formsets are valid
+        if form.is_valid() and setup_formset.is_valid() and topper_formset.is_valid() and highvalue_formset.is_valid():
+            # Save the main IncentiveSetup form
+            form.save()
+
+            # Save or delete records in SetupSlab formset
+            for setup_form in setup_formset:
+                obj = setup_form.save(commit=False)
+                if setup_form.cleaned_data.get('DELETE'):
+                    if obj.pk:
+                        obj.delete()
+                else:
+                    obj.incentive_setup = incentive
+                    obj.save()
+
+            # Save or delete records in TopperMonthSlab formset
+            for topper_form in topper_formset:
+                obj = topper_form.save(commit=False)
+                if topper_form.cleaned_data.get('DELETE'):
+                    if obj.pk:
+                        obj.delete()
+                else:
+                    obj.incentive_setup = incentive
+                    obj.save()
+
+            # Save or delete records in HighValueDealSlab formset
+            for highvalue_form in highvalue_formset:
+                obj = highvalue_form.save(commit=False)
+                if highvalue_form.cleaned_data.get('DELETE'):
+                    if obj.pk:
+                        obj.delete()
+                else:
+                    obj.incentive_setup = incentive
+                    obj.save()
+
+            messages.success(request, "Incentive Setup updated successfully.")
+            return redirect('incentive_setup_list')
+
+    else:
+        # GET request, initialize form and formsets with existing data
+        form = IncentiveSetupForm(instance=incentive)
+
+        setup_formset = SetupSlabFormSet(queryset=SetupChargeSlab.objects.filter(incentive_setup=incentive), prefix='setup')
+        topper_formset = TopperFormSet(queryset=TopperMonthSlab.objects.filter(incentive_setup=incentive), prefix='topper')
+        highvalue_formset = HighValueFormSet(queryset=HighValueDealSlab.objects.filter(incentive_setup=incentive), prefix='highvalue')
+
+    # Fetch all relevant slabs for rendering
+    high_value_slabs = HighValueDealSlab.objects.filter(incentive_setup=incentive)
+    topper_month_slabs = TopperMonthSlab.objects.filter(incentive_setup=incentive)
+    setup_formset_slabs = SetupChargeSlab.objects.filter(incentive_setup=incentive)
+
+    return render(request, 'owner/incentive_setup/incentive_setup_form.html', {
+        'form': form,
+        'setup_formset': setup_formset,
+        'topper_formset': topper_formset,
+        'highvalue_formset': highvalue_formset,
+        'high_value_slabs': high_value_slabs,
+        'topper_month_slabs': topper_month_slabs,
+        'setup_formset_slabs': setup_formset_slabs,
+        'financial_years': financial_years,
+        'title': 'Update Incentive Setup'
+    })
+
+def incentive_setup_list(request):
+    # List all IncentiveSetups
+    incentives = IncentiveSetup.objects.all()
+    return render(request, 'owner/incentive_setup/incentive_setup_list.html', {'incentives': incentives})
+
+def incentive_setup_delete(request, pk):
+    # Get the IncentiveSetup or 404
+    incentive = get_object_or_404(IncentiveSetup, pk=pk)
+    
+    if request.method == "POST":
+        # Delete the incentive setup
+        incentive.delete()
+        messages.success(request, "Monthly Incentive deleted successfully.")
+        return redirect('incentive_setup_list')
+
+    # Confirmation page to delete
+    return render(request, 'owner/incentive_setup/incentive_setup_confirm_delete.html', {'incentive': incentive})

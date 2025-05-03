@@ -36,6 +36,18 @@
 
         {% load static %}
         <fieldset class="border p-3 rounded mb-4">
+        <div class="mb-3 row align-items-center">
+          <label class="col-sm-3 col-form-label">Financial Year</label>
+          <div class="col-sm-9">
+            <select id="financial-year" name="financial_year" class="form-control">
+              {% for year in financial_years %}
+              <option value="{{ year }}" {% if year == selected_financial_year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+            </select>
+          </div>
+        </div>
+       </fieldset>
+        <fieldset class="border p-3 rounded mb-4">
           <legend class="w-auto px-2 text-primary">Annual Target Achievement</legend>
         
           <div class="form-check mb-2">
@@ -79,37 +91,40 @@
           <legend class="w-auto px-2 text-primary">Subscription Incentive (on Collection)</legend>
         
           <p class="text-muted mb-3">
-            Incentive depends on annual target achievement. A minimum of 8 months' subscription must be collected to qualify.
-            Max eligibility is capped at 1 year subscription amount.
+            Incentive depends on annual target achievement. 
           </p>
-        
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_8month_achievement" checked>
-            <label class="form-check-label" for="enable_8month_achievement">
-              100% & above Target Achievement (8 months incentive)
-            </label>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">Minimum Subscription of Months</label>
+            <div class="col-sm-8">
+              <select name="min_subscription_month" class="form-control" required>
+                <option value="">-- Select Months --</option>
+                {% for month in months %}
+                  <option value="{{ month }}" {% if form.min_subscription_month.value == month|stringformat:"s" %}selected{% endif %}>{{ month }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-        
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_6month_achievement" checked>
-            <label class="form-check-label" for="enable_6month_achievement">
-              75%–99.9% Target Achievement (6 months incentive)
-            </label>
+          
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">100% & above Target Achievement %</label>
+            <div class="col-sm-8"><input type="number" name="100_per_target" value="{{ form.100_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
-        
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" id="enable_4month_achievement" checked>
-            <label class="form-check-label" for="enable_4month_achievement">
-              50%–74.9% Target Achievement (4 months incentive)
-            </label>
+         
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">75%–99.9% Target Achievement %</label>
+            <div class="col-sm-8"><input type="number" name="75_per_target" value="{{ form.75_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
-        
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enable_0month_achievement" checked>
-            <label class="form-check-label" for="enable_0month_achievement">
-              Below 50% Target Achievement (No incentive or 4-month cap)
-            </label>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">50%–74.9% Target Achievement %</label>
+            <div class="col-sm-8"><input type="number" name="50_per_target" value="{{ form.50_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
           </div>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">Below 50% Target Achievement %</label>
+            <div class="col-sm-8"><input type="number" name="49_per_target" value="{{ form.49_per_target.value }}" class="form-control" placeholder="e.g., 10" /></div>
+          </div>
+          
+
+ 
         </fieldset>
         
         
@@ -166,4 +181,17 @@
     </div>
   </div>
 </div>
+{% block extra_js %}
+<script>
+  $(document).ready(function() {
+    // Apply Select2 to all select elements
+    $('select').select2({
+      width: '100%',
+      placeholder: "Select an option",
+      allowClear: true
+    });
+  });
+</script>
+{% endblock %}
+
 {% endblock %}

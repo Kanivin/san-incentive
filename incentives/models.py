@@ -137,71 +137,81 @@ class AnnualTarget(AuditMixin):
         return f"{self.employee.fullname} - {self.financial_year}"
 
 
-class AnnualTargetIncentive(AuditMixin):
-    financial_year = models.CharField(max_length=50)
-    reduction_period = models.CharField(max_length=50,null=True)
+class IncentiveSetup(AuditMixin):
+    title = models.CharField(max_length=255)
+    financial_year = models.CharField(max_length=20)
+    
+    # New Market Penetration
+    new_market_eligibility_months = models.PositiveIntegerField(null=True, blank=True)
+    new_market_deal_incentive = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Deal Bifurcation
+    deal_owner = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    lead_source = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    follow_up = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    demo_1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    demo_2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    # Annual Target
+    enable_minimum_benchmark = models.BooleanField(default=True)
     enable_75_90_achievement = models.BooleanField(default=True)
     enable_90_95_achievement = models.BooleanField(default=True)
     enable_95_100_achievement = models.BooleanField(default=True)
-    enable_above100_achievement = models.BooleanField(default=True)
-    enable_8month_achievement = models.BooleanField(default=True)
-    enable_6month_achievement = models.BooleanField(default=True)
-    enable_4month_achievement = models.BooleanField(default=True)
-    enable_0month_achievement = models.BooleanField(default=True)
-    enable_topper_1 = models.BooleanField(default=True)
-    enable_topper_2 = models.BooleanField(default=True)
-    enable_leader_1 = models.BooleanField(default=True)
+    enable_above_100_achievement = models.BooleanField(default=True)
 
-    def __str__(self):
-        return f"Annual Incentive Setup ({self.id})"
+    # Subscription Incentive
+    min_subscription_month = models.PositiveIntegerField(null=True, blank=True)
+    subscription_100_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    subscription_75_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    subscription_50_per_target = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
-
-class MonthlyIncentive(AuditMixin):
-    DEAL_TYPES = [('domestic', 'Domestic'), ('international', 'International')]
-
-    name = models.CharField(max_length=255,blank=True)
-    deal_type = models.CharField(max_length=50, choices=DEAL_TYPES)
-    financial_year = models.CharField(max_length=50)
-    new_market_incentive_fixed = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    lead_source = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
-    deal_owner = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
-    follow_up = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
-    demo_1 = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
-    demo_2 = models.DecimalField(max_digits=5, decimal_places=2,default=0.00)
-
-    class Meta:
-        unique_together = ('deal_type', 'financial_year')
-        db_table = 'rule_sets'
-
-    def __str__(self):
-        return f"{self.name} - {self.deal_type} ({self.financial_year})"
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
-class SetupChargeRule(AuditMixin):
-    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='setup_charge_rules', null=True)
-    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
-    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+class SetupChargeSlab(AuditMixin):
+    DOMESTIC = 'domestic'
+    INTERNATIONAL = 'international'
+    
+    DEAL_TYPE_CHOICES = [
+        (DOMESTIC, 'Domestic'),
+        (INTERNATIONAL, 'International'),
+    ]
 
-    class Meta:
-        db_table = 'setup_charge_rules'
+    incentive_setup = models.ForeignKey(IncentiveSetup, related_name="setup_slabs", on_delete=models.CASCADE)
+    deal_type_setup = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    max_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+class TopperMonthSlab(AuditMixin):
+    DOMESTIC = 'domestic'
+    INTERNATIONAL = 'international'
+    
+    DEAL_TYPE_CHOICES = [
+        (DOMESTIC, 'Domestic'),
+        (INTERNATIONAL, 'International'),
+    ]
+
+    incentive_setup = models.ForeignKey(IncentiveSetup, related_name="topper_slabs", on_delete=models.CASCADE)
+    deal_type_top = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
+    segment = models.ForeignKey('Segment', on_delete=models.SET_NULL, null=True)  # assuming a Segment model exists
+    min_subscription = models.DecimalField(max_digits=10, decimal_places=2)
+    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2)
 
 
 class HighValueDealSlab(AuditMixin):
-    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='high_value_slabs', null=True)
+    DOMESTIC = 'domestic'
+    INTERNATIONAL = 'international'
+    
+    DEAL_TYPE_CHOICES = [
+        (DOMESTIC, 'Domestic'),
+        (INTERNATIONAL, 'International'),
+    ]
+    deal_type_high = models.CharField(max_length=20, choices=DEAL_TYPE_CHOICES, default=1)
+    incentive_setup = models.ForeignKey(IncentiveSetup, related_name="high_value_slabs", on_delete=models.CASCADE,null=True)
     min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.00)
+    max_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
-    class Meta:
-        db_table = 'single_value_rules'
-
-
-class TopperMonthRule(AuditMixin):
-    rule_set = models.ForeignKey(MonthlyIncentive, on_delete=models.CASCADE, related_name='topper_month_rules', null=True)
-    segment = models.ForeignKey(Segment, related_name='top_segment', on_delete=models.CASCADE, null=True, blank=True)
-    min_subscription = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    incentive_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
-
-    class Meta:
-        db_table = 'topper_month_rules'

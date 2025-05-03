@@ -38,17 +38,13 @@ urlpatterns = [
     path('target-edit/<int:pk>/', views.target_update, name='target_update'),
     path('target-delete/<int:pk>/', views.target_delete, name='target_delete'),
 
-    # Admin Annual Target
-    path('admin-yearlyin/', views.yearlyin_list, name='yearlyin_list'),
-    path('yearlyin-create/', views.yearlyin_create, name='yearlyin_create'),
-    path('yearlyin-edit/<int:pk>/', views.yearlyin_update, name='yearlyin_update'),
-    path('yearlyin-delete/<int:pk>/', views.yearlyin_delete, name='yearlyin_delete'),
+
 
     # Admin Annual Target
-    path('admin-monthlyin/', views.monthlyin_list, name='monthlyin_list'),
-    path('monthlyin-create/', views.monthlyin_create, name='monthlyin_create'),
-    path('monthlyin-edit/<int:pk>/', views.monthlyin_update, name='monthlyin_update'),
-    path('monthlyin-delete/<int:pk>/', views.monthlyin_delete, name='monthlyin_delete'),
+    path('admin-incentives/', views.incentive_setup_list, name='incentive_setup_list'),
+    path('incentive_setup-create/', views.incentive_setup_create, name='incentive_setup_create'),
+    path('incentive_setup-edit/<int:pk>/', views.incentive_setup_update, name='incentive_setup_update'),
+    path('incentive_setup-delete/<int:pk>/', views.incentive_setup_delete, name='incentive_setup_delete'),
 
     # Admin Segements Target
     path('segments/', views.segment, name='segment'),
