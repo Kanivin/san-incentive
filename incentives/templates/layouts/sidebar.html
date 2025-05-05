@@ -36,7 +36,7 @@
           <li class="sidebar-item">
             <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
               <span class="d-flex">
-                <i class="fas fa-cogs"></i>
+                <i class="fas fa-database"></i>
               </span>
               <span class="hide-menu">Master</span>
             </a>
@@ -47,19 +47,27 @@
               <li class="sidebar-item">
                 <a href="{% url 'segment' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
-                    <i class="fas fa-circle-notch"></i>
+                    <i class="fas fa-layer-group"></i>
                   </div>
                   <span class="hide-menu">Segment</span>
                 </a>
               </li>
               <li class="sidebar-item">
+                <a href="{% url 'salesteam' %}" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-sitemap"></i>
+                  </div>
+                  <span class="hide-menu">Sales Team Hierarchy</span>
+                </a>
+              </li>
+              <!-- <li class="sidebar-item">
                 <a href="{% url 'leadsource' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-circle-notch"></i>
                   </div>
                   <span class="hide-menu">Lead Source</span>
                 </a>
-              </li>
+              </li> -->
     
             </ul>
           </li>
@@ -68,23 +76,61 @@
               <span>
                 <i class="fas fa-handshake"></i>
               </span>
-              <span class="hide-menu">Deal</span>
+              <span class="hide-menu">Deal Data</span>
             </a>
           </li>
           <li class="sidebar-item">
             <a class="sidebar-link" href="{% url 'target_list' %}" aria-expanded="false">
               <span>
-                <i class="fas fa-bullseye"></i>
+                <i class="fas fa-crosshairs"></i>
               </span>
-              <span class="hide-menu">Annusl Target</span>
+              <span class="hide-menu">Deal Target</span>
             </a>
           </li>
-       
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'incentive_setup_list' %}" aria-expanded="false">
+              <span>
+                <i class="fas fa-gift"></i>
+              </span>
+              <span class="hide-menu">Incentive Rules</span>
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link" href="{% url 'payout' %}" aria-expanded="false">
+              <span>
+                <i class="fas fa-wallet"></i>
+              </span>
+              <span class="hide-menu">Payouts</span>
+            </a>
+          </li>
 
           <li class="sidebar-item">
             <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
               <span class="d-flex">
-                <i class="fas fa-cogs"></i>
+                <i class="fas fa-chart-line"></i> 
+              </span>
+              <span class="hide-menu">Reports</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level">
+            
+              <li class="sidebar-item">
+                <a href="{% url 'transaction' %}" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-file-alt"></i>
+                  </div>
+                  <span class="hide-menu">Transaction</span>
+                </a>
+              </li>
+            
+            
+              </ul>
+              </li>
+           
+        
+          <li class="sidebar-item">
+            <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
+              <span class="d-flex">
+                <i class="fas fa-tools"></i>
               </span>
               <span class="hide-menu">Settings</span>
             </a>
@@ -99,9 +145,17 @@
                 </a>
               </li>
               <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-briefcase"></i>
+                  </div>
+                  <span class="hide-menu">Job Settings</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
                 <a href="{% url 'module' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
-                    <i class="fas fa-circle-notch"></i>
+                    <i class="fas fa-puzzle-piece"></i>
                   </div>
                   <span class="hide-menu">Module</span>
                 </a>
@@ -109,7 +163,7 @@
               <li class="sidebar-item">
                 <a href="{% url 'roles' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
-                    <i class="fas fa-circle-notch"></i>
+                    <i class="fas fa-user-tag"></i>
                   </div>
                   <span class="hide-menu">Roles</span>
                 </a>
@@ -123,17 +177,54 @@
                 </a>
               </li>
         
+            
+            </ul>
+          </li>
+          <li class="sidebar-item">
+            <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
+              <span class="d-flex">
+                <i class="fas fa-cogs"></i>
+              </span>
+              <span class="hide-menu">Activity</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level">
+            
               <li class="sidebar-item">
-                <a href="{% url 'incentive_setup_list' %}" class="sidebar-link">
+                <a href="#" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-circle-notch"></i>
                   </div>
-                  <span class="hide-menu">Incentive Setup</span>
+                  <span class="hide-menu">Audit Log</span>
                 </a>
               </li>
-            </ul>
-          </li>
+              <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Error Logs</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Scheduled Jobs Logs</span>
+                </a>
+              </li>
 
+              <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-circle-notch"></i>
+                  </div>
+                  <span class="hide-menu">Scheduled Jobs Logs</span>
+                </a>
+              </li>
+              </ul>
+              </li>
+           
      
 
         </ul>

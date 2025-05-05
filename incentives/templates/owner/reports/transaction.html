@@ -1,0 +1,94 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body py-2 px-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+              <i class="bi bi-house-door-fill me-1"></i> Home
+            </a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <i class="bi bi-bullseye me-1"></i> Transaction
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <h2>Transaction</h2>
+  <!-- <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a> -->
+
+  <div class="table-responsive">
+    <table id="zero_config" class="table table-striped table-bordered text-nowrap align-middle dataTable">
+      <thead>
+        <tr>
+          <th>Deal ID</th>
+          <th>Version</th>
+          <th>Type</th>
+          <th>Component</th>
+          <th>Amount</th>
+          <th>Frozen</th>
+          <th>Latest</th>
+          <th>Eligibility</th>
+          <th>Message</th>
+          <th>Date</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in transactions %}
+        <tr>
+          <td>{{ txn.deal_id }}</td>
+          <td>{{ txn.version }}</td>
+          <td>{{ txn.transaction_type }}</td>
+          <td>{{ txn.incentive_component_type }}</td>
+          <td>{{ txn.amount }}</td>
+          <td>{{ txn.freeze }}</td>
+          <td>{{ txn.is_latest }}</td>
+          <td>{{ txn.eligibility_status }}</td>
+          <td>{{ txn.eligibility_message }}</td>
+          <td>{{ txn.transaction_date }}</td>
+          <td>{{ txn.notes|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="11" class="text-center">No Transaction found.</td>
+        </tr>
+        {% endfor %}
+        
+      </tbody>
+    </table>
+    
+    <!-- DataTables Pagination -->
+    <div class="dataTables_paginate paging_simple_numbers" id="zero_config_paginate">
+      <a class="paginate_button previous disabled" aria-controls="zero_config" aria-disabled="true" role="link" data-dt-idx="previous" tabindex="-1" id="zero_config_previous">Previous</a>
+      <span>
+        <a class="paginate_button current" aria-controls="zero_config" role="link" aria-current="page" data-dt-idx="0" tabindex="0">1</a>
+        <a class="paginate_button" aria-controls="zero_config" role="link" data-dt-idx="1" tabindex="0">2</a>
+        <a class="paginate_button" aria-controls="zero_config" role="link" data-dt-idx="2" tabindex="0">3</a>
+      </span>
+      <a class="paginate_button next" aria-controls="zero_config" role="link" data-dt-idx="next" tabindex="0" id="zero_config_next">Next</a>
+    </div>
+    
+    <!-- DataTables JS Init -->
+    <script>
+      $(document).ready(function () {
+        $('#zero_config').DataTable({
+          paging: true,
+          pageLength: 10,
+          lengthChange: false,
+          info: true,
+          autoWidth: false,
+          searching: true,
+          ordering: true
+        });
+      });
+    </script>
+    
+  </div>
+{% endblock %}

@@ -73,6 +73,7 @@
                   <input type="hidden" name="setup_id[]" value="{{ slab.id }}"/>
                   <div class="col">
                     <select name="deal_type_setup[]" class="form-control">
+                      <option value="all" {% if slab.deal_type_setup == 'all' %}selected{% endif %}>All</option>
                         <option value="domestic" {% if slab.deal_type_setup == 'domestic' %}selected{% endif %}>Domestic</option>
                         <option value="international" {% if slab.deal_type_setup == 'international' %}selected{% endif %}>International</option>
                     </select>
@@ -92,6 +93,7 @@
               <div class="mb-2 row slab-row">
                 <div class="col">
                  <select name="deal_type_setup[]" class="form-control">
+                  <option value="all">All</option>
                   <option value="domestic">Domestic</option>
                   <option value="international">International</option>
                  </select>
@@ -140,6 +142,7 @@
                   <div class="col">
                     <input type="hidden" name="topper_id[]" value="{{ slab.id }}"/>
                     <select name="deal_type_top[]" class="form-control">
+                      <option value="all" {% if slab.deal_type_top == 'all' %}selected{% endif %}>All</option>
                       <option value="domestic" {% if slab.deal_type_top == 'domestic' %}selected{% endif %}>Domestic</option>
                       <option value="international" {% if slab.deal_type_top == 'international' %}selected{% endif %}>International</option>
                     </select>
@@ -167,6 +170,7 @@
               <div class="row mb-2 slab-row">
                 <div class="col">
                   <select name="deal_type_top[]" class="form-control">
+                    <option value="all">All</option>
                     <option value="domestic">Domestic</option>
                     <option value="international">International</option>
                   </select>
@@ -203,6 +207,7 @@
                   <input type="hidden" name="highvalue_id[]" value="{{ slab.id }}"/>
                   <div class="col">
                     <select name="deal_type_high[]" class="form-control">
+                      <option value="all" {% if slab.deal_type_high == 'all' %}selected{% endif %}>All</option>
                         <option value="domestic" {% if slab.deal_type_high == 'domestic' %}selected{% endif %}>Domestic</option>
                         <option value="international" {% if slab.deal_type_high == 'international' %}selected{% endif %}>International</option>
                     </select>
@@ -222,6 +227,7 @@
               <div class="row mb-2 slab-row">
                 <div class="col">
                   <select name="deal_type_high[]" class="form-control">
+                    <option value="all">All</option>
                    <option value="domestic">Domestic</option>
                    <option value="international">International</option>
                   </select>
@@ -417,6 +423,7 @@
       <input type="hidden" name="setup_id[]" />
        <div class="col">
                     <select name="deal_type_setup[]" class="form-control">
+                           <option value="all">All</option>
                      <option value="domestic">Domestic</option>
                      <option value="international">International</option>
                     </select>
@@ -441,6 +448,7 @@
       <input type="hidden" name="topper_id[]" />
     <div class="col">
         <select name="deal_type_top[]" class="form-control">
+           <option value="all">All</option>
           <option value="domestic">Domestic</option>
           <option value="international">International</option>
         </select>
@@ -470,6 +478,7 @@
       <input type="hidden" name="high_id[]" />
        <div class="col">
                     <select name="deal_type_high[]" class="form-control">
+                       <option value="all">All</option>
                      <option value="domestic">Domestic</option>
                      <option value="international">International</option>
                     </select>

@@ -1,0 +1,69 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body py-2 px-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+              <i class="bi bi-house-door-fill me-1"></i> Home
+            </a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <i class="bi bi-bullseye me-1"></i> Payout Transaction
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <h2>Payout List</h2>
+  <!-- <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a> -->
+
+  <div class="table-responsive">
+    <tbody>
+      {% for payout in payouts %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center">
+              <img src="{% static 'assets/images/profile/default-user.jpg' %}" class="rounded-circle" width="40" height="40">
+              <div class="ms-3">
+                <h6 class="fs-4 fw-semibold mb-0">{{ payout.user.fullname }}</h6>
+                <span class="fw-normal">{{ payout.user.get_user_type_display }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <p class="mb-0 fw-normal fs-4">{{ payout.deal_id }}</p>
+          </td>
+          <td>
+            <div class="d-flex align-items-center">
+              <span class="badge bg-info text-white">{{ payout.incentive_person_type|title }}</span>
+            </div>
+          </td>
+          <td>
+            {% if payout.payout_status == 'Paid' %}
+              <span class="badge bg-success-subtle text-success">{{ payout.payout_status }}</span>
+            {% elif payout.payout_status == 'Pending' %}
+              <span class="badge bg-warning-subtle text-warning">{{ payout.payout_status }}</span>
+            {% elif payout.payout_status == 'Hold' %}
+              <span class="badge bg-secondary-subtle text-secondary">{{ payout.payout_status }}</span>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger">{{ payout.payout_status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <h6 class="fs-4 fw-semibold mb-0">${{ payout.payout_amount }}</h6>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">No payout transactions found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </div>
+{% endblock %}

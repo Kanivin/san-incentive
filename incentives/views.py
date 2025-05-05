@@ -3,13 +3,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from datetime import datetime
-from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
+from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, Transaction, PayoutTransaction, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
 from .forms import UserProfileForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
 from django.forms import ValidationError, modelformset_factory
 from decimal import Decimal
 import json
 import logging
 from django.db.models import Count
+from incentives.utils.incentive_engine import DealRuleEngine 
 
 logger = logging.getLogger(__name__)
 # ---------- Authentication Views ----------
@@ -695,6 +696,25 @@ def deal_approve(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
     if deal.status != 'Approved':
         deal.status = 'Approved'
-        deal.updated_by = request.user  # Set the current user as the one approving
+        deal.updated_by = request.user
         deal.save()
+
+        # Call Rule Engine after approval
+        DealRuleEngine(deal).run_rules()  # Encapsulate logic inside a method
     return redirect('deal_list')
+
+def salesteam(request):
+    # List all IncentiveSetups
+    users = UserProfile.objects.filter(user_type__name__in=['salesperson'])
+    head = UserProfile.objects.filter(user_type__name__in=['saleshead'])
+    return render(request, 'owner/master/SalesTeamHierarchy.html', {'users': users, 'head':head})
+
+def payout(request):
+    # List all IncentiveSetups
+    payout = PayoutTransaction.objects.all()
+    return render(request, 'owner/payout/payout_list.html', {'payout': payout})
+
+def transaction(request):
+    # List all IncentiveSetups
+    transaction = Transaction.objects.all()
+    return render(request, 'owner/reports/transaction.html', {'transaction': transaction})

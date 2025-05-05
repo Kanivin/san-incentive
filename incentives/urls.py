@@ -67,6 +67,9 @@ urlpatterns = [
     path('permission/', views.permission, name='permission'),
 
     path('deal/approve/<int:pk>/', views.deal_approve, name='deal_approve'),
-    
+
+        path('salesteam/', views.salesteam, name='salesteam'),
+      path('payout/', views.payout, name='payout'),
+        path('transaction/', views.transaction, name='transaction'),
 ]
 
