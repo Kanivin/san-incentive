@@ -118,9 +118,9 @@ class Deal(AuditMixin):
     followUpSalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_followup', on_delete=models.CASCADE, null=True, blank=True)
     demo1SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo1', on_delete=models.CASCADE, null=True, blank=True)
     demo2SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo2', on_delete=models.CASCADE, null=True, blank=True)
-    
-    status = models.CharField(max_length=255, default="Non Approve")
     leadSource = models.ForeignKey(UserProfile, related_name='leadsource', on_delete=models.CASCADE, null=True, blank=True)
+ 
+    status = models.CharField(max_length=255, default="Non Approve")
 
     def __str__(self):
         return self.clientName
@@ -265,11 +265,7 @@ class PayoutTransaction(AuditMixin):
         on_delete=models.CASCADE,
         related_name='payouts'
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE,
-        related_name='payout_transactions'
-    )
+    user = models.ForeignKey(UserProfile, related_name='payout_trans', on_delete=models.CASCADE, null=True, blank=True)
     
     incentive_person_type = models.CharField(max_length=100, choices=INCENTIVE_PERSON_CHOICES)
     payout_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

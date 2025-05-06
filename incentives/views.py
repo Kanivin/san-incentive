@@ -11,6 +11,7 @@ import json
 import logging
 from django.db.models import Count
 from incentives.utils.incentive_engine import DealRuleEngine 
+from django.core.paginator import Paginator
 
 logger = logging.getLogger(__name__)
 # ---------- Authentication Views ----------
@@ -718,8 +719,10 @@ def payout(request):
 
 def transaction(request):
     transactions = Transaction.objects.all().order_by('-transaction_date')  # or '-created_at'
-   
+    paginator = Paginator(transactions, 10)  # 10 per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     return render(request, 'owner/reports/transaction.html', {
-        'transactions': transactions,
+        'page_obj': page_obj,
      
     })

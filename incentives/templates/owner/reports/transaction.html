@@ -14,8 +14,6 @@
           </li>
           <li class="breadcrumb-item active" aria-current="page">
             <i class="bi bi-bullseye me-1"></i> Transaction
-
-
           </li>
         </ol>
       </nav>
@@ -23,10 +21,9 @@
   </div>
 
   <h2>Transaction</h2>
-  <!-- <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a> -->
 
   <div class="table-responsive">
-    <table id="zero_config" class="table table-striped table-bordered text-nowrap align-middle dataTable">
+    <table id="zero_config" class="table table-striped table-bordered text-nowrap align-middle">
       <thead>
         <tr>
           <th>Deal ID</th>
@@ -43,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for txn in transactions %}
+        {% for txn in page_obj %}
         <tr>
           <td>{{ txn.deal_id }}</td>
           <td>{{ txn.version }}</td>
@@ -62,35 +59,44 @@
           <td colspan="11" class="text-center">No Transaction found.</td>
         </tr>
         {% endfor %}
-        
       </tbody>
     </table>
-    
-    <!-- DataTables Pagination -->
-    <div class="dataTables_paginate paging_simple_numbers" id="zero_config_paginate">
-      <a class="paginate_button previous disabled" aria-controls="zero_config" aria-disabled="true" role="link" data-dt-idx="previous" tabindex="-1" id="zero_config_previous">Previous</a>
-      <span>
-        <a class="paginate_button current" aria-controls="zero_config" role="link" aria-current="page" data-dt-idx="0" tabindex="0">1</a>
-        <a class="paginate_button" aria-controls="zero_config" role="link" data-dt-idx="1" tabindex="0">2</a>
-        <a class="paginate_button" aria-controls="zero_config" role="link" data-dt-idx="2" tabindex="0">3</a>
-      </span>
-      <a class="paginate_button next" aria-controls="zero_config" role="link" data-dt-idx="next" tabindex="0" id="zero_config_next">Next</a>
-    </div>
-    
-    <!-- DataTables JS Init -->
-    <script>
-      $(document).ready(function () {
-        $('#zero_config').DataTable({
-          paging: true,
-          pageLength: 10,
-          lengthChange: false,
-          info: true,
-          autoWidth: false,
-          searching: true,
-          ordering: true
-        });
-      });
-    </script>
-    
   </div>
+
+  <!-- Pagination Controls (Django) -->
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+      {% endif %}
+      
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+
+  <!-- DataTables JS and CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#zero_config').DataTable({
+        paging: false,  // Disable DataTables internal pagination (because we're using Django's)
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false
+      });
+    });
+  </script>
 {% endblock %}
