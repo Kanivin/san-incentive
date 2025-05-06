@@ -51,15 +51,35 @@ class DealRuleEngine:
             logger.warning("No IncentiveSetup found for bifurcation")
             return
 
+        # Extracting the relevant fields from the incentive_setup dict for condition check
         bifurcation = {
-            "deal_owner": incentive_setup.deal_owner or Decimal('0.00'),
-            "lead_source": incentive_setup.lead_source or Decimal('0.00'),
-            "follow_up": incentive_setup.follow_up or Decimal('0.00'),
-            "demo_1": incentive_setup.demo_1 or Decimal('0.00'),
-            "demo_2": incentive_setup.demo_2 or Decimal('0.00'),
+            "deal_owner": incentive_setup['setup'].get("deal_owner", Decimal('0.00')),
+            "lead_source": incentive_setup['setup'].get("lead_source", Decimal('0.00')),
+            "follow_up": incentive_setup['setup'].get("follow_up", Decimal('0.00')),
+            "demo_1": incentive_setup['setup'].get("demo_1", Decimal('0.00')),
+            "demo_2": incentive_setup['setup'].get("demo_2", Decimal('0.00')),
         }
 
         process_deal_incentives(self.deal_info, bifurcation)
+
+    def get_bifurcation_slabs(self):
+        setup = IncentiveSetup.objects.first()  # Fetch the first IncentiveSetup object, assuming there is one
+        if not setup:
+            return {}  # Return empty dict if no setup is found
+
+        # Constructing the slabs with the correct fields from the model
+        return {
+            "setup": {
+                "deal_owner": setup.deal_owner or 0,
+                "lead_source": setup.lead_source or 0,
+                "follow_up": setup.follow_up or 0,
+                "demo_1": setup.demo_1 or 0,
+                "demo_2": setup.demo_2 or 0,
+            },
+            "new_market": {
+                "deal_owner": setup.new_market_deal_owner or 0 if hasattr(setup, 'new_market_deal_owner') else 0
+            }
+        }
 
     # ---------------- Helper Methods ----------------
 
@@ -94,48 +114,7 @@ class DealRuleEngine:
             "roles": self.get_deal_roles(),
         }
 
-   def get_bifurcation_slabs():
-    setup = IncentiveSetup.objects.prefetch_related(
-        'setup_slabs', 'topper_slabs', 'high_value_slabs'
-    ).first()
-    
-    if not setup:
-        return {}
 
-    # Bifurcation for general setup components
-    setup_bifurcation = {
-        "deal_owner": float(setup.deal_owner or 0),
-        "lead_source": float(setup.lead_source or 0),
-        "follow_up": float(setup.follow_up or 0),
-        "demo_1": float(setup.demo_1 or 0),
-        "demo_2": float(setup.demo_2 or 0),
-    }
-
-    # Optional: logic to get slab-based bifurcations for single_high or topper_month
-    # These usually have more dynamic structure depending on business logic
-    high_value_bifurcation = {}
-    for slab in setup.high_value_slabs.all():
-        key = f"{slab.deal_type_high}_{slab.min_amount}_{slab.max_amount}"
-        high_value_bifurcation[key] = {
-            "deal_owner": 100  # Assuming full goes to deal_owner unless further role mapping
-        }
-
-    topper_month_bifurcation = {
-        "demo_1": float(setup.demo_1 or 0),
-        "demo_2": float(setup.demo_2 or 0)
-    }
-
-    # New market assumed to go fully to deal_owner unless changed
-    new_market_bifurcation = {
-        "deal_owner": 100.0
-    }
-
-    return {
-        "setup": setup_bifurcation,
-        "single_high": high_value_bifurcation.get("domestic_0.00_999999.99", setup_bifurcation),  # fallback
-        "topper_month": topper_month_bifurcation,
-        "new_market": new_market_bifurcation
-    }
 
 
 
