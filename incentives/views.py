@@ -507,10 +507,11 @@ def incentive_setup_create(request):
 
             for deal_type, segment_id, min_sub, inc_perc in zip(deal_type_top,topper_segments, min_subs, incentives):
                 if segment_id:
+                    segment_instance = get_object_or_404(Segment, pk=segment_id)
                     TopperMonthSlab.objects.create(
                         incentive_setup=monthly_incentive,
                         deal_type_top=deal_type,
-                        segment=segment_id,
+                        segment=segment_instance,
                         min_subscription=min_sub or 0,
                         incentive_percentage=inc_perc or 0
                     )

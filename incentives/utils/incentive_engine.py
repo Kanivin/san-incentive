@@ -66,7 +66,7 @@ class DealRuleEngine:
         )
 
         payout_split = {
-            'dealownerSalesPerson': self.setup.dealownerSalesPerson,
+            'dealownerSalesPerson': self.setup.deal_owner,
             'lead_source': self.setup.lead_source,
             'follow_up': self.setup.follow_up,
             'demo_1': self.setup.demo_1,
@@ -317,7 +317,7 @@ class DealRuleEngine:
 
         # Optional: Bifurcate the payout among the participants, if necessary
         payout_split = {
-            'dealownerSalesPerson': self.setup.dealownerSalesPerson,
+            'dealownerSalesPerson': self.setup.deal_owner,
             'lead_source': self.setup.lead_source,
             'follow_up': self.setup.follow_up,
             'demo_1': self.setup.demo_1,
