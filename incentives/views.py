@@ -11,8 +11,6 @@ import json
 import logging
 from django.db.models import Count
 from incentives.utils.incentive_engine import DealRuleEngine 
-from django.http import HttpResponse
-
 
 logger = logging.getLogger(__name__)
 # ---------- Authentication Views ----------
@@ -696,19 +694,13 @@ def incentive_setup_update(request, pk):
 
 def deal_approve(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
-
     if deal.status != 'Approved':
-        print(f"Approving deal {deal.id}")
         deal.status = 'Approved'
         deal.updated_by = request.user
         deal.save()
 
         # Call Rule Engine after approval
-        print(f"Running DealRuleEngine for deal {deal.id}")
         DealRuleEngine(deal).run_rules()  # Encapsulate logic inside a method
-
-        return HttpResponse("Deal approved and rules executed.", status=200)
-
     return redirect('deal_list')
 
 def salesteam(request):
@@ -718,11 +710,16 @@ def salesteam(request):
     return render(request, 'owner/master/SalesTeamHierarchy.html', {'users': users, 'head':head})
 
 def payout(request):
-    # List all IncentiveSetups
-    payout = PayoutTransaction.objects.all()
-    return render(request, 'owner/payout/payout_list.html', {'payout': payout})
+    payouts = PayoutTransaction.objects.all().order_by('-created_at') # or any suitable order
+    return render(request, 'owner/payout/payout_list.html', {
+        'payouts': payouts,
+    })
+
 
 def transaction(request):
-    # List all IncentiveSetups
-    transaction = Transaction.objects.all()
-    return render(request, 'owner/reports/transaction.html', {'transaction': transaction})
+    transactions = Transaction.objects.all().order_by('-transaction_date')  # or '-created_at'
+   
+    return render(request, 'owner/reports/transaction.html', {
+        'transactions': transactions,
+     
+    })

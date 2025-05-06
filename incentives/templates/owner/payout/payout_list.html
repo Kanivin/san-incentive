@@ -21,11 +21,20 @@
   </div>
 
   <h2>Payout List</h2>
-  <!-- <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a> -->
 
   <div class="table-responsive">
-    <tbody>
-      {% for payout in payouts %}
+    <table class="table table-striped table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Deal ID</th>
+          <th>Person Type</th>
+          <th>Status</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payout in payouts %}
         <tr>
           <td>
             <div class="d-flex align-items-center">
@@ -36,13 +45,9 @@
               </div>
             </div>
           </td>
+          <td>{{ payout.deal_id }}</td>
           <td>
-            <p class="mb-0 fw-normal fs-4">{{ payout.deal_id }}</p>
-          </td>
-          <td>
-            <div class="d-flex align-items-center">
-              <span class="badge bg-info text-white">{{ payout.incentive_person_type|title }}</span>
-            </div>
+            <span class="badge bg-info text-white">{{ payout.incentive_person_type|title }}</span>
           </td>
           <td>
             {% if payout.payout_status == 'Paid' %}
@@ -55,15 +60,14 @@
               <span class="badge bg-danger-subtle text-danger">{{ payout.payout_status }}</span>
             {% endif %}
           </td>
-          <td>
-            <h6 class="fs-4 fw-semibold mb-0">${{ payout.payout_amount }}</h6>
-          </td>
+          <td><h6 class="fs-4 fw-semibold mb-0">${{ payout.payout_amount }}</h6></td>
         </tr>
-      {% empty %}
+        {% empty %}
         <tr>
           <td colspan="5" class="text-center text-muted">No payout transactions found.</td>
         </tr>
-      {% endfor %}
-    </tbody>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 {% endblock %}
