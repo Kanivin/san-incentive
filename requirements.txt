@@ -1,0 +1,6 @@
+django
+python-dateutil
+gunicorn
+django-widget-tweaks
+whitenoise
+google-cloud-storage
