@@ -1,18 +1,16 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from django.contrib.auth.views import LogoutView
-
+from .views import CustomLogoutView
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from django.contrib.auth.views import LogoutView
 from . import views
 
 urlpatterns = [
     # Login and Logout paths
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
 
     # Dashboards
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

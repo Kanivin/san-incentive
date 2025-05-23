@@ -48,6 +48,7 @@ class UserProfile(AuditMixin):
     mail_id = models.EmailField(unique=True)
     password = models.CharField(max_length=100)
     user_type = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True)
+    team_head= models.ForeignKey('self', related_name='team_members', on_delete=models.CASCADE, null=True, blank=True)
     doj = models.DateField(verbose_name="Date of Joining")
     employee_id = models.CharField(max_length=50, unique=True)
     enable_login = models.BooleanField(default=True)

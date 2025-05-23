@@ -45,15 +45,21 @@
         <td>{{ deal.dealWonDate }}</td>
         <td>{{ deal.status }}</td>
         <td>
+       
+
+{% if request.permissions|has_any_permission:"Deals, edit" %}
           <a class="btn btn-primary btn-sm me-1" href="{% url 'deal_update' deal.pk %}">Edit</a>
           <button class="btn btn-warning btn-sm me-1" 
           onclick="checkApprovalStatus('{{ deal.status }}', '{{ deal.updated_by }}', '{{ deal.pk }}')">
       Change Status
   </button>
+  {% endif %}
+
+{% if request.permissions|has_any_permission:"Deals, delete" %}
           <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ deal.id }}">
             Delete
           </button>
-
+       {% endif %}
           <!-- Delete Confirmation Modal -->
           <div class="modal fade" id="confirmDeleteModal{{ deal.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ deal.id }}" aria-hidden="true">
             <div class="modal-dialog">

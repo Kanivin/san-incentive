@@ -1,5 +1,5 @@
 {% extends 'layouts/layout.html' %}
-{% load static %}
+{% load static %}  {% load permissions_tags %}
 {% load form_filters %}
 {% block content %}
 
@@ -34,6 +34,7 @@
           <th>Mail</th>
           <th>Type</th>
           <th>Email</th>
+              <th>created by</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -46,11 +47,18 @@
           <td>{{ user.mail_id }}</td>
           <td>{{ user.user_type.name }}</td>
           <td>{{ user.mail_id }}</td>
+<td>{{ user.updated_by|default:"-" }}</td>
           <td>
+              
+{% if request.permissions|has_any_permission:"Users, edit" %}
             <a class="btn btn-primary btn-sm me-1" href="{% url 'user_edit' user.pk %}">Edit</a>
+                {% endif %}
+
+{% if request.permissions|has_any_permission:"Users, delete" %}
             <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ user.id }}">
               Delete
             </button>
+    {% endif %}
 
             <!-- Delete Confirmation Modal -->
             <div class="modal fade" id="confirmDeleteModal{{ user.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ user.id }}" aria-hidden="true">

@@ -42,10 +42,16 @@
           <td>₹{{ target.annual_target_amount }}</td>
           <td>₹{{ target.net_salary }}</td>
           <td>
-            <a class="btn btn-primary btn-sm me-1" href="{% url 'target_update' target.pk %}">Edit</a>
-            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ target.id }}">
-              Delete
-            </button>
+            {% load permissions_tags %}
+          {% if request.permissions|has_any_permission:"Annual Targets, edit" %}
+  <a class="btn btn-primary btn-sm me-1" href="{% url 'target_update' target.pk %}">Edit</a>
+{% endif %}
+
+{% if request.permissions|has_any_permission:"Annual Targets, delete" %}
+  <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ target.id }}">
+    Delete
+  </button>
+{% endif %}
 
             <!-- Delete Confirmation Modal -->
    <!-- Delete Confirmation Modal -->

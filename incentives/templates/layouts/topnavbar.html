@@ -1,4 +1,4 @@
-{% load static %}
+{% load static %}  {% load permissions_tags %}
 <header class="topbar">
     <div class="with-vertical"><!-- ---------------------------------- -->
       <!-- Start Vertical Layout Header -->
@@ -99,8 +99,10 @@
                      
                     </div>
                     <div class="d-grid py-4 px-7 pt-8">
-                  
-                        <a href="{% url 'logout' %}" class="btn btn-outline-primary">Log Out</a>
+                  <form method="POST" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-primary">Log Out</button>
+</form>
                     </div>
                   </div>
                 </div>

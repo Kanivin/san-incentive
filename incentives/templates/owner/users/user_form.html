@@ -1,5 +1,5 @@
 {% extends 'layouts/layout.html' %}
-{% load static %}
+{% load static %}  {% load permissions_tags %}
 {% load form_filters %}
 
 {% block content %}
@@ -97,7 +97,24 @@
             {% endif %}
           </div>
         </div>
-
+ <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Team Under</label>
+            <div class="col-sm-9">
+              <select name="team_head" class="form-select" required>
+                <option value="">Select Team Leader</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if form.team_head.value == user.id %}selected{% endif %}>
+                    {{ user.fullname }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if form.team_head.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.team_head.errors.as_text|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
         <div class="mb-4 row align-items-center">
           <label class="form-label col-sm-3 col-form-label">Date of Joining</label>
           <div class="col-sm-9">

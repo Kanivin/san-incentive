@@ -12,6 +12,11 @@ import logging
 from django.db.models import Count
 from incentives.utils.incentive_engine import DealRuleEngine 
 from django.core.paginator import Paginator
+from django.contrib.auth.views import LogoutView
+from django.urls import reverse_lazy
+
+class CustomLogoutView(LogoutView):
+    next_page = reverse_lazy('login') 
 
 logger = logging.getLogger(__name__)
 # ---------- Authentication Views ----------
@@ -35,8 +40,11 @@ def login_view(request):
             user = UserProfile.objects.get(mail_id=username)
             if check_password(password, user.password):
                 request.session['mail_id'] = user.mail_id
+                request.session['user_id'] = user.id
+                request.session['role_id'] = user.user_type.id
                 user_type = user.user_type.name.lower()
 
+                request.session['user_type'] = user_type
                 if user_type == 'superadmin':
                     return redirect(next_url or 'superadmin_dashboard')
                 elif user_type == 'accounts':
@@ -427,9 +435,6 @@ def permission(request):
     modules = Module.objects.all()
 
     if request.method == 'POST':
-        # Clear old permissions if needed
-        Permission.objects.all().delete()
-
         for role in roles:
             for module in modules:
                 can_add = bool(request.POST.get(f'permissions_{role.id}_{module.id}_add'))
@@ -437,19 +442,19 @@ def permission(request):
                 can_delete = bool(request.POST.get(f'permissions_{role.id}_{module.id}_delete'))
                 can_view = bool(request.POST.get(f'permissions_{role.id}_{module.id}_view'))
 
-                if can_add or can_edit or can_delete or can_view:
-                    Permission.objects.update_or_create(
-                        role=role,
-                        module=module,
-                        defaults={
-                            'can_add': can_add,
-                            'can_edit': can_edit,
-                            'can_delete': can_delete,
-                            'can_view': can_view,
-                        }
-                    )
+                # Always update_or_create regardless of True/False
+                Permission.objects.update_or_create(
+                    role=role,
+                    module=module,
+                    defaults={
+                        'can_add': can_add,
+                        'can_edit': can_edit,
+                        'can_delete': can_delete,
+                        'can_view': can_view,
+                    }
+                )
 
-        return redirect('permission')  # make sure your urls.py has name='permission'
+        return redirect('permission')
 
     # GET request
     permissions = Permission.objects.all()
@@ -468,6 +473,7 @@ def permission(request):
         'modules': modules,
         'permission_matrix': permission_matrix,
     })
+
 from django.shortcuts import render, redirect
 from datetime import datetime
 from .forms import IncentiveSetupForm
@@ -727,3 +733,5 @@ def transaction(request):
         'page_obj': page_obj,
      
     })
+
+

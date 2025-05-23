@@ -1,0 +1,249 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}  {% load permissions_tags %}
+{% load permissions_tags %}
+{% block content %}
+
+<div class="owl-carousel counter-carousel owl-theme">
+    <div class="item">
+      <div class="card border-0 zoom-in bg-primary-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-user-male.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-primary mb-1">
+              Employees
+            </p>
+            <h5 class="fw-semibold text-primary mb-0">96</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="card border-0 zoom-in bg-warning-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-briefcase.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-warning mb-1">Clients</p>
+            <h5 class="fw-semibold text-warning mb-0">720</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="card border-0 zoom-in bg-info-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-mailbox.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-info mb-1">High Value</p>
+            <h5 class="fw-semibold text-info mb-0">150</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="card border-0 zoom-in bg-danger-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-favorites.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-danger mb-1">Topper</p>
+            <h5 class="fw-semibold text-danger mb-0">320</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="card border-0 zoom-in bg-success-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-speech-bubble.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-success mb-1">Payout</p>
+            <h5 class="fw-semibold text-success mb-0">₹9600000</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item">
+      <div class="card border-0 zoom-in bg-info-subtle shadow-none">
+        <div class="card-body">
+          <div class="text-center">
+            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-connect.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
+            <p class="fw-semibold fs-3 text-info mb-1">Products </p>
+            <h5 class="fw-semibold text-info mb-0">4</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--  Row 1 -->
+  <div class="row">
+    <div class="col-lg-6 d-flex align-items-stretch">
+      <div class="card w-100">
+        <div class="card-body">
+          <h4 class="card-title">Monthly Incentive Expenses vs Previous Year</h4>
+          <p class="card-subtitle mb-0">Overview of Incentive</p>
+          <div id="chart-earnings-incentives"></div>            
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 d-flex align-items-stretch">
+      <div class="card w-100">
+        <div class="card-body">
+          <div class="d-sm-flex d-block align-items-center justify-content-between mb-7">
+            <div class="mb-3 mb-sm-0">
+              <h4 class="card-title fw-semibold">Top Performers</h4>
+              <p class="card-subtitle">Best Employees</p>
+            </div>
+            <div>
+              <select class="form-select">
+                <option value="1">2022 -2023</option>
+                <option value="2">2023 -2024</option>
+                <option value="3">2024 -2025</option>
+                <option value="4">2025 -2026</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle text-nowrap mb-0">
+              <thead>
+                <tr class="text-muted fw-semibold">
+                  <th scope="col" class="ps-0">Employees</th>
+                  <th scope="col">Target</th>
+                  <th scope="col">Actual</th>
+                  <th scope="col">Priority</th>                 
+                </tr>
+              </thead>
+              <tbody class="border-top">
+                <tr>
+                  <td class="ps-0">
+                    <div class="d-flex align-items-center">
+                     
+                      <div>
+                        <h6 class="fw-semibold mb-1">Employee 1</h6>
+                        <p class="fs-2 mb-0 text-muted">
+                            employee1@saneforce.com
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="mb-0 fs-3">₹390000</p>
+                  </td>
+                  <td>
+                    <p class="fs-3 text-dark mb-0">₹300000</p>
+                  </td>
+                  <td>
+                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-primary">Low</span>
+                  </td>
+                 
+                </tr>
+                <tr>
+                  <td class="ps-0">
+                    <div class="d-flex align-items-center">
+                      
+                      <div>
+                        <h6 class="fw-semibold mb-1">Employee 2</h6>
+                        <p class="fs-2 mb-0 text-muted">
+                            employee2@saneforce.com
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="mb-0 fs-3">₹240000</p>
+                  </td>
+                  <td>
+                    <p class="fs-3 text-dark mb-0">₹220000</p>
+                  </td>
+                  <td>
+                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-warning">Medium</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ps-0">
+                    <div class="d-flex align-items-center">                    
+                      <div>
+                        <h6 class="fw-semibold mb-1">Employee 3</h6>
+                        <p class="fs-2 mb-0 text-muted">
+                            employee3@saneforce.com
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="mb-0 fs-3">₹120000</p>
+                  </td>
+                  <td>
+                    <p class="fs-3 text-dark mb-0">₹128000</p>
+                  </td>
+                  <td>
+                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-info">High</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="ps-0">
+                    <div class="d-flex align-items-center">
+                      <div>
+                        <h6 class="fw-semibold mb-1"Eemployee 4</h6>
+                        <p class="fs-2 mb-0 text-muted">
+                            employee4@saneforce.com
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="mb-0 fs-3">₹480000</p>
+                  </td>
+                  <td>
+                    <p class="fs-3 text-dark mb-0">₹320000</p>
+                  </td>
+                  <td>
+                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-primary">Low</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="border-0 ps-0">
+                    <div class="d-flex align-items-center">
+                     <div>
+                        <h6 class="fw-semibold mb-1">Employee 5</h6>
+                        <p class="fs-2 mb-0 text-muted">
+                            employee5@saneforce.com
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p class="mb-0 fs-3">₹920000</p>
+                  </td>
+                  <td>
+                    <p class="fs-3 text-dark mb-0">₹980000</p>
+                  </td>
+                  <td>
+                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-info">High</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>          
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 d-flex align-items-stretch">     
+      <!-- Products Wise Sales -->
+      <div class="card w-100">
+        <div class="card-body">
+          <h4 class="card-title">Products Wise Sales</h4>
+          <div id="chart-pie-product"></div>
+        </div>      
+      </div>
+    </div> 
+      <!-- Products Sales -->
+    <div class="col-lg-6 d-flex align-items-stretch">    
+      <div class="card w-100">
+        <div class="card-body">
+          <h4 class="card-title">Monthly Sales by Product</h4>
+          <div id="chart-line-product"></div>
+        </div>      
+      </div>
+    </div>  
+  </div>
+ 
+ {% endblock %}
