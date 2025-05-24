@@ -139,7 +139,7 @@
                 </a>
               </li>
                {% endif %}
-             {% if request.permissions|has_any_permission:"Payouts , view" %} 
+             <!-- {% if request.permissions|has_any_permission:"Payouts , view" %}  -->
                 <li class="sidebar-item">
                 <a href="{% url 'transaction' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
@@ -148,7 +148,7 @@
                   <span class="hide-menu">Payouts Report</span>
                 </a>
               </li>
-             {% endif %}
+             <!-- {% endif %} -->
             
               </ul>
               </li>

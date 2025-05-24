@@ -28,35 +28,40 @@ class DealForm(forms.ModelForm):
     class Meta:
         model = Deal
         fields = [
-            'clientName', 'segment', 'leadSource', 'dealType', 'dealWonDate','status',
-            'setupCharges', 'monthlySubscription', 'newMarketPenetration', 'newMarketCountry',
-            'dealownerSalesPerson', 'followUpSalesPerson', 'demo1SalesPerson', 'demo2SalesPerson'
+            'clientName', 'segment', 'leadSource', 'dealType', 'dealWonDate', 'subDate', 'subrenewDate',
+            'subAmount', 'setupCharges', 'monthlySubscription', 'newMarketPenetration', 'newMarketCountry',
+            'dealownerSalesPerson', 'followUpSalesPerson', 'demo1SalesPerson', 'demo2SalesPerson',
+            'refDocs', 'status',
         ]
         widgets = {
             'dealWonDate': forms.DateInput(attrs={'type': 'date'}),
+            'subDate': forms.DateInput(attrs={'type': 'date'}),
+            'subrenewDate': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Filter user profiles for salesperson and saleshead only
+        # Filter user profiles
         user_types = ['salesperson', 'saleshead']
         salesperson_queryset = UserProfile.objects.filter(user_type__name__in=user_types)
         self.fields['dealownerSalesPerson'].queryset = salesperson_queryset
         self.fields['followUpSalesPerson'].queryset = salesperson_queryset
         self.fields['demo1SalesPerson'].queryset = salesperson_queryset
         self.fields['demo2SalesPerson'].queryset = salesperson_queryset
-        lead_types = ['salesperson', 'saleshead','admin']
-        leadperson_queryset = UserProfile.objects.filter(user_type__name__in=lead_types)
-        self.fields['leadSource'].queryset = leadperson_queryset
-        # Initially make these fields not required
+
+        lead_types = ['salesperson', 'saleshead', 'admin']
+        self.fields['leadSource'].queryset = UserProfile.objects.filter(user_type__name__in=lead_types)
+
+        # Optional fields
         self.fields['newMarketPenetration'].required = False
-        self.fields['status'].required = False
         self.fields['newMarketCountry'].required = False
+        self.fields['status'].required = False
+        self.fields['refDocs'].required = False
 
     def clean_clientName(self):
         client_name = self.cleaned_data.get('clientName')
-        if client_name and Deal.objects.filter(clientName=client_name).exclude(id=self.instance.id).exists():
+        if client_name and Deal.objects.filter(clientName=client_name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("A deal with this client name already exists.")
         return client_name
 
@@ -66,16 +71,11 @@ class DealForm(forms.ModelForm):
         new_market_penetration = cleaned_data.get('newMarketPenetration')
         new_market_country = cleaned_data.get('newMarketCountry')
 
-        # Normalize strings
-        deal_type = deal_type.lower().strip() if deal_type else ''
-        penetration_value = new_market_penetration.lower().strip() if new_market_penetration else ''
-
-        # Apply conditional validation
-        if deal_type == 'international':
+        if deal_type and deal_type.lower() == 'international':
             if not new_market_penetration:
                 self.add_error('newMarketPenetration', 'This field is required for International deals.')
 
-            if penetration_value == 'yes' and not new_market_country:
+            if new_market_penetration and new_market_penetration.lower() == 'yes' and not new_market_country:
                 self.add_error('newMarketCountry', 'Please specify the new market country.')
 
         return cleaned_data

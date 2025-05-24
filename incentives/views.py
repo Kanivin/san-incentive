@@ -98,10 +98,12 @@ def user_create(request):
     else:
         form = UserProfileForm()
     
-    roles = Role.objects.all()
+    roles = Role.objects.exclude(name='superadmin')
+    users = UserProfile.objects.filter(user_type__name__in=['admin', 'saleshead'])
     return render(request, 'owner/users/user_form.html', {
         'form': form,
         'roles': roles,
+        'users':users,
         'title': 'Create User',
     })
 

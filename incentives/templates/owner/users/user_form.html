@@ -98,7 +98,7 @@
           </div>
         </div>
  <div class="mb-4 row align-items-center">
-            <label class="form-label col-sm-3 col-form-label">Team Under</label>
+            <label class="form-label col-sm-3 col-form-label">Reporting To</label>
             <div class="col-sm-9">
               <select name="team_head" class="form-select" required>
                 <option value="">Select Team Leader</option>
@@ -153,7 +153,22 @@
             {% endif %}
           </div>
         </div>
-        
+          <div class="mb-4 row align-items-center">
+          <label class="form-label col-sm-3 col-form-label">Co-Ordinator</label>
+          <div class="col-sm-9">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" name="coordinator" id="coordinator"
+                {% if form.coordinator.value %}
+                  checked
+                {% endif %}
+              >
+             
+            </div>
+            {% if form.coordinator.errors %}
+              <div class="text-danger mt-1">{{ form.coordinator.errors.as_text|striptags }}</div>
+            {% endif %}
+          </div>
+        </div>
         <div class="row">
           <div class="col-sm-3"></div>
           <div class="col-sm-9">

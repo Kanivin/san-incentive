@@ -1,5 +1,6 @@
 {% extends 'layouts/layout.html' %}
-{% load static %}  {% load permissions_tags %}
+{% load static %} 
+ {% load permissions_tags %}
 {% load form_filters %}
 
 {% block content %}
@@ -223,7 +224,37 @@
             </div>
           </div>
         </fieldset>
+ <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Annual Subscription Details
+          </legend>
+            <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Subscription Start Date</label>
+            <div class="col-sm-9">
+              {{ form.subDate|add_class:"form-control" }}
+            </div>
+          </div>
 
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Annual Subscription Amount</label>
+            <div class="col-sm-9">
+              {{ form.subAmount|add_class:"form-control" }}
+            </div>
+          </div>
+           </legend>
+            <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Subscription Renewal Date</label>
+            <div class="col-sm-9">
+              {{ form.subrenewDate|add_class:"form-control" }}
+            </div>
+          </div>
+           </legend>
+            <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Upload Ref Documents</label>
+            <div class="col-sm-9">
+              {{ form.refDocs|add_class:"form-control" }}
+            </div>
+          </div>
+          </fieldset>
         <!-- Submit Buttons -->
         <div class="row">
           <div class="col-sm-3"></div>

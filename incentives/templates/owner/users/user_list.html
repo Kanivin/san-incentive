@@ -34,7 +34,6 @@
           <th>Mail</th>
           <th>Type</th>
           <th>Email</th>
-              <th>created by</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -47,7 +46,6 @@
           <td>{{ user.mail_id }}</td>
           <td>{{ user.user_type.name }}</td>
           <td>{{ user.mail_id }}</td>
-<td>{{ user.updated_by|default:"-" }}</td>
           <td>
               
 {% if request.permissions|has_any_permission:"Users, edit" %}
