@@ -1,0 +1,30 @@
+steps:
+  # Run 
+  - name: python:3.13-slim
+    entrypoint: /bin/sh
+   
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 
+           'asia-southeast1-docker.pkg.dev/preprod-prj-ivi-ondc/kanivin/san-incentive:1.0', '.']
+    env:
+      - "DOCKER_BUILDKIT=1"
+
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast1-docker.pkg.dev/preprod-prj-ivi-ondc/kanivin/san-incentive:1.0']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['run', 'deploy', 'san-incentive', 
+           '--image=asia-southeast1-docker.pkg.dev/preprod-prj-ivi-ondc/kanivin/san-incentive:1.0',   
+           '--cpu=1',
+           '--memory=2G',         
+           '--add-cloudsql-instances=prj-dba-kanivin:asia-southeast1:kanivindb',
+            '--add-volume', 'name=v_mount,type=cloud-storage,bucket=san-incentive',
+           '--add-volume-mount', 'volume=v_mount,mount-path=/home/san-incentive',             
+           '--region', 'asia-southeast1', '--platform', 'managed',
+           --allow-unauthenticated, --port=8000, --min-instances=1, --max-instances=1]
+
+images:
+  - asia-southeast1-docker.pkg.dev/preprod-prj-ivi-ondc/kanivin/san-incentive:1.0
