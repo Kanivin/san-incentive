@@ -66,8 +66,9 @@ urlpatterns = [
 
     path('deal/approve/<int:pk>/', views.deal_approve, name='deal_approve'),
 
-        path('salesteam/', views.salesteam, name='salesteam'),
-      path('payout/', views.payout, name='payout'),
-        path('transaction/', views.transaction, name='transaction'),
+    path('salesteam/', views.salesteam, name='salesteam'),
+    path('payout/', views.payout, name='payout'),
+    path('transaction/', views.transaction, name='transaction'),
+    path("backup_db/", views.backup_db_view, name="backup_db"),
 ]
 

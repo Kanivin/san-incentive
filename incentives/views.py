@@ -15,6 +15,10 @@ from django.core.paginator import Paginator
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
 
+from incentives.utils.db_backup import upload_db_to_gcs
+from django.http import HttpResponse
+
+
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
 
@@ -736,4 +740,8 @@ def transaction(request):
      
     })
 
-
+def backup_db_view(request):
+    if request.method == "POST":
+        message = upload_db_to_gcs()
+        return HttpResponse(message)
+    return HttpResponse("Use POST to trigger backup.")
