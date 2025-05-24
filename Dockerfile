@@ -41,8 +41,12 @@ COPY --chown=appuser:appuser . .
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1 
 
+RUN apt-get update && apt-get install -y dos2unix \
+    && dos2unix entrypoint.sh && chmod +x entrypoint.sh
+    
 # Switch to non-root user
 USER appuser
+
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
