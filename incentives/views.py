@@ -487,7 +487,7 @@ from .models import IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueD
 
 def incentive_setup_create(request):
     current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year -1, current_year + 4)]
     months = [month for month in range(1, 13)]
     segments = Segment.objects.all()
 
