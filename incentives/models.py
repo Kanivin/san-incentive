@@ -233,7 +233,7 @@ class Transaction(AuditMixin):
         ('single_high', 'Single High Value'),
     ]
 
-    deal_id = models.CharField(max_length=255)
+    deal_id = models.ForeignKey('Deal', on_delete=models.CASCADE, null=True, blank=True)
     version = models.PositiveIntegerField(default=1)
     transaction_type = models.CharField(max_length=50, choices=DEAL_TYPE_CHOICES)
     incentive_component_type = models.CharField(max_length=100, choices=TRANSACTION_COMPONENT_CHOICES)
@@ -267,10 +267,8 @@ class TargetTransaction(AuditMixin):
     ]
     
     TRANSACTION_COMPONENT_CHOICES = [
-        ('setup', 'Setup'),
-        ('new_market', 'New Market'),
-        ('topper_month', 'Topper of the Month'),
-        ('single_high', 'Single High Value'),
+        ('subscription', 'Subscription'),
+      
     ]
 
     deal = models.ForeignKey('Deal', on_delete=models.CASCADE, null=True, blank=True)
@@ -291,8 +289,8 @@ class TargetTransaction(AuditMixin):
         return f"Transaction {self.deal_id} - {self.transaction_type}"
 
     class Meta:
-        verbose_name = 'Transaction'
-        verbose_name_plural = 'Transactions'
+        verbose_name = 'TargetTransaction'
+        verbose_name_plural = 'TargetTransaction'
         ordering = ['-transaction_date']
 class PayoutTransaction(AuditMixin):
     INCENTIVE_PERSON_CHOICES = [

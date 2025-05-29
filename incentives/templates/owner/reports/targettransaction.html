@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <h2>Transaction</h2>
+  <h2>Target Transaction</h2>
 <form method="get" class="row g-2 mb-3">
   <div class="col-md-3">
     <input type="text" name="search" value="{{ search }}" placeholder="Search..." class="form-control">
@@ -59,8 +59,8 @@
       <tbody>
         {% for txn in page_obj %}
         <tr>
-          <td>{{ txn.deal_id }}</td>
-            <td>{{ txn.user_id }}</td>
+       <td>{{ txn.deal.clientName }}</td>
+            <td>{{ txn.user.fullname }}</td>
           <td>{{ txn.version }}</td>
           <td>{{ txn.transaction_type }}</td>
           <td>{{ txn.incentive_component_type }}</td>

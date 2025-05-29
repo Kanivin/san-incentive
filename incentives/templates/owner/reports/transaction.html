@@ -58,7 +58,7 @@
       <tbody>
         {% for txn in page_obj %}
         <tr>
-          <td>{{ txn.deal_id }}</td>
+          <td>{{ txn.deal.clientName }}</td>
           <td>{{ txn.version }}</td>
           <td>{{ txn.transaction_type }}</td>
           <td>{{ txn.incentive_component_type }}</td>

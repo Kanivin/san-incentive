@@ -34,6 +34,7 @@ class DealRuleEngine:
         self.process_new_market_incentive()
         self.process_topper_month_incentive()
         self.process_high_value_deal_incentive()
+        self.process_subscription_incentive()
 
     def process_setup_incentive(self):
         deal_amount = self.deal.setupCharges
@@ -185,3 +186,46 @@ class DealRuleEngine:
                     print(f"[❌ Error] {label} → Failed to create payout:", e)
             else:
                 print(f"[⚠️ No User] {label} → Field '{field_name}' is None in deal.")
+
+    def process_subscription_incentive(self):
+        if not all([self.deal.subDate, self.deal.subrenewDate, self.deal.subAmount]):
+            return
+
+        if not self.setup:
+            return
+
+        sub_amount = self.deal.subAmount
+        monthly_target = self.setup.min_subscription_month or 1
+        avg_subscription = sub_amount / Decimal(monthly_target)
+        percent_achieved = (avg_subscription / self.setup.min_subscription_month) * 100
+
+        if percent_achieved >= 100:
+            percentage = self.setup.subscription_100_per_target
+        elif percent_achieved >= 75:
+            percentage = self.setup.subscription_75_per_target
+        elif percent_achieved >= 50:
+            percentage = self.setup.subscription_50_per_target
+        else:
+            percentage = self.setup.subscription_below_50_per
+
+        if not percentage:
+            return
+
+        incentive_amount = (sub_amount * percentage) / Decimal('100.0')
+
+    # You can customize this field to another user field if needed
+        user = self.deal.dealownerSalesPerson
+
+        from incentives.models import TargetTransaction
+
+        TargetTransaction.objects.create(
+            deal=self.deal,
+            user=user,
+            transaction_type='Earned',
+            incentive_component_type='subscription',  # You must add this to the choices
+            amount=incentive_amount,
+            eligibility_status='Eligible',
+            eligibility_message=f'Subscription {percent_achieved:.2f}% of target',
+            notes=f'Subscription incentive based on ₹{sub_amount} and target {monthly_target} months',
+            created_by=self.deal.created_by
+        )

@@ -20,6 +20,7 @@ from incentives.utils.db_backup import upload_db_to_gcs
 from django.http import HttpResponse
 
 
+
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
 
@@ -1141,6 +1142,76 @@ def transaction(request):
     search = request.GET.get('search', '')
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
+    export = request.GET.get('export')
+
+    transactions = Transaction.objects.all().order_by('-transaction_date')
+
+    # Filter by search
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(transaction_type__icontains=search) |
+            Q(incentive_component_type__icontains=search) |
+            Q(eligibility_message__icontains=search) |
+            Q(notes__icontains=search)
+        )
+
+    # Filter by date
+    if from_date and to_date:
+        from_parsed = parse_date(from_date)
+        to_parsed = parse_date(to_date)
+        if from_parsed and to_parsed:
+            transactions = transactions.filter(transaction_date__range=(from_parsed, to_parsed))
+
+    # Export
+    if export == 'xlsx':
+        return export_transaction_xlsx(transactions)
+    elif export == 'pdf':
+        return export_transaction_pdf(transactions)
+
+    # Pagination
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'owner/reports/transaction.html', {
+        'page_obj': page_obj,
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
+    })
+
+def export_transaction_xlsx(transactions):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Transactions"
+    ws.append(['Deal ID', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes'])
+
+    for txn in transactions:
+        ws.append([
+            txn.deal_id, txn.version, txn.transaction_type, txn.incentive_component_type,
+            txn.amount, txn.freeze, txn.is_latest, txn.eligibility_status,
+            txn.eligibility_message, txn.transaction_date.strftime('%Y-%m-%d'),
+            txn.notes or '-'
+        ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+    wb.save(response)
+    return response
+
+def export_transaction_pdf(transactions):
+    html = render_to_string('owner/reports/transaction_pdf.html', {'transactions': transactions})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+
+def transaction(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
 
     transactions = Transaction.objects.all()
 
@@ -1166,7 +1237,111 @@ def transaction(request):
 
     return render(request, 'owner/reports/transaction.html', {
         'page_obj': page_obj,
-     
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
     })
 
+def transaction_export_excel(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
 
+    transactions = Transaction.objects.all()
+
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    data = tablib.Dataset()
+    data.headers = ['Deal ID', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
+
+    for txn in transactions:
+        data.append([
+            txn.deal_id,
+            txn.version,
+            txn.transaction_type,
+            txn.incentive_component_type,
+            txn.amount,
+            txn.freeze,
+            txn.is_latest,
+            txn.eligibility_status,
+            txn.eligibility_message,
+            txn.transaction_date,
+            txn.notes or '-'
+        ])
+
+    response = HttpResponse(data.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+    return response
+
+def transaction_export_pdf(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = Transaction.objects.all()
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    template = get_template('owner/reports/transaction_pdf.html')
+    html = template.render({'transactions': transactions})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+def targettransaction(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = TargetTransaction.objects.all()
+
+    # Search filter (e.g., deal_id, message)
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+
+    # Date filter
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    transactions = transactions.order_by('-transaction_date')
+
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'owner/reports/targettransaction.html', {
+        'page_obj': page_obj,
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
+    })
+
+def backup_db_view(request):
+    if request.method == "POST":
+        message = upload_db_to_gcs()
+        return HttpResponse(message)
+    return HttpResponse("Use POST to trigger backup.")
