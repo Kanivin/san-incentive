@@ -268,8 +268,14 @@
            
               </ul>
               </li>
-           
-     
+              <li class="sidebar-item">
+                <form method="POST" action="/backup_db/">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-primary">
+                    Backup DB to GCS
+                  </button>
+                </form>                
+            </li>    
 
         </ul>
       </nav>

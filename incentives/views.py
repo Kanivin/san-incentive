@@ -16,6 +16,10 @@ from django.contrib.auth.views import LogoutView
 from django.template.loader import get_template
 from django.urls import reverse_lazy
 
+from incentives.utils.db_backup import upload_db_to_gcs
+from django.http import HttpResponse
+
+
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
 
@@ -750,7 +754,7 @@ from .models import IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueD
 
 def incentive_setup_create(request):
     current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year -1, current_year + 4)]
     months = [month for month in range(1, 13)]
     segments = Segment.objects.all()
 
@@ -1162,105 +1166,7 @@ def transaction(request):
 
     return render(request, 'owner/reports/transaction.html', {
         'page_obj': page_obj,
-        'search': search,
-        'from_date': from_date,
-        'to_date': to_date,
+     
     })
-def transaction_export_excel(request):
-    search = request.GET.get('search', '')
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    transactions = Transaction.objects.all()
-
-    if search:
-        transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
-            Q(notes__icontains=search) |
-            Q(transaction_type__icontains=search)
-        )
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
-
-    data = tablib.Dataset()
-    data.headers = ['Deal ID', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
-
-    for txn in transactions:
-        data.append([
-            txn.deal_id,
-            txn.version,
-            txn.transaction_type,
-            txn.incentive_component_type,
-            txn.amount,
-            txn.freeze,
-            txn.is_latest,
-            txn.eligibility_status,
-            txn.eligibility_message,
-            txn.transaction_date,
-            txn.notes or '-'
-        ])
-
-    response = HttpResponse(data.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
-    return response
-
-def transaction_export_pdf(request):
-    search = request.GET.get('search', '')
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    transactions = Transaction.objects.all()
-    if search:
-        transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
-            Q(notes__icontains=search) |
-            Q(transaction_type__icontains=search)
-        )
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
-
-    template = get_template('owner/reports/transaction_pdf.html')
-    html = template.render({'transactions': transactions})
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
-    pisa.CreatePDF(html, dest=response)
-    return response
 
 
-def targettransaction(request):
-    search = request.GET.get('search', '')
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    transactions = TargetTransaction.objects.all()
-
-    # Search filter (e.g., deal_id, message)
-    if search:
-        transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
-            Q(notes__icontains=search) |
-            Q(transaction_type__icontains=search)
-        )
-
-    # Date filter
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
-
-    transactions = transactions.order_by('-transaction_date')
-
-    paginator = Paginator(transactions, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'owner/reports/targettransaction.html', {
-        'page_obj': page_obj,
-        'search': search,
-        'from_date': from_date,
-        'to_date': to_date,
-    })
