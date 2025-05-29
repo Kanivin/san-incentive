@@ -43,6 +43,7 @@
       <thead>
         <tr>
           <th>Deal ID</th>
+           <th>User</th>
           <th>Version</th>
           <th>Type</th>
           <th>Component</th>
@@ -59,6 +60,7 @@
         {% for txn in page_obj %}
         <tr>
           <td>{{ txn.deal_id }}</td>
+            <td>{{ txn.user_id }}</td>
           <td>{{ txn.version }}</td>
           <td>{{ txn.transaction_type }}</td>
           <td>{{ txn.incentive_component_type }}</td>

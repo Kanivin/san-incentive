@@ -47,8 +47,17 @@ class UserProfile(AuditMixin):
     phone = models.CharField(max_length=15)
     mail_id = models.EmailField(unique=True)
     password = models.CharField(max_length=100)
-    user_type = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True)
-    team_head= models.ForeignKey('self', related_name='team_members', on_delete=models.CASCADE, null=True, blank=True)
+    user_type = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, verbose_name="Role")
+    
+    # Sales Hierarchy
+    team_head = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='salespersons',  # Reverse relation: manager.salespersons.all()
+        verbose_name="Reports To"
+    )
     doj = models.DateField(verbose_name="Date of Joining")
     employee_id = models.CharField(max_length=50, unique=True)
     enable_login = models.BooleanField(default=True)
@@ -245,6 +254,46 @@ class Transaction(AuditMixin):
         verbose_name_plural = 'Transactions'
         ordering = ['-transaction_date']
 
+class TargetTransaction(AuditMixin):
+    DEAL_TYPE_CHOICES = [
+        ('Earned', 'Earned'),
+        ('To Recover', 'To Recover'),
+    ]
+    
+    ELIGIBILITY_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Eligible', 'Eligible'),
+        ('Not Eligible', 'Not Eligible'),
+    ]
+    
+    TRANSACTION_COMPONENT_CHOICES = [
+        ('setup', 'Setup'),
+        ('new_market', 'New Market'),
+        ('topper_month', 'Topper of the Month'),
+        ('single_high', 'Single High Value'),
+    ]
+
+    deal = models.ForeignKey('Deal', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
+    transaction_type = models.CharField(max_length=50, choices=DEAL_TYPE_CHOICES)
+    incentive_component_type = models.CharField(max_length=100, choices=TRANSACTION_COMPONENT_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    freeze = models.BooleanField(default=False)
+    is_latest = models.BooleanField(default=True)
+    
+    eligibility_status = models.CharField(max_length=50, choices=ELIGIBILITY_STATUS_CHOICES, default='Pending')
+    eligibility_message = models.CharField(max_length=50, blank=True, null=True)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Transaction {self.deal_id} - {self.transaction_type}"
+
+    class Meta:
+        verbose_name = 'Transaction'
+        verbose_name_plural = 'Transactions'
+        ordering = ['-transaction_date']
 class PayoutTransaction(AuditMixin):
     INCENTIVE_PERSON_CHOICES = [
         ('deal_source', 'Deal Source'),
@@ -266,7 +315,7 @@ class PayoutTransaction(AuditMixin):
         ('Cheque', 'Cheque'),
     ]
 
-    deal_id = models.CharField(max_length=255)
+    deal = models.ForeignKey('Deal', on_delete=models.CASCADE, null=True, blank=True)
     incentive_transaction = models.ForeignKey(
         'Transaction', 
         on_delete=models.CASCADE,

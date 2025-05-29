@@ -23,18 +23,23 @@ urlpatterns = [
     path('user-create/', views.user_create, name='user_create'),
     path('user-edit/<int:pk>/', views.user_edit, name='user_edit'),
     path('user-delete/<int:pk>/', views.user_delete, name='user_delete'),
-
+    path('users/export/xlsx/', views.export_users_xlsx, name='user_export_xlsx'),
+    path('users/export/pdf/', views.export_users_pdf, name='user_export_pdf'),
     # Admin deal management
     path('admin-deal/', views.deal_list, name='deal_list'),
     path('deal-create/', views.deal_create, name='deal_create'),
     path('deal-edit/<int:pk>/', views.deal_update, name='deal_update'),
     path('deal-delete/<int:pk>/', views.deal_delete, name='deal_delete'),
+        path('deals/export/excel/', views.deal_export_excel, name='deal_export_excel'),
+    path('deals/export/pdf/', views.deal_export_pdf, name='deal_export_pdf'),
 
     # Admin Annual Target
     path('admin-target/', views.target_list, name='target_list'),
     path('target-create/', views.target_create, name='target_create'),
     path('target-edit/<int:pk>/', views.target_update, name='target_update'),
     path('target-delete/<int:pk>/', views.target_delete, name='target_delete'),
+path('annual-targets/export/excel/', views.target_export_excel, name='target_export_excel'),
+path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_pdf'),
 
 
 
@@ -69,5 +74,10 @@ urlpatterns = [
         path('salesteam/', views.salesteam, name='salesteam'),
       path('payout/', views.payout, name='payout'),
         path('transaction/', views.transaction, name='transaction'),
+ path('targettransaction/', views.targettransaction, name='targettransaction'),
+    path('transaction/export/excel/', views.transaction_export_excel, name='transaction_export_excel'),
+    path('transaction/export/pdf/', views.transaction_export_pdf, name='transaction_export_pdf'),
+
+
 ]
 

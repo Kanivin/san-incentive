@@ -20,6 +20,23 @@
 </div>
 
 <h2>Deal List</h2>
+<form method="get" class="row g-3 mb-3">
+  <div class="col-md-3">
+    <input type="text" name="q" class="form-control" placeholder="Search Client" value="{{ query }}">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+  </div>
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{% url 'deal_export_excel' %}" class="btn btn-success">Export XLSX</a>
+    <a href="{% url 'deal_export_pdf' %}" class="btn btn-danger">Export PDF</a>
+  </div>
+</form>
+
 <a class="btn btn-custom mb-3" href="{% url 'deal_create' %}">+ Add Deal</a>
 
 <div class="table-responsive">
@@ -36,7 +53,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for deal in deals %}
+      {% for deal in page_obj %}
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ deal.clientName }}</td>
@@ -90,6 +107,24 @@
       {% endfor %}
     </tbody>
   </table>
+  <div class="pagination">
+  <span class="step-links">
+    {% if page_obj.has_previous %}
+      <a href="?page=1">&laquo; first</a>
+      <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+    {% endif %}
+
+    <span class="current">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}">next</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+    {% endif %}
+  </span>
+</div>
+
 </div>
 
 <!-- Approval Confirmation Modal -->

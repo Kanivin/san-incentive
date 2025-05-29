@@ -1,131 +1,73 @@
 {% extends 'layouts/layout.html' %}
-{% load static %}  {% load permissions_tags %}
+{% load static %}
+{% load permissions_tags %}
 {% load form_filters %}
 
 {% block content %}
-
 <style>
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    padding: 40px;
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(to right, #eef2f3, #f9f9f9);
-    color: #111827;
-  }
-
-  h1 {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 30px;
-    font-weight: 700;
-  }
-
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    gap: 30px;
+    padding: 2rem;
   }
 
   .managers {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    width: 66%;
+    gap: 2rem;
   }
 
   .manager-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    border-radius: 16px;
-    padding: 20px;
-    transition: transform 0.2s ease;
-    border: 1px solid #e5e7eb;
-  }
-
-  .manager-card:hover {
-    transform: translateY(-3px);
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    padding: 1rem;
   }
 
   .manager-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 4px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
   }
 
-  .manager-header span {
-    font-size: 1.8rem;
+  .email {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 1rem;
   }
 
   .dropzones {
     display: flex;
-    gap: 20px;
-    margin-top: 10px;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .dropzone {
+    min-height: 100px;
+    border: 2px dashed #007bff;
+    background-color: #f0f8ff;
+    border-radius: 10px;
+    padding: 1rem;
     display: flex;
-    gap: 10px;
     flex-direction: column;
-    padding: 10px;
-    border: 2px dashed transparent;
-    border-radius: 12px;
-    min-height: 80px;
-    flex: 1;
-    transition: border 0.3s ease;
+    gap: 1rem;
   }
 
   .dropzone.drag-over {
-    border-color: #3b82f6;
-    background: #eff6ff;
-  }
-
-  .unassigned {
-    width: 33%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    background-color: #e0f3ff;
+    border-color: #0056b3;
   }
 
   .person-card {
-    padding: 12px 18px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: grab;
     display: flex;
     align-items: center;
-    gap: 10px;
-    border-left: 4px solid #22c55e;
-  }
-
-  .person-card:active {
-    cursor: grabbing;
-    opacity: 0.8;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    background-color: white;
+    border-radius: 8px;
+    cursor: move;
   }
 
   .avatar {
-    font-size: 1.4rem;
-  }
-
-  .email {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 2px;
-  }
-
-  @media(max-width: 600px) {
-    .container { flex-direction: column; }
-    .managers, .unassigned { width: 100%; }
+    font-size: 1.5rem;
   }
 </style>
 
@@ -134,36 +76,33 @@
   <div class="managers">
     <p><strong>Sales Managers</strong></p>
 
-    <div class="manager-card">
-      <div class="manager-header"><span>👨‍💼</span> Saravanan – Sales Manager</div>
-      <div class="email">saravanan@sales.com</div>
-      <div class="dropzones">
-        <div class="dropzone" data-manager-id="m1-col1"></div>
-        <div class="dropzone" data-manager-id="m1-col2"></div>
-      </div>
-    </div>
-
-    <div class="manager-card">
-      <div class="manager-header"><span>👨‍💼</span> Rajan – Sales Manager</div>
-      <div class="email">rajan@sales.com</div>
-      <div class="dropzones">
-        <div class="dropzone" data-manager-id="m2-col1"></div>
-        <div class="dropzone" data-manager-id="m2-col2"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Unassigned Salespersons -->
-  <div class="unassigned">
-    <p><strong>Unassigned Sales Persons</strong></p>
-    <div class="dropzone" id="unassigned">
-      {% for person in salespersons %}
-        <div class="person-card" draggable="true" data-id="{{ person.id }}">
-          <span class="avatar">🧑‍💼</span>
-          <div>{{ person.name }}<div class="email">{{ person.email }}</div></div>
+    {% if sales_heads %}
+      {% for manager in sales_heads %}
+        <div class="manager-card">
+          <div class="manager-header">
+            <span>👨‍💼</span> {{ manager.fullname }} – Sales Manager
+          </div>
+          <div class="email">{{ manager.mail_id }}</div>
+          <div class="dropzones">
+            <div class="dropzone" data-manager-id="m{{ manager.id }}-col1">
+              {% for sp in salespersons %}
+                {% if sp.team_head and sp.team_head.id == manager.id %}
+                  <div class="person-card" draggable="true" data-id="{{ sp.id }}">
+                    <span class="avatar">🧑‍💼</span>
+                    <div>
+                      <div><strong>{{ sp.fullname }}</strong></div>
+                      <div class="email">{{ sp.mail_id }}</div>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
         </div>
       {% endfor %}
-    </div>
+    {% else %}
+      <p>No Sales Managers Found.</p>
+    {% endif %}
   </div>
 </div>
 
@@ -206,5 +145,4 @@
     });
   });
 </script>
-
 {% endblock %}

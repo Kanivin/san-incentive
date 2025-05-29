@@ -21,7 +21,22 @@
   </div>
 
   <h2>Payout List</h2>
-
+<form method="get" class="row g-3 mb-3">
+  <div class="col-md-3">
+    <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search by name or deal ID">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="from_date" value="{{ from_date }}" class="form-control">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="to_date" value="{{ to_date }}" class="form-control">
+  </div>
+  <div class="col-md-3 d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date and to_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}export=xlsx" class="btn btn-success">Export XLSX</a>
+    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date and to_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}export=pdf" class="btn btn-danger">Export PDF</a>
+  </div>
+</form>
   <div class="table-responsive">
     <table class="table table-striped table-bordered align-middle">
       <thead>
@@ -69,5 +84,34 @@
         {% endfor %}
       </tbody>
     </table>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+  <div>
+    Showing {{ payouts.start_index }} to {{ payouts.end_index }} of {{ payouts.paginator.count }} entries
+  </div>
+  <nav>
+    <ul class="pagination mb-0">
+      {% if payouts.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ payouts.previous_page_number }}&search={{ search_query }}&from_date={{ from_date }}&to_date={{ to_date }}">Previous</a>
+      </li>
+      {% endif %}
+
+      {% for num in payouts.paginator.page_range %}
+        {% if payouts.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}&search={{ search_query }}&from_date={{ from_date }}&to_date={{ to_date }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if payouts.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ payouts.next_page_number }}&search={{ search_query }}&from_date={{ from_date }}&to_date={{ to_date }}">Next</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+
   </div>
 {% endblock %}

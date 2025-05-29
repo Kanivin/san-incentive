@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Payouts PDF</title></head>
+<body>
+<h2>Payout Report</h2>
+<table border="1" cellspacing="0" cellpadding="4" width="100%">
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Deal ID</th>
+      <th>Person Type</th>
+      <th>Status</th>
+      <th>Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for payout in payouts %}
+    <tr>
+      <td>{{ payout.user.fullname }}</td>
+      <td>{{ payout.deal_id }}</td>
+      <td>{{ payout.incentive_person_type }}</td>
+      <td>{{ payout.payout_status }}</td>
+      <td>{{ payout.payout_amount }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>

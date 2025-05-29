@@ -1,3 +1,5 @@
 pip install django
-pip install python-dateutil
+pip install python-
+pip install xhtml2pdf openpyxl
+
 

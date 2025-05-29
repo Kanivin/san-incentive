@@ -130,7 +130,10 @@
             <ul aria-expanded="false" class="collapse first-level">
       
              {% if request.permissions|has_any_permission:"Transaction , view" %} 
-              <li class="sidebar-item">
+        
+               {% endif %}
+             {% if request.permissions|has_any_permission:"Payouts , view" %} 
+                   <li class="sidebar-item">
                 <a href="{% url 'transaction' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-file-alt"></i>
@@ -138,17 +141,23 @@
                   <span class="hide-menu">Transaction</span>
                 </a>
               </li>
-               {% endif %}
-             <!-- {% if request.permissions|has_any_permission:"Payouts , view" %}  -->
                 <li class="sidebar-item">
-                <a href="{% url 'transaction' %}" class="sidebar-link">
+                <a href="{% url 'payout' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-file-alt"></i>
                   </div>
                   <span class="hide-menu">Payouts Report</span>
                 </a>
               </li>
-             <!-- {% endif %} -->
+                <li class="sidebar-item">
+                <a href="{% url 'targettransaction' %}" class="sidebar-link">
+                  <div class="round-16 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-file-alt"></i>
+                  </div>
+                  <span class="hide-menu">Target Transaction</span>
+                </a>
+              </li>
+             {% endif %}
             
               </ul>
               </li>

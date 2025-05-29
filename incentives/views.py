@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from datetime import datetime
-from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, Transaction, PayoutTransaction, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
+from .models import UserProfile, Deal, Role, Segment, Module, AnnualTarget, TargetTransaction, Transaction, PayoutTransaction, IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueDealSlab, Permission
 from .forms import UserProfileForm, SegmentForm,DealForm, AnnualTargetForm,  RoleForm, ModuleForm, IncentiveSetupForm, SetupChargeSlabForm, TopperMonthSlabForm, HighValueDealSlabForm
 from django.forms import ValidationError, modelformset_factory
 from decimal import Decimal
@@ -13,6 +13,7 @@ from django.db.models import Count
 from incentives.utils.incentive_engine import DealRuleEngine 
 from django.core.paginator import Paginator
 from django.contrib.auth.views import LogoutView
+from django.template.loader import get_template
 from django.urls import reverse_lazy
 
 class CustomLogoutView(LogoutView):
@@ -77,10 +78,165 @@ def sales_dashboard(request):
 
 
 # ---------- User Management Views ----------
-
 def user_list(request):
-    users = UserProfile.objects.all()
-    return render(request, 'owner/users/user_list.html', {'users': users})
+    search_query = request.GET.get('search', '').strip()
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+
+    users = UserProfile.objects.all().order_by('fullname')
+
+    if search_query:
+        users = users.filter(
+            Q(fullname__icontains=search_query) |
+            Q(employee_id__icontains=search_query) |
+            Q(mail_id__icontains=search_query)
+        )
+
+    if start_date:
+        users = users.filter(created_at__gte=start_date)
+    if end_date:
+        users = users.filter(created_at__lte=end_date)
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'owner/users/user_list.html', context)
+
+
+def export_users_xlsx(request):
+    # Same filters as in user_list
+    search_query = request.GET.get('search', '').strip()
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+
+    users = UserProfile.objects.all().order_by('fullname')
+
+    if search_query:
+        users = users.filter(
+            Q(fullname__icontains=search_query) |
+            Q(employee_id__icontains=search_query) |
+            Q(mail_id__icontains=search_query)
+        )
+
+    if start_date:
+        users = users.filter(created_at__gte=start_date)
+    if end_date:
+        users = users.filter(created_at__lte=end_date)
+
+    # Create Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Users"
+
+    # Header row
+    headers = ['Employee ID', 'Full Name', 'Mail ID', 'User Type', 'Created At']
+    ws.append(headers)
+
+    # Data rows
+    for user in users:
+        ws.append([
+            user.employee_id,
+            user.fullname,
+            user.mail_id,
+            user.user_type.name if user.user_type else '',
+            user.created_at.strftime('%Y-%m-%d') if user.created_at else '',
+        ])
+
+    # Prepare HTTP response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"users_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    wb.save(response)
+    return response
+
+
+def export_users_pdf(request):
+    search_query = request.GET.get('search', '').strip()
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
+
+    users = UserProfile.objects.all().order_by('fullname')
+
+    if search_query:
+        users = users.filter(
+            Q(fullname__icontains=search_query) |
+            Q(employee_id__icontains=search_query) |
+            Q(mail_id__icontains=search_query)
+        )
+
+    if start_date:
+        users = users.filter(created_at__gte=start_date)
+    if end_date:
+        users = users.filter(created_at__lte=end_date)
+
+    # Create the PDF object
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"users_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    x_margin = inch
+    y_margin = inch
+    line_height = 14
+    y_position = height - y_margin
+
+    # Title
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(x_margin, y_position, "User List")
+    y_position -= 2 * line_height
+
+    # Header
+    p.setFont("Helvetica-Bold", 12)
+    headers = ['Employee ID', 'Full Name', 'Mail ID', 'User Type', 'Created At']
+    col_widths = [100, 150, 150, 100, 100]
+    x_positions = [x_margin]
+    for w in col_widths[:-1]:
+        x_positions.append(x_positions[-1] + w)
+
+    for i, header in enumerate(headers):
+        p.drawString(x_positions[i], y_position, header)
+    y_position -= line_height
+
+    p.setFont("Helvetica", 10)
+
+    # Data rows
+    for user in users:
+        if y_position < y_margin:
+            p.showPage()
+            y_position = height - y_margin
+            p.setFont("Helvetica-Bold", 12)
+            for i, header in enumerate(headers):
+                p.drawString(x_positions[i], y_position, header)
+            y_position -= line_height
+            p.setFont("Helvetica", 10)
+
+        row = [
+            str(user.employee_id),
+            user.fullname,
+            user.mail_id,
+            user.user_type.name if user.user_type else '',
+            user.created_at.strftime('%Y-%m-%d') if user.created_at else '',
+        ]
+        for i, data in enumerate(row):
+            p.drawString(x_positions[i], y_position, data)
+        y_position -= line_height
+
+    p.save()
+    return response
 
 
 def user_create(request):
@@ -141,16 +297,75 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .forms import DealForm
 from .models import Deal, UserProfile
 from pprint import pprint
-
 def deal_list(request):
+    search_query = request.GET.get('search', '')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
     deals = Deal.objects.all()
 
-    # Manually convert date fields to string to avoid JSON serialization errors
-    for deal in deals:
-        if deal.dealWonDate:
-            deal.dealWonDate = deal.dealWonDate.isoformat()  # Convert to string (iso format)
+    # Filter by search
+    if search_query:
+        deals = deals.filter(
+            Q(clientName__icontains=search_query) |
+            Q(segment__icontains=search_query) |
+            Q(dealType__icontains=search_query)
+        )
 
-    return render(request, 'owner/deal/deal_list.html', {'deals': deals})
+    # Filter by date range
+    if start_date and end_date:
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+            deals = deals.filter(dealWonDate__range=(start, end))
+        except ValueError:
+            pass
+
+    paginator = Paginator(deals.order_by('-dealWonDate'), 10)  # 10 per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'owner/deal/deal_list.html', {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'start_date': start_date,
+        'end_date': end_date,
+    })
+def deal_export_excel(request):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Deals"
+
+    # Header row
+    ws.append(['S.No', 'Client Name', 'Segment', 'Deal Type', 'Deal Won Date', 'Status'])
+
+    # Data rows
+    deals = Deal.objects.all()
+    for i, deal in enumerate(deals, start=1):
+        ws.append([
+            i,
+            deal.clientName,
+            str(deal.segment),      # convert FK to string (e.g. segment.name or __str__)
+            deal.dealType,
+            deal.dealWonDate.strftime('%Y-%m-%d') if deal.dealWonDate else '',
+            deal.status
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="deals.xlsx"'
+    wb.save(response)
+    return response
+
+def deal_export_pdf(request):
+    deals = Deal.objects.all()
+    template = get_template('owner/deal/deal_pdf.html')  # Create this template
+    html = template.render({'deals': deals})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="deals.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
 
 def deal_create(request):
     # Fetch users with user_type 'salesperson' or 'saleshead'
@@ -213,27 +428,79 @@ def deal_delete(request, pk):
     return render(request, 'owner/deal/deal_confirm_delete.html', {'deal': deal})
 
 # ---------- Annual Target Views ----------
-
 def target_list(request):
-    # Step 1: Fetch all records ordered by employee and financial year
-    targets = AnnualTarget.objects.all().order_by('employee', 'financial_year')
-    
-    # Step 2: Manually filter out duplicates based on employee and financial year
-    unique_targets = []
+    search_query = request.GET.get('search', '').strip()
+    start_year = request.GET.get('start_year', '').strip()
+    end_year = request.GET.get('end_year', '').strip()
+
+    # Base queryset with related employee to avoid N+1
+    targets = AnnualTarget.objects.all().select_related('employee').order_by('employee__fullname', 'financial_year')
+
+    # Apply search filter on employee fullname or financial_year
+    if search_query:
+        targets = targets.filter(
+            Q(employee__fullname__icontains=search_query) |
+            Q(financial_year__icontains=search_query)
+        )
+
+    # Convert queryset to list for manual duplicate filtering
+    targets_list = list(targets)
+
+    # Remove duplicates based on (employee.id, financial_year)
     seen = set()
-    
-    for target in targets:
-        # Create a tuple of employee ID and financial year to check uniqueness
-        identifier = (target.employee.id, target.financial_year)
-        
-        if identifier not in seen:
-            unique_targets.append(target)
-            seen.add(identifier)
+    unique_targets = []
+    for t in targets_list:
+        key = (t.employee.id, t.financial_year)
+        if key not in seen:
+            unique_targets.append(t)
+            seen.add(key)
 
-    # Pass the filtered unique targets to the template
-    return render(request, 'owner/annual_target/target_list.html', {'targets': unique_targets})
+    # Filter by financial year range if both start_year and end_year are valid integers
+    if start_year.isdigit() and end_year.isdigit():
+        start_year_int = int(start_year)
+        end_year_int = int(end_year)
+        filtered_targets = []
+        for t in unique_targets:
+            try:
+                fy_start = int(t.financial_year[:4])  # Assumes format "2023-24"
+                if start_year_int <= fy_start <= end_year_int:
+                    filtered_targets.append(t)
+            except Exception:
+                # Skip invalid formats
+                pass
+        unique_targets = filtered_targets
 
+    # Paginate the results
+    paginator = Paginator(unique_targets, 10)  # Show 10 targets per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'start_year': start_year,
+        'end_year': end_year,
+    }
+    return render(request, 'owner/annual_target/target_list.html', context)
+
+def target_export_excel(request):
+    targets = AnnualTarget.objects.all().values(
+        'employee__fullname', 'financial_year', 'annual_target_amount', 'net_salary'
+    )
+    df = pd.DataFrame(targets)
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="annual_targets.xlsx"'
+    df.to_excel(response, index=False)
+    return response
+
+def target_export_pdf(request):
+    targets = AnnualTarget.objects.all().order_by('employee__fullname', 'financial_year')
+    template = get_template('owner/annual_target/target_pdf.html')  # create this
+    html = template.render({'targets': targets})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="annual_targets.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
     
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -553,12 +820,75 @@ def incentive_setup_create(request):
         'segments': segments,
     })
 
-
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.utils.dateparse import parse_date
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+import openpyxl
+from .models import IncentiveSetup
 
 def incentive_setup_list(request):
-    # List all IncentiveSetups
-    incentives = IncentiveSetup.objects.all()
-    return render(request, 'owner/incentive_setup/incentive_setup_list.html', {'incentives': incentives})
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    export = request.GET.get('export')
+
+    incentives = IncentiveSetup.objects.all().order_by('-financial_year')
+
+    # Search filter
+    if search:
+        incentives = incentives.filter(Q(financial_year__icontains=search))
+
+    # Date range filter (assuming 'created_at' field exists)
+    if from_date and to_date:
+        from_date_parsed = parse_date(from_date)
+        to_date_parsed = parse_date(to_date)
+        if from_date_parsed and to_date_parsed:
+            incentives = incentives.filter(created_at__range=(from_date_parsed, to_date_parsed))
+
+    # Export options
+    if export == 'xlsx':
+        return export_incentives_to_xlsx(incentives)
+    elif export == 'pdf':
+        return export_incentives_to_pdf(incentives)
+
+    # Pagination
+    paginator = Paginator(incentives, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'owner/incentive_setup/incentive_setup_list.html', {
+        'incentives': page_obj,
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
+    })
+
+# XLSX Export
+def export_incentives_to_xlsx(incentives):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Incentives"
+    ws.append(['S.No.', 'Financial Year'])
+
+    for i, incentive in enumerate(incentives, start=1):
+        ws.append([i, incentive.financial_year])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="incentives.xlsx"'
+    wb.save(response)
+    return response
+
+# PDF Export
+def export_incentives_to_pdf(incentives):
+    html = render_to_string('owner/incentive_setup/incentive_pdf.html', {'incentives': incentives})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="incentives.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
 
 def incentive_setup_delete(request, pk):
     # Get the IncentiveSetup or 404
@@ -713,27 +1043,224 @@ def deal_approve(request, pk):
         DealRuleEngine(deal).run_rules()  # Encapsulate logic inside a method
     return redirect('deal_list')
 
+
 def salesteam(request):
-    # List all IncentiveSetups
-    users = UserProfile.objects.filter(user_type__name__in=['salesperson'])
-    head = UserProfile.objects.filter(user_type__name__in=['saleshead'])
-    return render(request, 'owner/master/SalesTeamHierarchy.html', {'users': users, 'head':head})
+    sales_heads = UserProfile.objects.filter(user_type__name__in=['saleshead'])
+    salespersons = UserProfile.objects.filter(user_type__name__in=['salesperson'])
+
+    return render(request, 'owner/master/SalesTeamHierarchy.html', {
+        'sales_heads': sales_heads,
+        'salespersons': salespersons,
+    })
+
+
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import HttpResponse
+from django.utils.dateparse import parse_date
+from .models import PayoutTransaction
+import openpyxl
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
 
 def payout(request):
-    payouts = PayoutTransaction.objects.all().order_by('-created_at') # or any suitable order
+    search_query = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    export_format = request.GET.get('export')
+
+    payouts = PayoutTransaction.objects.all().order_by('-created_at')
+
+    # Apply search
+    if search_query:
+        payouts = payouts.filter(
+            Q(user__fullname__icontains=search_query) |
+            Q(deal_id__icontains=search_query)
+        )
+
+    # Apply date filter
+    if from_date and to_date:
+        from_date = parse_date(from_date)
+        to_date = parse_date(to_date)
+        if from_date and to_date:
+            payouts = payouts.filter(created_at__range=(from_date, to_date))
+
+    # Export
+    if export_format == 'xlsx':
+        return export_payouts_to_xlsx(payouts)
+    elif export_format == 'pdf':
+        return export_payouts_to_pdf(payouts)
+
+    # Pagination
+    paginator = Paginator(payouts, 10)  # 10 per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'owner/payout/payout_list.html', {
-        'payouts': payouts,
+        'payouts': page_obj,
+        'search_query': search_query,
+        'from_date': from_date,
+        'to_date': to_date
     })
+
+def export_payouts_to_xlsx(payouts):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Payouts"
+    ws.append(['User', 'Deal ID', 'Person Type', 'Status', 'Amount'])
+
+    for p in payouts:
+        ws.append([
+            p.user.fullname,
+            p.deal_id,
+            p.incentive_person_type,
+            p.payout_status,
+            p.payout_amount
+        ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="payouts.xlsx"'
+    wb.save(response)
+    return response
+
+def export_payouts_to_pdf(payouts):
+    html = render_to_string('owner/payout/pdf_template.html', {'payouts': payouts})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="payouts.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
+
 
 
 def transaction(request):
-    transactions = Transaction.objects.all().order_by('-transaction_date')  # or '-created_at'
-    paginator = Paginator(transactions, 10)  # 10 per page
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = Transaction.objects.all()
+
+    # Search filter (e.g., deal_id, message)
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+
+    # Date filter
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    transactions = transactions.order_by('-transaction_date')
+
+    paginator = Paginator(transactions, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     return render(request, 'owner/reports/transaction.html', {
         'page_obj': page_obj,
-     
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
     })
+def transaction_export_excel(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = Transaction.objects.all()
+
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    data = tablib.Dataset()
+    data.headers = ['Deal ID', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
+
+    for txn in transactions:
+        data.append([
+            txn.deal_id,
+            txn.version,
+            txn.transaction_type,
+            txn.incentive_component_type,
+            txn.amount,
+            txn.freeze,
+            txn.is_latest,
+            txn.eligibility_status,
+            txn.eligibility_message,
+            txn.transaction_date,
+            txn.notes or '-'
+        ])
+
+    response = HttpResponse(data.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+    return response
+
+def transaction_export_pdf(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = Transaction.objects.all()
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    template = get_template('owner/reports/transaction_pdf.html')
+    html = template.render({'transactions': transactions})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
 
 
+def targettransaction(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = TargetTransaction.objects.all()
+
+    # Search filter (e.g., deal_id, message)
+    if search:
+        transactions = transactions.filter(
+            Q(deal_id__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+
+    # Date filter
+    if from_date:
+        transactions = transactions.filter(transaction_date__gte=from_date)
+    if to_date:
+        transactions = transactions.filter(transaction_date__lte=to_date)
+
+    transactions = transactions.order_by('-transaction_date')
+
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'owner/reports/targettransaction.html', {
+        'page_obj': page_obj,
+        'search': search,
+        'from_date': from_date,
+        'to_date': to_date,
+    })

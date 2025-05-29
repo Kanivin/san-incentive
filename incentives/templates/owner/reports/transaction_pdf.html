@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    table, th, td { border: 1px solid black; border-collapse: collapse; }
+    th, td { padding: 5px; text-align: left; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h2>Transaction Report</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Deal ID</th>
+        <th>Version</th>
+        <th>Type</th>
+        <th>Component</th>
+        <th>Amount</th>
+        <th>Frozen</th>
+        <th>Latest</th>
+        <th>Eligibility</th>
+        <th>Message</th>
+        <th>Date</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for txn in transactions %}
+      <tr>
+        <td>{{ txn.deal_id }}</td>
+        <td>{{ txn.version }}</td>
+        <td>{{ txn.transaction_type }}</td>
+        <td>{{ txn.incentive_component_type }}</td>
+        <td>{{ txn.amount }}</td>
+        <td>{{ txn.freeze }}</td>
+        <td>{{ txn.is_latest }}</td>
+        <td>{{ txn.eligibility_status }}</td>
+        <td>{{ txn.eligibility_message }}</td>
+        <td>{{ txn.transaction_date }}</td>
+        <td>{{ txn.notes|default:"-" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <nav>
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page=1{{ query_string }}">First</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_string }}">Previous</a>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    </li>
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_string }}">Next</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ query_string }}">Last</a>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+
+</body>
+</html>

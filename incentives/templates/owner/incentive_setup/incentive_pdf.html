@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Incentives PDF</title>
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #333; padding: 5px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Yearly Incentive Report</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>SNo.</th>
+        <th>Financial Year</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for incentive in incentives %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ incentive.financial_year }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</body>
+</html>

@@ -1,5 +1,6 @@
 {% extends 'layouts/layout.html' %}
-{% load static %}  {% load permissions_tags %}
+{% load static %}
+{% load permissions_tags %}
 {% load form_filters %}
 {% block content %}
 
@@ -20,74 +21,112 @@
   </div>
 </div>
 
+<h2>User List</h2>
 
-  <h2>User List</h2>
-  <a class="btn btn-custom mb-3" href="{% url 'user_create' %}">+ Add User</a>
+<!-- Filter Form -->
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4">
+    <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search by Name, Employee ID, or Mail">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="start_date" value="{{ start_date }}" class="form-control" placeholder="Start Date">
+  </div>
+  <div class="col-md-3">
+    <input type="date" name="end_date" value="{{ end_date }}" class="form-control" placeholder="End Date">
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{% url 'user_list' %}" class="btn btn-secondary">Reset</a>
+  </div>
+</form>
+<a href="{% url 'user_export_xlsx' %}?search={{ search_query }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-success mb-2 me-2">Export to Excel</a>
+<a href="{% url 'user_export_pdf' %}?search={{ search_query }}&start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-danger mb-2">Export to PDF</a>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead>
-        <tr>
-          <th>S.No</th>
-          <th>Employee ID</th>
-          <th>Name</th>
-          <th>Mail</th>
-          <th>Type</th>
-          <th>Email</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-        <tr>
-          <td>{{ forloop.counter }}</td> <!-- Serial Number -->
-          <td>{{ user.employee_id }}</td> <!-- Employee ID -->
-          <td>{{ user.fullname }}</td>
-          <td>{{ user.mail_id }}</td>
-          <td>{{ user.user_type.name }}</td>
-          <td>{{ user.mail_id }}</td>
-          <td>
-              
-{% if request.permissions|has_any_permission:"Users, edit" %}
+<a class="btn btn-custom mb-3" href="{% url 'user_create' %}">+ Add User</a>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped align-middle">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Employee ID</th>
+        <th>Name</th>
+        <th>Mail</th>
+        <th>Type</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in page_obj %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ user.employee_id }}</td>
+        <td>{{ user.fullname }}</td>
+        <td>{{ user.mail_id }}</td>
+        <td>{{ user.user_type.name }}</td>
+        <td>{{ user.mail_id }}</td>
+        <td>
+          {% if request.permissions|has_any_permission:"Users, edit" %}
             <a class="btn btn-primary btn-sm me-1" href="{% url 'user_edit' user.pk %}">Edit</a>
-                {% endif %}
+          {% endif %}
 
-{% if request.permissions|has_any_permission:"Users, delete" %}
+          {% if request.permissions|has_any_permission:"Users, delete" %}
             <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ user.id }}">
               Delete
             </button>
-    {% endif %}
+          {% endif %}
 
-            <!-- Delete Confirmation Modal -->
-            <div class="modal fade" id="confirmDeleteModal{{ user.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ user.id }}" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form method="post" action="{% url 'user_delete' user.pk %}">
-                    {% csrf_token %}
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title" id="confirmDeleteLabel{{ user.id }}">Confirm Delete</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      Are you sure you want to delete <strong>{{ user.fullname }}</strong>?
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                      <button type="submit" class="btn btn-danger">Delete</button>
-                    </div>
-                  </form>
-                </div>
+          <!-- Delete Confirmation Modal -->
+          <div class="modal fade" id="confirmDeleteModal{{ user.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ user.id }}" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="post" action="{% url 'user_delete' user.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteLabel{{ user.id }}">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    Are you sure you want to delete <strong>{{ user.fullname }}</strong>?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </div>
+                </form>
               </div>
             </div>
+          </div>
 
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="text-center">No users found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center">No users found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+  <span class="step-links">
+    {% if page_obj.has_previous %}
+      <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo; first</a>
+      <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">previous</a>
+    {% endif %}
+
+    <span class="current">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">next</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">last &raquo;</a>
+    {% endif %}
+  </span>
+</div>
+
 {% endblock %}
