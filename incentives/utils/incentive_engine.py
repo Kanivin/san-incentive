@@ -1,6 +1,6 @@
 from ..models import (
     Transaction, PayoutTransaction, IncentiveSetup,
-    SetupChargeSlab, TopperMonthSlab, Deal, AnnualTarget,
+    SetupChargeSlab, TopperMonthSlab, Deal, AnnualTarget,TargetTransaction,
     HighValueDealSlab, UserProfile
 )
 from dateutil.relativedelta import relativedelta
@@ -53,7 +53,7 @@ class DealRuleEngine:
         incentive_amount = (deal_amount * slab.incentive_percentage) / Decimal('100.0')
 
         transaction = Transaction.objects.create(
-            deal_id=str(self.deal.id),
+            deal_id=self.deal,
             transaction_type='Earned',
             incentive_component_type='setup',
             amount=incentive_amount,
@@ -78,7 +78,7 @@ class DealRuleEngine:
             incentive_amount = self.setup.new_market_deal_incentive
 
             transaction = Transaction.objects.create(
-                deal_id=str(self.deal.id),
+                deal_id=self.deal,
                 transaction_type='Earned',
                 incentive_component_type='new_market',
                 amount=incentive_amount,
@@ -117,7 +117,7 @@ class DealRuleEngine:
         incentive_amount = (deal_amount * slab.incentive_percentage) / Decimal('100.0')
 
         transaction = Transaction.objects.create(
-            deal_id=str(self.deal.id),
+            deal_id=self.deal,
             transaction_type='Earned',
             incentive_component_type='topper_month',
             amount=incentive_amount,
@@ -143,7 +143,7 @@ class DealRuleEngine:
         incentive_amount = (deal_amount * slab.incentive_percentage) / Decimal('100.0')
 
         transaction = Transaction.objects.create(
-            deal_id=str(self.deal.id),
+            deal_id=self.deal,
             transaction_type='Earned',
             incentive_component_type='high_value_deal',
             amount=incentive_amount,
@@ -173,7 +173,7 @@ class DealRuleEngine:
             if user:
                 try:
                     PayoutTransaction.objects.create(
-                        deal_id=str(self.deal.id),
+                        deal_id=self.deal,
                         incentive_transaction=transaction,
                         user=user,
                         incentive_person_type=label,
@@ -187,6 +187,7 @@ class DealRuleEngine:
             else:
                 print(f"[⚠️ No User] {label} → Field '{field_name}' is None in deal.")
 
+
     def process_subscription_incentive(self):
         if not all([self.deal.subDate, self.deal.subrenewDate, self.deal.subAmount]):
             return
@@ -195,37 +196,32 @@ class DealRuleEngine:
             return
 
         sub_amount = self.deal.subAmount
-        monthly_target = self.setup.min_subscription_month or 1
-        avg_subscription = sub_amount / Decimal(monthly_target)
-        percent_achieved = (avg_subscription / self.setup.min_subscription_month) * 100
 
-        if percent_achieved >= 100:
-            percentage = self.setup.subscription_100_per_target
-        elif percent_achieved >= 75:
-            percentage = self.setup.subscription_75_per_target
-        elif percent_achieved >= 50:
-            percentage = self.setup.subscription_50_per_target
-        else:
-            percentage = self.setup.subscription_below_50_per
+        payout_split = {
+            'dealownerSalesPerson': (self.deal.dealownerSalesPerson, 'Deal Owner', self.setup.deal_owner),
+            'leadSource': (self.deal.leadSource, 'Lead Source', self.setup.lead_source),
+            'followUpSalesPerson': (self.deal.followUpSalesPerson, 'Follow Up', self.setup.follow_up),
+            'demo1SalesPerson': (self.deal.demo1SalesPerson, 'Demo 1', self.setup.demo_1),
+            'demo2SalesPerson': (self.deal.demo2SalesPerson, 'Demo 2', self.setup.demo_2),
+        }
 
-        if not percentage:
-            return
+        for field_name, (user, label, percent) in payout_split.items():
+            if user and percent:
+                try:
+                    incentive_amount = (sub_amount * percent) / Decimal('100.0')
 
-        incentive_amount = (sub_amount * percentage) / Decimal('100.0')
-
-    # You can customize this field to another user field if needed
-        user = self.deal.dealownerSalesPerson
-
-        from incentives.models import TargetTransaction
-
-        TargetTransaction.objects.create(
-            deal=self.deal,
-            user=user,
-            transaction_type='Earned',
-            incentive_component_type='subscription',  # You must add this to the choices
-            amount=incentive_amount,
-            eligibility_status='Eligible',
-            eligibility_message=f'Subscription {percent_achieved:.2f}% of target',
-            notes=f'Subscription incentive based on ₹{sub_amount} and target {monthly_target} months',
-            created_by=self.deal.created_by
-        )
+                    TargetTransaction.objects.create(
+                        deal=self.deal,
+                        user=user,
+                        transaction_type='Earned',
+                        incentive_component_type='subscription',
+                        amount=incentive_amount,
+                        eligibility_status='Eligible',
+                        eligibility_message=f'Subscription incentive {percent:.2f}%',
+                        notes=f'{label} gets {percent:.2f}% of ₹{sub_amount}',
+                        created_by=self.deal.created_by
+                    )
+                except Exception as e:
+                    print(f"[❌ Error] Subscription incentive for {label} → {e}")
+            else:
+                print(f"[⚠️ Skipped] {label} → Missing user or percent")
