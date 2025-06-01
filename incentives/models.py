@@ -339,3 +339,30 @@ class PayoutTransaction(AuditMixin):
         verbose_name = 'Payout Transaction'
         verbose_name_plural = 'Payout Transactions'
         ordering = ['-payout_date']
+
+
+class JobRunLog(models.Model):
+    job_name = models.CharField(max_length=255)
+    status = models.CharField(max_length=50)
+    executed_at = models.DateTimeField(auto_now_add=True)
+    duration = models.DurationField(null=True, blank=True)
+    output = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.job_name} - {self.status}"
+    
+class ScheduledJob(models.Model):
+    JOB_TYPE_CHOICES = [
+        ('monthly', 'Monthly Incentive Job'),
+        ('yearly', 'Yearly Incentive Job'),
+    ]
+
+    name = models.CharField(max_length=255)
+    job_type = models.CharField(max_length=10, choices=JOB_TYPE_CHOICES)
+    schedule = models.CharField(max_length=255)
+    last_run = models.DateTimeField(null=True, blank=True)
+    next_run = models.DateTimeField(null=True, blank=True)
+    button_class = models.CharField(max_length=50, default='btn-outline-primary')  # UI styling
+
+    def __str__(self):
+        return self.name

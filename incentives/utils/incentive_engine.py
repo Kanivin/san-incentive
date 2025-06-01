@@ -157,35 +157,46 @@ class DealRuleEngine:
 
     def create_payouts(self, transaction, incentive_amount):
         payout_split = {
-            'dealownerSalesPerson': (transaction.incentive_component_type+'Deal Owner', self.setup.deal_owner),
-            'leadSource': (transaction.incentive_component_type+'Lead Source', self.setup.lead_source),
-            'followUpSalesPerson': (transaction.incentive_component_type+'Follow Up', self.setup.follow_up),
-            'demo1SalesPerson': (transaction.incentive_component_type+'Demo 1', self.setup.demo_1),
-            'demo2SalesPerson': (transaction.incentive_component_type+'Demo 2', self.setup.demo_2),
+            'dealownerSalesPerson': (transaction.incentive_component_type + ' Deal Owner', self.setup.deal_owner),
+            'leadSource': (transaction.incentive_component_type + ' Lead Source', self.setup.lead_source),
+            'followUpSalesPerson': (transaction.incentive_component_type + ' Follow Up', self.setup.follow_up),
+            'demo1SalesPerson': (transaction.incentive_component_type + ' Demo 1', self.setup.demo_1),
+            'demo2SalesPerson': (transaction.incentive_component_type + ' Demo 2', self.setup.demo_2),
         }
 
         for field_name, (label, percent) in payout_split.items():
             if not percent:
                 continue
 
-            user = getattr(self.deal, field_name, None)
+            try:
+                user = getattr(self.deal, field_name)
+            except AttributeError:
+                print(f"[❌ Error] {label} → Deal does not have the field '{field_name}'")
+                continue
 
-            if user:
-                try:
-                    PayoutTransaction.objects.create(
-                        deal_id=self.deal,
-                        incentive_transaction=transaction,
-                        user=user,
-                        incentive_person_type=label,
-                        payout_amount=(incentive_amount * percent / Decimal('100.0')),
-                        payout_status='Pending',
-                        payment_method='Bank Transfer',
-                        created_by=self.deal.created_by,
-                    )
-                except Exception as e:
-                    print(f"[❌ Error] {label} → Failed to create payout:", e)
-            else:
+            if not user:
                 print(f"[⚠️ No User] {label} → Field '{field_name}' is None in deal.")
+                continue
+
+            if not isinstance(user, UserProfile):
+                print(f"[❌ Error] {label} → Expected UserProfile, got {type(user).__name__}. Field value: {user}")
+                continue
+
+            try:
+                PayoutTransaction.objects.create(
+                    deal=self.deal,
+                    incentive_transaction=transaction,
+                    user=user,
+                    incentive_person_type=label.lower().replace(' ', '_'),  # match your `INCENTIVE_PERSON_CHOICES`
+                    payout_amount=(incentive_amount * percent / Decimal('100.0')),
+                    payout_status='Pending',
+                    payment_method='Bank Transfer',
+                    created_by=self.deal.created_by,
+                )
+            except Exception as e:
+                print(f"[❌ Error] {label} → Failed to create payout: {e}")
+
+
 
 
     def process_subscription_incentive(self):

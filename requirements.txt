@@ -6,3 +6,5 @@ whitenoise
 google-cloud-storage
 xhtml2pdf
 openpyxl
+celery
+django-celery-beat

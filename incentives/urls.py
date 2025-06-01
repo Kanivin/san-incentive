@@ -81,6 +81,6 @@ path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_
         path("backup_db/", views.backup_db_view, name="backup_db"),
 
 
-
+    path('schedulelog/', views.schedulelog, name='schedulelog'),
 ]
 

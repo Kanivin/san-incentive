@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'incentives',
-    'widget_tweaks'
+    'widget_tweaks',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [

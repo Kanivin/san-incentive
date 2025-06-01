@@ -18,7 +18,8 @@ from django.urls import reverse_lazy
 
 from incentives.utils.db_backup import upload_db_to_gcs
 from django.http import HttpResponse
-
+from .models import JobRunLog,ScheduledJob
+from .tasks import monthly_sales_incentive, annual_target_achievement
 
 
 class CustomLogoutView(LogoutView):
@@ -1345,3 +1346,20 @@ def backup_db_view(request):
         message = upload_db_to_gcs()
         return HttpResponse(message)
     return HttpResponse("Use POST to trigger backup.")
+
+def schedulelog(request):
+    monthly_jobs = ScheduledJob.objects.filter(job_type='monthly').order_by('next_run')
+    yearly_jobs = ScheduledJob.objects.filter(job_type='yearly').order_by('next_run')
+    logs = JobRunLog.objects.all()  # optional, if you show logs
+
+    return render(request, 'owner/activity/schedule.html', {
+        'monthly_jobs': monthly_jobs,
+        'yearly_jobs': yearly_jobs,
+        'logs': logs
+    })
+def run_now(request, job):
+    if job == "monthly":
+        monthly_sales_incentive.delay()
+    elif job == "annual":
+        annual_target_achievement.delay()
+    return redirect('scheduler_dashboard')

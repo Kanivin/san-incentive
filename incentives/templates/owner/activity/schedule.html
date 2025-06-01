@@ -1,0 +1,228 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}  {% load permissions_tags %}
+{% load form_filters %}
+
+{% block content %}
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body py-2 px-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="{% url 'admin_dashboard' %}" class="text-decoration-none text-primary">
+              <i class="bi bi-house-door-fill me-1"></i> Home
+            </a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <i class="bi bi-bullseye me-1"></i> Scheduler
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container my-5">
+    <h2 class="mb-4 fw-bold text-center">Incentive Job Scheduler</h2>
+
+    <!-- Monthly Incentive Jobs -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title mb-3 text-primary">Monthly Incentive Jobs</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Job Name</th>
+                <th>Schedule</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+          <tbody>
+  {% for job in monthly_jobs %}
+  <tr>
+    <td>{{ job.name }}</td>
+    <td>{{ job.schedule }}</td>
+    <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
+    <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
+    <td>
+      <form method="post" action="{% url 'run_scheduled_job' job.id %}">
+        {% csrf_token %}
+        <button class="btn {{ job.button_class }} btn-sm">
+          <i class="bi bi-play-fill"></i> Run Now
+        </button>
+      </form>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="5" class="text-center">No monthly jobs configured.</td></tr>
+  {% endfor %}
+</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yearly Target Incentive Jobs -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title mb-3 text-success">Yearly Target Incentive Jobs</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Job Name</th>
+                <th>Schedule</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+         <tbody>
+  {% for job in yearly_jobs %}
+  <tr>
+    <td>{{ job.name }}</td>
+    <td>{{ job.schedule }}</td>
+    <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
+    <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
+    <td>
+      <form method="post" action="{% url 'run_scheduled_job' job.id %}">
+        {% csrf_token %}
+        <button class="btn {{ job.button_class }} btn-sm">
+          <i class="bi bi-play-fill"></i> Run Now
+        </button>
+      </form>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="5" class="text-center">No yearly jobs configured.</td></tr>
+  {% endfor %}
+</tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Logs -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title mb-3">Job Run Logs</h4>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Search by job name or status..." />
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-repeat"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Job Name</th>
+                <th>Status</th>
+                <th>Executed At</th>
+                <th>Duration</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+           <tbody>
+  {% for log in logs %}
+  <tr>
+    <td>{{ log.job.name }}</td>
+    <td>
+      {% if log.status == 'success' %}
+        <span class="badge bg-success">Success</span>
+      {% elif log.status == 'failed' %}
+        <span class="badge bg-danger">Failed</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">Running</span>
+      {% endif %}
+    </td>
+    <td>{{ log.executed_at|date:"Y-m-d H:i" }}</td>
+    <td>
+      {% if log.duration %}
+        {{ log.duration }}
+      {% else %}
+        --
+      {% endif %}
+    </td>
+    <td>
+      <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#logModal-{{ log.id }}">
+        View Log
+      </button>
+
+      <!-- Modal per log -->
+      <div class="modal fade" id="logModal-{{ log.id }}" tabindex="-1" aria-labelledby="logModalLabel-{{ log.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="logModalLabel-{{ log.id }}">Log for {{ log.job.name }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <pre class="bg-dark text-white p-3 rounded small">{{ log.output }}</pre>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="5" class="text-center">No job logs yet.</td></tr>
+  {% endfor %}
+</tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="logModal" tabindex="-1" aria-labelledby="logModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="logModalLabel">Job Output Log</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <pre class="bg-dark text-white p-3 rounded small">[2025-05-01 00:00:01] Monthly Sales Incentive Calculation started...
+[2025-05-01 00:00:15] Fetching data from sales DB...
+[2025-05-01 00:01:45] Calculation completed and report generated.
+[2025-05-01 00:01:45] Success.</pre>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+ 
+  <!-- DataTables JS and CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#zero_config').DataTable({
+        paging: false,  // Disable DataTables internal pagination (because we're using Django's)
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false
+      });
+    });
+  </script>
+{% endblock %}
