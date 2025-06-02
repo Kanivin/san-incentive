@@ -14,8 +14,8 @@ urlpatterns = [
 
     # Dashboards
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('superadmin-dashboard/', views.admin_dashboard, name='superadmin_dashboard'),
-    path('accounts-dashboard/', views.accounts_dashboard, name='accounts_dashboard'),
+    path('superadmin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('accounts-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
 
     # Admin user management
