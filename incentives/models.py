@@ -61,7 +61,7 @@ class UserProfile(AuditMixin):
     doj = models.DateField(verbose_name="Date of Joining")
     employee_id = models.CharField(max_length=50, unique=True)
     enable_login = models.BooleanField(default=True)
-    coordinator = models.BooleanField(default=True)
+    coordinator = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.password.startswith('pbkdf2_'):

@@ -573,7 +573,7 @@ def target_delete(request, pk):
 
 def generate_financial_years():
     current_year = datetime.now().year
-    return [f"{year}-{year + 1}" for year in range(current_year -1, current_year + 4)]
+    return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
 
 
 def module(request):
@@ -915,7 +915,7 @@ def incentive_setup_update(request, pk):
     incentive = get_object_or_404(IncentiveSetup, pk=pk)
 
     current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year -1, current_year + 4)]
+    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
     segments = Segment.objects.all()
     months = list(range(1, 13))
 
@@ -1082,7 +1082,7 @@ def payout(request):
     if search_query:
         payouts = payouts.filter(
             Q(user__fullname__icontains=search_query) |
-            Q(deal_id__icontains=search_query)
+            Q(deal__clientName__icontains=search_query)
         )
 
     # Apply date filter
@@ -1150,7 +1150,7 @@ def transaction(request):
     # Filter by search
     if search:
         transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
+            Q(deal__clientName__icontains=search) |
             Q(transaction_type__icontains=search) |
             Q(incentive_component_type__icontains=search) |
             Q(eligibility_message__icontains=search) |
@@ -1219,7 +1219,7 @@ def transaction(request):
     # Search filter (e.g., deal_id, message)
     if search:
         transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
+            Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
@@ -1252,7 +1252,7 @@ def transaction_export_excel(request):
 
     if search:
         transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
+            Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
@@ -1291,7 +1291,7 @@ def transaction_export_pdf(request):
     transactions = Transaction.objects.all()
     if search:
         transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
+            Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
@@ -1317,7 +1317,7 @@ def targettransaction(request):
     # Search filter (e.g., deal_id, message)
     if search:
         transactions = transactions.filter(
-            Q(deal_id__icontains=search) |
+            Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )

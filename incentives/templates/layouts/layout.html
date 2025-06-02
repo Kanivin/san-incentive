@@ -212,14 +212,69 @@ var lineOptions = {
       }
     };
 
+
+var achivementoptions = {
+      chart: {
+        type: 'radialBar',
+        height: 350,
+      },
+      series: [65], // Replace with actual percentage
+      labels: ['Target Achievement'],
+      plotOptions: {
+        radialBar: {
+          startAngle: -135,
+          endAngle: 135,
+          hollow: {
+            size: '70%',
+          },
+          track: {
+            background: '#f0f0f0',
+            strokeWidth: '100%',
+          },
+          dataLabels: {
+            show: true,
+            name: {
+              offsetY: 60,
+              fontSize: '16px',
+              color: '#888'
+            },
+            value: {
+              fontSize: '36px',
+              offsetY: 0,
+              formatter: function (val) {
+                return val + '%';
+              }
+            }
+          }
+        }
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'light',
+          type: 'horizontal',
+          gradientToColors: ['#00E396'],
+          stops: [0, 100]
+        }
+      },
+      stroke: {
+        lineCap: 'round'
+      }
+    };
+
+    
 const chart = new ApexCharts(document.querySelector("#chart-earnings-incentives"), options);
 chart.render();
 
 const pieChart = new ApexCharts(document.querySelector("#chart-pie-product"), pieOptions);
 pieChart.render();
 
+
 var lineChart = new ApexCharts(document.querySelector("#chart-line-product"), lineOptions);
 lineChart.render();
+
+var chartachivement = new ApexCharts(document.querySelector("#chart-target-achivement"), achivementoptions);
+chartachivement.render();
 
   </script>
 </body>
