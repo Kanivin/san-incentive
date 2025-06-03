@@ -8,3 +8,4 @@ xhtml2pdf
 openpyxl
 celery
 django-celery-beat
+django_celery_results

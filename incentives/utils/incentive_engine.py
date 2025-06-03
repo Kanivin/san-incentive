@@ -66,29 +66,34 @@ class DealRuleEngine:
         self.create_payouts(transaction, incentive_amount)
 
     def process_new_market_incentive(self):
-        if not self.setup.new_market_eligibility_months or not self.setup.new_market_deal_incentive:
+
+        if self.deal.newMarketPenetration != 'Yes':
             return
 
-        client_created_at = getattr(self.deal.clientName, 'created_at', None)
-        if not client_created_at:
-            return
+        #if not self.setup.new_market_eligibility_months or not self.setup.new_market_deal_incentive:
+        #    return
 
-        cutoff_date = timezone.now() - relativedelta(months=self.setup.new_market_eligibility_months)
-        if client_created_at > cutoff_date:
-            incentive_amount = self.setup.new_market_deal_incentive
+        # client_created_at = getattr(self.deal.clientName, 'created_at', None)
+        # if not client_created_at:
+        #    return
 
-            transaction = Transaction.objects.create(
-                deal_id=self.deal,
-                transaction_type='Earned',
-                incentive_component_type='new_market',
-                amount=incentive_amount,
-                eligibility_status='Eligible',
-                eligibility_message='Client in new market window',
-                notes=f'Client onboarded on {client_created_at.date()}',
-                created_by=self.deal.created_by,
-            )
+        # cutoff_date = timezone.now() - relativedelta(months=self.setup.new_market_eligibility_months)
+        # if client_created_at > cutoff_date:
+        
+        incentive_amount = self.setup.new_market_deal_incentive
 
-            self.create_payouts(transaction, incentive_amount)
+        transaction = Transaction.objects.create(
+            deal_id=self.deal,
+            transaction_type='Earned',
+            incentive_component_type='new_market',
+            amount=incentive_amount,
+            eligibility_status='Eligible',
+            eligibility_message='Client in new market window',
+            notes='New Client onboarded on',
+            created_by=self.deal.created_by,
+        )
+        
+        self.create_payouts(transaction, incentive_amount)
 
     def process_topper_month_incentive(self):
         deal_segment = self.deal.segment

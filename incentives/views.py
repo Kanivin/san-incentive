@@ -53,9 +53,9 @@ def login_view(request):
 
                 request.session['user_type'] = user_type
                 if user_type == 'superadmin':
-                    return redirect(next_url or 'superadmin_dashboard')
+                    return redirect(next_url or 'admin_dashboard')
                 elif user_type == 'accounts':
-                    return redirect('accounts_dashboard')
+                    return redirect('admin_dashboard')
                 elif user_type == 'admin':
                     return redirect('admin_dashboard')
                 else:
