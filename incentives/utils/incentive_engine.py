@@ -22,7 +22,8 @@ class DealRuleEngine:
         return f"{start_year}-{start_year + 1}"
 
     def initialize_setup(self):
-        financial_year = self.get_current_financial_year()
+        # financial_year = self.get_current_financial_year()
+        financial_year = self.deal.dealWonDate.year
         self.setup = IncentiveSetup.objects.filter(financial_year=financial_year).last()
         if not self.setup:
             print(f"[⚠️ Warning] No IncentiveSetup found for the year {financial_year}.")

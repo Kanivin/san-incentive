@@ -573,7 +573,7 @@ def target_delete(request, pk):
 
 def generate_financial_years():
     current_year = datetime.now().year
-    return [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    return [f"{year}" for year in range(current_year -1, current_year + 4)]
 
 
 def module(request):
@@ -756,7 +756,7 @@ from .models import IncentiveSetup, SetupChargeSlab, TopperMonthSlab, HighValueD
 
 def incentive_setup_create(request):
     current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year -1, current_year + 4)]
+    financial_years = [f"{year}" for year in range(current_year -1, current_year + 4)]
     months = [month for month in range(1, 13)]
     segments = Segment.objects.all()
 
@@ -915,7 +915,7 @@ def incentive_setup_update(request, pk):
     incentive = get_object_or_404(IncentiveSetup, pk=pk)
 
     current_year = datetime.now().year
-    financial_years = [f"{year}-{year + 1}" for year in range(current_year, current_year + 11)]
+    financial_years = [f"{year}" for year in range(current_year -1, current_year + 4)]
     segments = Segment.objects.all()
     months = list(range(1, 13))
 
