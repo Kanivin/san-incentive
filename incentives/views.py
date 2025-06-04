@@ -1357,9 +1357,10 @@ def schedulelog(request):
         'yearly_jobs': yearly_jobs,
         'logs': logs
     })
+
 def run_now(request, job):
     if job == "monthly":
-        monthly_sales_incentive.delay()
+       monthly_sales_incentive()
     elif job == "annual":
-        annual_target_achievement.delay()
-    return redirect('scheduler_dashboard')
+        annual_target_achievement()
+    return redirect('schedulelog') 

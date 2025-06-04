@@ -1,6 +1,7 @@
-from incentives.models import Role, Module, Permission, UserProfile
+from incentives.models import Role, Module, Permission, UserProfile, ScheduledJob
 from django.utils.timezone import now
 from django.contrib.auth.hashers import make_password
+from datetime import datetime
 
 # Define roles and whether they are selectable by users
 from incentives.models import Role, Module
@@ -61,3 +62,26 @@ superadmin_profile, created = UserProfile.objects.update_or_create(
 
 # Output result
 print(f'Superadmin profile {"created" if created else "updated"}: {superadmin_profile}')
+
+# Create Monthly Sales Incentive Calculation
+
+ScheduledJob.objects.get_or_create(
+name="Monthly Sales Incentive Calculation",
+job_type="monthly",
+schedule="1st of every month at 12:00 AM",
+last_run=datetime(2025, 5, 1, 0, 0),
+next_run=datetime(2025, 6, 1, 0, 0),
+button_class="btn-outline-success"
+)
+print('Create Monthly Sales Incentive Calculation')
+
+ScheduledJob.objects.get_or_create(
+    name="Annual Target Achievement",
+    job_type="yearly",
+    schedule="January 1st at 2:00 AM",
+    last_run=datetime(2025, 1, 1, 2, 0),
+    next_run=datetime(2026, 1, 1, 2, 0),
+    button_class="btn-outline-success"
+)
+
+print('Create Annual Target Achievement')

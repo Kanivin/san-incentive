@@ -46,12 +46,9 @@
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
     <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
     <td>
-      <form method="post" action="{% url 'run_scheduled_job' job.id %}">
-        {% csrf_token %}
-        <button class="btn {{ job.button_class }} btn-sm">
-          <i class="bi bi-play-fill"></i> Run Now
-        </button>
-      </form>
+      <a href="{% url 'run_now' 'monthly' %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-play-fill"></i> Run Now
+      </a>
     </td>
   </tr>
   {% empty %}
@@ -86,12 +83,9 @@
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
     <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
     <td>
-      <form method="post" action="{% url 'run_scheduled_job' job.id %}">
-        {% csrf_token %}
-        <button class="btn {{ job.button_class }} btn-sm">
-          <i class="bi bi-play-fill"></i> Run Now
-        </button>
-      </form>
+      <a href="{% url 'run_now' 'annual' %}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-play-fill"></i> Run Now
+      </a>
     </td>
   </tr>
   {% empty %}
@@ -132,7 +126,7 @@
            <tbody>
   {% for log in logs %}
   <tr>
-    <td>{{ log.job.name }}</td>
+    <td>{{ log.job_name }}</td>
     <td>
       {% if log.status == 'success' %}
         <span class="badge bg-success">Success</span>

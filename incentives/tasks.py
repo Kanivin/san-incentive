@@ -10,10 +10,10 @@ def monthly_sales_incentive(self):
     try:
         time.sleep(5)  # simulate processing
         output = "[INFO] Calculated monthly incentive"
-        log.status = "Success"
+        log.status = "success"
         log.output = output
     except Exception as e:
-        log.status = "Failed"
+        log.status = "failed"
         log.output = str(e)
     finally:
         log.duration = datetime.now() - start
@@ -26,10 +26,10 @@ def annual_target_achievement(self):
     try:
         time.sleep(5)
         output = "[INFO] Annual target processing complete"
-        log.status = "Success"
+        log.status = "success"
         log.output = output
     except Exception as e:
-        log.status = "Failed"
+        log.status = "failed"
         log.output = str(e)
     finally:
         log.duration = datetime.now() - start

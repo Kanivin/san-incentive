@@ -239,7 +239,7 @@
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-circle-notch"></i>
                   </div>
-                  <span class="hide-menu">Scheduled Jobs Logs</span>
+                  <span class="hide-menu">Scheduled Jobs</span>
                 </a>
               </li>
              {% if request.permissions|has_any_permission:"Audit Log, view" %} 
@@ -253,14 +253,14 @@
               </li>
                {% endif %}
              {% if request.permissions|has_any_permission:"Error Log, view" %} 
-              <li class="sidebar-item">
+              <!-- <li class="sidebar-item">
                 <a href="#" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-circle-notch"></i>
                   </div>
                   <span class="hide-menu">Error Logs</span>
                 </a>
-              </li>
+              </li> -->
              {% endif %}
              {% if request.permissions|has_any_permission:"Scheduled , delete" %}
               <li class="sidebar-item">

@@ -72,15 +72,15 @@ path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_
     path('deal/approve/<int:pk>/', views.deal_approve, name='deal_approve'),
 
 
-        path('salesteam/', views.salesteam, name='salesteam'),
-      path('payout/', views.payout, name='payout'),
-        path('transaction/', views.transaction, name='transaction'),
- path('targettransaction/', views.targettransaction, name='targettransaction'),
+    path('salesteam/', views.salesteam, name='salesteam'),
+    path('payout/', views.payout, name='payout'),
+    path('transaction/', views.transaction, name='transaction'),
+    path('targettransaction/', views.targettransaction, name='targettransaction'),
     path('transaction/export/excel/', views.transaction_export_excel, name='transaction_export_excel'),
     path('transaction/export/pdf/', views.transaction_export_pdf, name='transaction_export_pdf'),
         path("backup_db/", views.backup_db_view, name="backup_db"),
 
-
+    path('run-now/<str:job>/', views.run_now, name='run_now'),
     path('schedulelog/', views.schedulelog, name='schedulelog'),
 ]
 
