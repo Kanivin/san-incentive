@@ -53,8 +53,9 @@
           <label for="employee" class="col-sm-3 col-form-label">Employee Name<span class="mandy">*</span></label>
           <div class="col-sm-9">
             <select name="employee" class="form-select" required>
+              <option value="">-- Select Employee --</option>
               {% for user in users %}
-                <option value="{{ user.id }}" {% if employee == user.id %}selected{% endif %}>
+                <option value="{{ user.id }}" {% if form.employee.value == user.id %}selected{% endif %}>
                   {{ user.fullname }}
                 </option>
               {% endfor %}

@@ -18,6 +18,7 @@ from django.urls import reverse_lazy
 
 from incentives.utils.db_backup import upload_db_to_gcs
 from django.http import HttpResponse
+from django.http import JsonResponse
 from .models import JobRunLog,ScheduledJob
 from .tasks import monthly_sales_incentive, annual_target_achievement
 
@@ -272,7 +273,7 @@ def user_create(request):
 def user_edit(request, pk):
     user = get_object_or_404(UserProfile, pk=pk)
     roles = Role.objects.all()
-
+    users = UserProfile.objects.filter(user_type__name__in=['admin', 'saleshead'])
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=user)
         if form.is_valid():
@@ -284,6 +285,7 @@ def user_edit(request, pk):
     return render(request, 'owner/users/user_form.html', {
         'form': form,
         'roles': roles,
+        'users':users,
         'title': 'Edit User'
     })
 
@@ -1364,3 +1366,11 @@ def run_now(request, job):
     elif job == "annual":
         annual_target_achievement()
     return redirect('schedulelog') 
+
+def mark_payout_paid(request, payout_id):
+    payout = get_object_or_404(PayoutTransaction, pk=payout_id)
+    if payout.payout_status == 'ReadyToPay':
+        payout.payout_status = 'Paid'
+        payout.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'invalid status'}, status=400)  

@@ -46,6 +46,7 @@
           <th>Person Type</th>
           <th>Status</th>
           <th>Amount</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -75,6 +76,18 @@
             {% endif %}
           </td>
           <td><h6 class="fs-4 fw-semibold mb-0">{{ payout.payout_amount }}</h6></td>
+          <td>
+            {% if request.permissions|has_any_permission:"Payouts, edit" %}            
+              {% if payout.payout_status == 'ReadyToPay' %}
+              <button class="btn btn-warning btn-sm me-1"
+              onclick="openPaidModal('{{ payout.pk }}')"
+              data-bs-toggle="modal"
+              data-bs-target="#markPaidModal">
+              Mark as Paid
+              </button>
+            {% endif %}
+            {% endif %}
+          </td>
         </tr>
         {% empty %}
         <tr>
@@ -113,4 +126,68 @@
 </div>
 
   </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="markPaidModal" tabindex="-1" aria-labelledby="markPaidModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title" id="markPaidModalLabel">Confirm Mark as Paid</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to mark this payout as <strong>Paid</strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning" id="confirmPaidBtn">Yes, Mark as Paid</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+{% block extra_js %}
+<script>
+  let selectedPayoutId = null;
+
+  function openPaidModal(payoutId) {
+    selectedPayoutId = payoutId;
+  }
+
+  document.getElementById("confirmPaidBtn").addEventListener("click", function () {
+    if (!selectedPayoutId) return;
+
+    fetch(`/payout/mark-paid/${selectedPayoutId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => {
+      if (response.ok) {
+        // Close the modal
+        const modalEl = document.getElementById('markPaidModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        // Optionally show a toast or alert
+
+        // Reload page or remove/modify row
+        location.reload();
+      } else {
+        alert("Failed to mark as paid.");
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("An error occurred.");
+    });
+  });
+</script>
+
+{% endblock %}
+
 {% endblock %}

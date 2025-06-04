@@ -53,7 +53,7 @@
             <div class="col-sm-9">
               <select id="financial-year" name="financial_year" class="form-control">
                 {% for year in financial_years %}
-                <option value="{{ year }}" {% if year == selected_financial_year %}selected{% endif %}>{{ year }}</option>
+                <option value="{{ year }}" {% if form.financial_year.value == year %}selected{% endif %}>{{ year }}</option>
               {% endfor %}
               </select>
             </div>

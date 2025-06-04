@@ -97,14 +97,16 @@
             {% endif %}
           </div>
         </div>
- <div class="mb-4 row align-items-center">
+        <div class="mb-4 row align-items-center">
             <label class="form-label col-sm-3 col-form-label">Reporting To</label>
             <div class="col-sm-9">
               <select name="team_head" class="form-select" required>
-                <option value="">Select Team Leader</option>
+                <option value="">-- Select Team Leader --</option>
                 {% for user in users %}
-                  <option value="{{ user.id }}" {% if form.team_head.value == user.id %}selected{% endif %}>
-                    {{ user.fullname }}
+                  <option value="{{ user.id }}" {% if form.team_head.value == user.id %}
+                   selected
+                   {% endif %}>
+                   {{ user.fullname }}
                   </option>
                 {% endfor %}
               </select>
