@@ -3,6 +3,29 @@
 {% load permissions_tags %}
 {% block content %}
 
+{% if team_members %}
+<form method="get" class="mb-4">
+  <div class="row g-3 align-items-center">
+    <div class="col-auto">
+      <label for="team_member" class="col-form-label fw-bold">Select Team Member:</label>
+    </div>
+    <div class="col-auto">
+      <select name="team_member" id="team_member" class="form-select" onchange="this.form.submit()">
+        <option value="">-- All --</option>
+        {% for member in team_members %}
+          <option value="{{ member.id }}" {% if selected_user and member.id == selected_user.id %}selected{% endif %}>
+            {{ member.fullname }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</form>
+{% else %}
+  <!-- If no team_members, show user or user list info -->
+  <p><strong>User:</strong> {{ selected_user.fullname }}</p>
+  <!-- Or if you want a list of users here, you can loop over a user_list context variable -->
+{% endif %}
   <!--  Row 1 -->
   <div class="row">    
     <div class="col-lg-6 d-flex align-items-stretch">
@@ -83,8 +106,63 @@
         </div>
       </div>
     </div>
-  
-     
 </div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+var achivementoptions = {
+      chart: {
+        type: 'radialBar',
+        height: 350,
+      },
+      series: [65], // Replace with actual percentage
+      labels: ['Target Achievement'],
+      plotOptions: {
+        radialBar: {
+          startAngle: -135,
+          endAngle: 135,
+          hollow: {
+            size: '70%',
+          },
+          track: {
+            background: '#f0f0f0',
+            strokeWidth: '100%',
+          },
+          dataLabels: {
+            show: true,
+            name: {
+              offsetY: 60,
+              fontSize: '16px',
+              color: '#888'
+            },
+            value: {
+              fontSize: '36px',
+              offsetY: 0,
+              formatter: function (val) {
+                return val + '%';
+              }
+            }
+          }
+        }
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'light',
+          type: 'horizontal',
+          gradientToColors: ['#00E396'],
+          stops: [0, 100]
+        }
+      },
+      stroke: {
+        lineCap: 'round'
+      }
+    }; 
+var chartachivement = new ApexCharts(document.querySelector("#chart-target-achivement"), achivementoptions);
+chartachivement.render();
+</script>
+
+{% endblock %}
 
  {% endblock %}

@@ -38,8 +38,8 @@ urlpatterns = [
     path('target-create/', views.target_create, name='target_create'),
     path('target-edit/<int:pk>/', views.target_update, name='target_update'),
     path('target-delete/<int:pk>/', views.target_delete, name='target_delete'),
-path('annual-targets/export/excel/', views.target_export_excel, name='target_export_excel'),
-path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_pdf'),
+    path('annual-targets/export/excel/', views.target_export_excel, name='target_export_excel'),
+    path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_pdf'),
 
 
 
@@ -78,7 +78,7 @@ path('annual-targets/export/pdf/', views.target_export_pdf, name='target_export_
     path('targettransaction/', views.targettransaction, name='targettransaction'),
     path('transaction/export/excel/', views.transaction_export_excel, name='transaction_export_excel'),
     path('transaction/export/pdf/', views.transaction_export_pdf, name='transaction_export_pdf'),
-        path("backup_db/", views.backup_db_view, name="backup_db"),
+    path("backup_db/", views.backup_db_view, name="backup_db"),
 
     path('run-now/<str:job>/', views.run_now, name='run_now'),
     path('schedulelog/', views.schedulelog, name='schedulelog'),

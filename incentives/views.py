@@ -1374,3 +1374,4 @@ def mark_payout_paid(request, payout_id):
         payout.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'invalid status'}, status=400)  
+ 
