@@ -9,7 +9,7 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 
-EXCLUDED_MODELS = ['ChangeLog', 'Role', 'Module', 'Permission', 'UserProfile', 'Segment', 'LeadSource']  # prevent recursion
+EXCLUDED_MODELS = ['ChangeLog', 'Role', 'Module', 'Permission', 'UserProfile', 'Segment', 'LeadSource','TargetTransaction','Transaction','PayoutTransaction']  # prevent recursion
 
 def clean_dict(data):
     """Utility to clean dictionary and convert non-serializable data."""
@@ -28,11 +28,6 @@ def log_change(instance, action):
     data = model_to_dict(instance)  # Get the model's field data
     cleaned_data = clean_dict(data)  # Clean and serialize the data properly
 
-    if instance.__class__.__name__ == "TargetTransaction":
-        return
-    if instance.__class__.__name__ == "Transaction":
-        return    
- 
     # Create the change log entry
     ChangeLog.objects.create(
         model_name=instance.__class__.__name__,
