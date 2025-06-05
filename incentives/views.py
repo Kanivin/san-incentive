@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from .models import JobRunLog, ScheduledJob, ChangeLog
 from .tasks import monthly_sales_incentive, annual_target_achievement
+from django.db.models import Sum
 
 
 class CustomLogoutView(LogoutView):
@@ -108,9 +109,69 @@ def dashboard_router(request):
             except UserProfile.DoesNotExist:
                 selected_user = current_profile
 
+        payouts = PayoutTransaction.objects.filter(user=selected_user_id)
+
+        current_year = datetime.now().year
+
+        total_payout = payouts.filter(payout_status='Paid').aggregate(total=Sum('payout_amount'))['total'] or 0
+        pending_payout = payouts.filter(payout_status='ReadyToPay').aggregate(total=Sum('payout_amount'))['total'] or 0
+        
+        # 1. Total Earned Target Amount this year
+        total_target = TargetTransaction.objects.filter(
+            user_id=user_id,
+            transaction_type='Earned',
+            transaction_date__year=current_year
+        ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+
+        # 2. Get Annual Target
+        try:
+            annual_target = AnnualTarget.objects.get(employee_id=user_id, financial_year=current_year)
+            annual_target_amount = annual_target.annual_target_amount
+            net_salary = annual_target.net_salary
+        except AnnualTarget.DoesNotExist:
+            annual_target_amount = Decimal(0)
+            net_salary = Decimal(0)
+
+        # 3. Compute Target % Achievement
+        if annual_target_amount > 0:
+            target_percentage = (total_target / annual_target_amount) * 100
+        else:
+            target_percentage = Decimal(0)
+
+        # 4. Annual Incentive Calculation (based on slabs)
+        annual_target_incentive = Decimal(0)
+        if target_percentage >= 100:
+            annual_target_incentive = net_salary * Decimal('2.0')  # 200%
+        elif target_percentage >= 95:
+            annual_target_incentive = net_salary * Decimal('1.5')  # 150%
+        elif target_percentage >= 90:
+            annual_target_incentive = net_salary * Decimal('1.25')  # 125%
+        elif target_percentage >= 75:
+            annual_target_incentive = net_salary * Decimal('1.0')  # 100%
+        else:
+            annual_target_incentive = Decimal(0)  # Below 75% gets no incentive
+
+        # 5. Subscription Incentive %
+        if target_percentage >= 100:
+            subscription_incentive_percent = Decimal('8.00')
+        elif target_percentage >= 75:
+            subscription_incentive_percent = Decimal('6.00')
+        elif target_percentage >= 50:
+            subscription_incentive_percent = Decimal('4.00')
+        else:
+            subscription_incentive_percent = Decimal('0.00')
+
+        # 6. Subscription Incentive = % of target achieved amount
+        subscription_incentive = total_target * (subscription_incentive_percent / 100)
+        
         context = {
             'team_members': team_members,
             'selected_user': selected_user,
+            'total_payout': total_payout,
+            'pending_payout': pending_payout,
+            'annual_target_incentive': annual_target_incentive,
+            'subscription_incentive': subscription_incentive,
+            'target_percentage': round(target_percentage, 2),
         }
         return render(request, 'sales/dashboard.html', context)
        

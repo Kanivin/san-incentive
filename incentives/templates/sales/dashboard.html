@@ -1,17 +1,18 @@
 {% extends 'layouts/layout.html' %}
 {% load static %}
 {% load permissions_tags %}
+
 {% block content %}
 
 {% if team_members %}
 <form method="get" class="mb-4">
   <div class="row g-3 align-items-center">
     <div class="col-auto">
-      <label for="team_member" class="col-form-label fw-bold">Select Self & Team Member:</label>
+      <label for="team_member" class="col-form-label fw-bold">Select Self/Team Member:</label>
     </div>
     <div class="col-auto">
       <select name="team_member" id="team_member" class="form-select" onchange="this.form.submit()">
-        <option value="">-- All --</option>
+        <option value="">-- Select Member --</option>
         {% for member in team_members %}
           <option value="{{ member.id }}" {% if selected_user and member.id == selected_user.id %}selected{% endif %}>
             {{ member.fullname }}
@@ -22,145 +23,107 @@
   </div>
 </form>
 {% endif %}
-  <!--  Row 1 -->
-  <div class="row">    
-    <div class="col-lg-6 d-flex align-items-stretch">
-      <div class="card w-100">
-        <div class="card-body">
-          <div class="d-flex flex-row">
-              <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-success">
-                <i class="ti ti-credit-card fs-6"></i>
-              </div>
-              <div class="ms-3 align-self-center">
-                <h4 class="mb-0 fs-5">Total Payout</h4>
-                <span>Income</span>
-              </div>
-              <div class="ms-auto align-self-center">
-                <h2 class="fs-7 mb-0">₹ 290000</h2>
-              </div>
-            </div>  
-        </div>
-        <div class="card w-100">
-          <div class="card-body">
-            <div class="d-flex flex-row">
-              <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
-                <i class="ti ti-credit-card fs-6"></i>
-              </div>
-              <div class="ms-3 align-self-center">
-                <h4 class="mb-0 fs-5">Pending Payout</h4>
-                <span>Income</span>
-              </div>
-              <div class="ms-auto align-self-center">
-                <h2 class="fs-7 mb-0">₹ 26900</h2>
-              </div>
-            </div>
+
+<!--  Row 1 -->
+<div class="row">
+  <div class="col-lg-6 d-flex align-items-stretch">
+    <div class="card w-100">
+      <div class="card-body">
+
+        <!-- Total Payout -->
+        <div class="d-flex flex-row mb-4">
+          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-success">
+            <i class="ti ti-credit-card fs-6"></i>
+          </div>
+          <div class="ms-3 align-self-center">
+            <h4 class="mb-0 fs-5">Total Payout</h4>
+            <span>Income</span>
+          </div>
+          <div class="ms-auto align-self-center">
+            <h2 class="fs-7 mb-0">₹ {{ total_payout|floatformat:0 }}</h2>
           </div>
         </div>
-        <div class="card w-100">
-            <div class="card-body">
-              <div class="d-flex flex-row">
-                <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
-                  <i class="ti ti-credit-card fs-6"></i>
-                </div>
-                <div class="ms-3 align-self-center">
-                  <h4 class="mb-0 fs-5">Annual Target Achievement</h4>
-                  <span>As per current target achievement</span>
-                </div>
-                <div class="ms-auto align-self-center">
-                  <h2 class="fs-7 mb-0">₹ 20000</h2>
-                  <span>1 Month Gross Salary</span>
-                </div>
-              </div>
-            </div>
-          </div>  
-          <div class="card w-100">
-              <div class="card-body">
-                <div class="d-flex flex-row">
-                  <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
-                    <i class="ti ti-credit-card fs-6"></i>
-                  </div>
-                  <div class="ms-3 align-self-center">
-                    <h4 class="mb-0 fs-5">Annual Subscription Incentive</h4>
-                    <span>As per current target achievement</span>
-                  </div>
-                  <div class="ms-auto align-self-center">
-                    <h2 class="fs-7 mb-0">₹ 38000</h2>
-                    <span>6% of Collection Amount</span>
-                  </div>
-                </div>
-              </div>
-            </div>          
-      </div>
-    </div>
 
-  <div class="col-lg-6 d-flex align-items-stretch">
-      <div class="card w-100">
-        <div class="card-body">
-          <h4 class="card-title">Annual Target Achievement</h4>
-          <p class="card-subtitle mb-0">Overview of Achievement</p>
-          <div id="chart-target-achivement"></div>            
+        <!-- Pending Payout -->
+        <div class="d-flex flex-row mb-4">
+          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
+            <i class="ti ti-credit-card fs-6"></i>
+          </div>
+          <div class="ms-3 align-self-center">
+            <h4 class="mb-0 fs-5">Pending Payout</h4>
+            <span>Income</span>
+          </div>
+          <div class="ms-auto align-self-center">
+            <h2 class="fs-7 mb-0">₹ {{ pending_payout|floatformat:0 }}</h2>
+          </div>
         </div>
+
+        <!-- Annual Target Achievement -->
+        <div class="d-flex flex-row mb-4">
+          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
+            <i class="ti ti-target fs-6"></i>
+          </div>
+          <div class="ms-3 align-self-center">
+            <h4 class="mb-0 fs-5">Annual Target Achievement</h4>
+            <span>As per current target achievement</span>
+          </div>
+          <div class="ms-auto align-self-center">
+            <h2 class="fs-7 mb-0">₹ {{ annual_target_incentive|floatformat:0 }}</h2>
+            <span>1 Month Gross Salary</span>
+          </div>
+        </div>
+
+        <!-- Annual Subscription Incentive -->
+        <div class="d-flex flex-row">
+          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-warning">
+            <i class="ti ti-currency-rupee fs-6"></i>
+          </div>
+          <div class="ms-3 align-self-center">
+            <h4 class="mb-0 fs-5">Annual Subscription Incentive</h4>
+            <span>As per current target achievement</span>
+          </div>
+          <div class="ms-auto align-self-center">
+            <h2 class="fs-7 mb-0">₹ {{ subscription_incentive|floatformat:0 }}</h2>
+            <span>6% of Collection Amount</span>
+          </div>
+        </div>
+
       </div>
     </div>
-</div>
+  </div>
 
-{% endblock %}
+  <!-- Target Achievement Chart -->
+  <div class="col-lg-6 d-flex align-items-stretch">
+    <div class="card w-100">
+      <div class="card-body">
+        <h4 class="card-title">Annual Target Achievement</h4>
+        <p class="card-subtitle mb-0">Overview of Achievement</p>
+        <div id="chart-target-achivement" data-percent="{{ target_percentage }}"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-var achivementoptions = {
+  document.addEventListener("DOMContentLoaded", function () {
+    const percent = parseFloat(document.getElementById('chart-target-achivement').dataset.percent || 0);
+  
+    const options = {
       chart: {
         type: 'radialBar',
-        height: 350,
+        height: 350
       },
-      series: [65], // Replace with actual percentage
-      labels: ['Target Achievement'],
-      plotOptions: {
-        radialBar: {
-          startAngle: -135,
-          endAngle: 135,
-          hollow: {
-            size: '70%',
-          },
-          track: {
-            background: '#f0f0f0',
-            strokeWidth: '100%',
-          },
-          dataLabels: {
-            show: true,
-            name: {
-              offsetY: 60,
-              fontSize: '16px',
-              color: '#888'
-            },
-            value: {
-              fontSize: '36px',
-              offsetY: 0,
-              formatter: function (val) {
-                return val + '%';
-              }
-            }
-          }
-        }
-      },
-      fill: {
-        type: 'gradient',
-        gradient: {
-          shade: 'light',
-          type: 'horizontal',
-          gradientToColors: ['#00E396'],
-          stops: [0, 100]
-        }
-      },
-      stroke: {
-        lineCap: 'round'
-      }
-    }; 
-var chartachivement = new ApexCharts(document.querySelector("#chart-target-achivement"), achivementoptions);
-chartachivement.render();
-</script>
-
+      series: [percent],
+      labels: ['Target Achievement']
+    };
+  
+    new ApexCharts(document.querySelector("#chart-target-achivement"), options).render();
+  });
+  </script>
+  
 {% endblock %}
 
 {% endblock %}
+
