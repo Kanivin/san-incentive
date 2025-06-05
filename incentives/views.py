@@ -54,13 +54,13 @@ def login_view(request):
 
                 request.session['user_type'] = user_type
                 if user_type == 'superadmin':
-                    return redirect(next_url or 'admin_dashboard')
+                    return redirect(next_url or 'dashboard_router')
                 elif user_type == 'accounts':
-                    return redirect('admin_dashboard')
+                    return redirect('dashboard_router')
                 elif user_type == 'admin':
-                    return redirect('admin_dashboard')
+                    return redirect('dashboard_router')
                 else:
-                    return redirect('sales_dashboard')
+                    return redirect('dashboard_router')
             else:
                 messages.error(request, 'Invalid username or password.')
         except UserProfile.DoesNotExist:
@@ -83,6 +83,12 @@ def superadmin_dashboard(request):
 def sales_dashboard(request):
     return render(request, 'sales/dashboard.html')
 
+def dashboard_router(request):    
+    user_type = request.session.get('user_type')    
+    if user_type == 'saleshead' or user_type == 'salesperson':
+        return render(request, 'sales/dashboard.html')
+    else:
+        return render(request, 'owner/dashboard.html')
 
 # ---------- User Management Views ----------
 def user_list(request):

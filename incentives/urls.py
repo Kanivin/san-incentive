@@ -13,10 +13,12 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
 
     # Dashboards
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('superadmin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
+    
+    #path('dashboard-router/', views.dashboard_router, name='dashboard_router'),
+    #path('admin-dashboard/', views.dashboard_router, name='dashboard_router'),
+    #path('superadmin-dashboard/', views.dashboard_router, name='dashboard_router'),
+    path('dashboard/', views.dashboard_router, name='dashboard_router'),
+    #path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
 
     # Admin user management
     path('admin-user/', views.user_list, name='user_list'),
