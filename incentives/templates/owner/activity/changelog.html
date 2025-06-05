@@ -6,20 +6,19 @@
 <div class="container mt-4">
   <h2 class="mb-4">Change Logs</h2>
 
-  {% for log in changelogs %}
+  {% for log in page_obj %}
     <div class="card mb-4 shadow-sm">
       <div class="card-header bg-light">
-        <strong>{{ log.model_name }}</strong> (ID: {{ log.object_id }}) – 
+        <strong>{{ log.model_name }}</strong> (ID: {{ log.object_id }}) –
         <span class="badge bg-primary">{{ log.change_type }}</span>
         <span class="text-muted float-end">{{ log.created_at }}</span>
       </div>
-
       <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Changed Fields</h6>
+        <h6 class="text-muted">Changed Fields</h6>
         {% if log.changed_data %}
           <ul class="list-group mb-3">
             {% for key, value in log.changed_data.items %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
+              <li class="list-group-item d-flex justify-content-between">
                 <strong>{{ key }}</strong>
                 <span class="text-danger">{{ value }}</span>
               </li>
@@ -29,11 +28,11 @@
           <p class="text-muted">No changed data</p>
         {% endif %}
 
-        <h6 class="card-subtitle mb-2 text-muted">New Values</h6>
+        <h6 class="text-muted">New Values</h6>
         {% if log.new_data %}
           <ul class="list-group">
             {% for key, value in log.new_data.items %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
+              <li class="list-group-item d-flex justify-content-between">
                 <strong>{{ key }}</strong>
                 <span class="text-success">{{ value }}</span>
               </li>
@@ -47,6 +46,36 @@
   {% empty %}
     <p>No changelogs found.</p>
   {% endfor %}
+
+  <!-- Pagination controls -->
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1">First</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">First</span></li>
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+      {% endif %}
+
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        <li class="page-item disabled"><span class="page-link">Last</span></li>
+      {% endif %}
+    </ul>
+  </nav>
 </div>
 {% endblock %}
-

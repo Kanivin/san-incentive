@@ -1362,7 +1362,10 @@ def schedulelog(request):
 
 def changelog(request):
     changelogs = ChangeLog.objects.all().order_by('-created_at')[:50]  # Limit for performance
-    return render(request, 'owner/activity/changelog.html', {'changelogs': changelogs})
+    paginator = Paginator(changelogs, 10)  # Show 10 logs per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'owner/activity/changelog.html', {'page_obj': page_obj})
 
 def run_now(request, job):
     if job == "monthly":
