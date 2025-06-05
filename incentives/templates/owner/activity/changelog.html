@@ -1,0 +1,52 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}  {% load permissions_tags %}
+{% load form_filters %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Change Logs</h2>
+
+  {% for log in changelogs %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light">
+        <strong>{{ log.model_name }}</strong> (ID: {{ log.object_id }}) – 
+        <span class="badge bg-primary">{{ log.change_type }}</span>
+        <span class="text-muted float-end">{{ log.created_at }}</span>
+      </div>
+
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Changed Fields</h6>
+        {% if log.changed_data %}
+          <ul class="list-group mb-3">
+            {% for key, value in log.changed_data.items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>{{ key }}</strong>
+                <span class="text-danger">{{ value }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No changed data</p>
+        {% endif %}
+
+        <h6 class="card-subtitle mb-2 text-muted">New Values</h6>
+        {% if log.new_data %}
+          <ul class="list-group">
+            {% for key, value in log.new_data.items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <strong>{{ key }}</strong>
+                <span class="text-success">{{ value }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No new data</p>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p>No changelogs found.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+

@@ -19,7 +19,7 @@ from django.urls import reverse_lazy
 from incentives.utils.db_backup import upload_db_to_gcs
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .models import JobRunLog,ScheduledJob
+from .models import JobRunLog, ScheduledJob, ChangeLog
 from .tasks import monthly_sales_incentive, annual_target_achievement
 
 
@@ -1359,6 +1359,10 @@ def schedulelog(request):
         'yearly_jobs': yearly_jobs,
         'logs': logs
     })
+
+def changelog(request):
+    changelogs = ChangeLog.objects.all().order_by('-created_at')[:50]  # Limit for performance
+    return render(request, 'owner/activity/changelog.html', {'changelogs': changelogs})
 
 def run_now(request, job):
     if job == "monthly":

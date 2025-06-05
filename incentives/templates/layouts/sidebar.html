@@ -236,11 +236,11 @@
               </li>
              {% if request.permissions|has_any_permission:"Audit Log, view" %} 
               <li class="sidebar-item">
-                <a href="#" class="sidebar-link">
+                <a href="{% url 'changelog' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
                     <i class="fas fa-circle-notch"></i>
                   </div>
-                  <span class="hide-menu">Audit Log</span>
+                  <span class="hide-menu">Audit/Change Log</span>
                 </a>
               </li>
                {% endif %}

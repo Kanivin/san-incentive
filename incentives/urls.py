@@ -82,6 +82,7 @@ urlpatterns = [
 
     path('run-now/<str:job>/', views.run_now, name='run_now'),
     path('schedulelog/', views.schedulelog, name='schedulelog'),
+    path('changelog/', views.changelog, name='changelog'),
     path('payout/mark-paid/<int:payout_id>/', views.mark_payout_paid, name='mark_payout_paid'),
 ]
 
