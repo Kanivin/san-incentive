@@ -84,9 +84,36 @@ def sales_dashboard(request):
     return render(request, 'sales/dashboard.html')
 
 def dashboard_router(request):    
+    user_id = request.session.get('user_id')   
     user_type = request.session.get('user_type')    
     if user_type == 'saleshead' or user_type == 'salesperson':
-        return render(request, 'sales/dashboard.html')
+
+        try:
+            current_profile = UserProfile.objects.get(id=user_id)
+        except UserProfile.DoesNotExist:
+            # Handle missing profile case gracefully
+            return render(request, 'dashboard/error.html', {'message': 'User profile not found.'})
+       
+        team_members_qs = UserProfile.objects.filter(team_head=user_id)
+        # Users reporting to the current user (team members)
+        current_profile.fullname += " - Self"
+        team_members = [current_profile] + list(team_members_qs)
+
+        selected_user_id = request.GET.get('team_member')
+        selected_user = current_profile  # default
+
+        if selected_user_id:
+            try:
+                selected_user = UserProfile.objects.get(id=selected_user_id)
+            except UserProfile.DoesNotExist:
+                selected_user = current_profile
+
+        context = {
+            'team_members': team_members,
+            'selected_user': selected_user,
+        }
+        return render(request, 'sales/dashboard.html', context)
+       
     else:
         return render(request, 'owner/dashboard.html')
 
