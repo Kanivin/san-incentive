@@ -35,7 +35,7 @@ class DealRuleEngine:
         self.process_new_market_incentive()
         self.process_topper_month_incentive()
         self.process_high_value_deal_incentive()
-        self.process_subscription_incentive()
+        # self.process_subscription_incentive()
 
     def process_setup_incentive(self):
         deal_amount = self.deal.setupCharges
