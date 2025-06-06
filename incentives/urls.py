@@ -30,6 +30,7 @@ urlpatterns = [
     # Admin deal management
     path('admin-deal/', views.deal_list, name='deal_list'),
     path('deal-create/', views.deal_create, name='deal_create'),
+     path('deal-view/<int:pk>/', views.deal_view, name='deal_view'),
     path('deal-edit/<int:pk>/', views.deal_update, name='deal_update'),
     path('deal-delete/<int:pk>/', views.deal_delete, name='deal_delete'),
         path('deals/export/excel/', views.deal_export_excel, name='deal_export_excel'),
@@ -48,6 +49,7 @@ urlpatterns = [
     # Admin Annual Target
     path('admin-incentives/', views.incentive_setup_list, name='incentive_setup_list'),
     path('incentive_setup-create/', views.incentive_setup_create, name='incentive_setup_create'),
+    path('incentive_setup-view/<int:pk>/', views.incentive_setup_view, name='incentive_setup_view'),
     path('incentive_setup-edit/<int:pk>/', views.incentive_setup_update, name='incentive_setup_update'),
     path('incentive_setup-delete/<int:pk>/', views.incentive_setup_delete, name='incentive_setup_delete'),
 

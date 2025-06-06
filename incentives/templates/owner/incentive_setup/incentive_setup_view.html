@@ -1,0 +1,303 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}  {% load permissions_tags %}
+{% load form_filters %}
+
+{% block content %}
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'dashboard_router' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'incentive_setup_list' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-gift  me-1"></i> Incentives Setup
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-gift me-1"></i> {{ title }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">General Settings</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Financial Year</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ incentive.financial_year }}</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Setup Charge Slabs</legend>
+          <div id="setup-slabs">
+            {% if setup_slabs %}
+              {% for slab in setup_slabs %}
+                <div class="mb-2 row slab-row">
+                  <div class="col">
+                    <p class="form-control-plaintext">Deal Type: {{ slab.deal_type_setup|default:"N/A" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Min Amount: ₹{{ slab.min_amount|default:"0" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Max Amount: ₹{{ slab.max_amount|default:"0" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Incentive: {{ slab.incentive_percentage|default:"0" }}%</p>
+                  </div>
+                </div>
+              {% empty %}
+                <p class="text-muted">No setup charge slabs defined.</p>
+              {% endfor %}
+            {% else %}
+              <p class="text-muted">No setup charge slabs defined.</p>
+            {% endif %}
+          </div>
+        </fieldset>
+
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">New Market Penetration</legend>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label"> Minimum Eligibility of new market Penetration of months</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ incentive.new_market_eligibility_months|default:"N/A" }}</p>
+            </div>
+          </div>
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Per Deal Incentive (₹)</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">₹{{ incentive.new_market_deal_incentive|default:"N/A" }}</p>              
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Topper of the Month</legend>
+          <div id="topper-month-slabs">
+            {% if topper_slabs %}
+              {% for slab in topper_slabs %}
+                <div class="row mb-2 slab-row">
+                  <div class="col">
+                    <p class="form-control-plaintext">Deal Type: {{ slab.deal_type_top|default:"N/A" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Segment:
+                      {% for segment in segments %}
+                        {% if segment.id == slab.segment_id %}{{ segment.name }}{% endif %}
+                      {% endfor %}
+                      {% if not slab.segment_id %}N/A{% endif %}
+                    </p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Min Subscription: ₹{{ slab.min_subscription|default:"0" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Incentive: {{ slab.incentive_percentage|default:"0" }}%</p>
+                  </div>
+                </div>
+              {% empty %}
+                <p class="text-muted">No topper of the month slabs defined.</p>
+              {% endfor %}
+            {% else %}
+              <p class="text-muted">No topper of the month slabs defined.</p>
+            {% endif %}
+          </div>
+        </fieldset>
+
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Single High Value Deals</legend>
+          <div id="high-value-slabs">
+            {% if highvalue_slabs %}
+              {% for slab in highvalue_slabs %}
+                <div class="row mb-2 slab-row">
+                  <div class="col">
+                    <p class="form-control-plaintext">Deal Type: {{ slab.deal_type_high|default:"N/A" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Min Value: ₹{{ slab.min_amount|default:"0" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Max Value: ₹{{ slab.max_amount|default:"0" }}</p>
+                  </div>
+                  <div class="col">
+                    <p class="form-control-plaintext">Incentive: {{ slab.incentive_percentage|default:"0" }}%</p>
+                  </div>
+                </div>
+              {% empty %}
+                <p class="text-muted">No high value deal slabs defined.</p>
+              {% endfor %}
+            {% else %}
+              <p class="text-muted">No high value deal slabs defined.</p>
+            {% endif %}
+          </div>
+        </fieldset>
+
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules</legend>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.deal_owner|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Lead Source %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.lead_source|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Follow Up %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.follow_up|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 1 %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.demo_1|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 2 %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.demo_2|default:"N/A" }}%</p></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border p-3 rounded mb-4">
+          <legend class="w-auto px-2 text-primary">Annual Target Achievement</legend>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="minimum_benchmark" {% if incentive.enable_minimum_benchmark %}checked{% endif %} disabled>
+            <label class="form-check-label" for="minimum_benchmark">
+              Minimum benchmark for annual incentive is 75% target achievement
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="enable_75_90_achievement" {% if incentive.enable_75_90_achievement %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_75_90_achievement">
+              Enable incentive for 75%–89.99% achievement (1 month Gross Salary)
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="enable_90_95_achievement" {% if incentive.enable_90_95_achievement %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_90_95_achievement">
+              Enable incentive for 90%–94.99% achievement (125% of 1 month Gross Salary)
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="enable_95_100_achievement" {% if incentive.enable_95_100_achievement %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_95_100_achievement">
+              Enable incentive for 95%–99.99% achievement (150% of 1 month Gross Salary)
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enable_above_100_achievement" {% if incentive.enable_above_100_achievement %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_above_100_achievement">
+              Enable incentive for 100% and above achievement (200% or 2 months Gross Salary)
+            </label>
+          </div>
+        </fieldset>
+
+
+        <fieldset class="border p-3 rounded mb-4">
+          <legend class="w-auto px-2 text-primary">Subscription Incentive (on Collection)</legend>
+
+          <p class="text-muted mb-3">
+            Incentive depends on annual target achievement.
+          </p>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">Minimum Subscription of Months</label>
+            <div class="col-sm-8">
+              <p class="form-control-plaintext">{{ incentive.min_subscription_month|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">100% & above Target Achievement %</label>
+            <div class="col-sm-8"><p class="form-control-plaintext">{{ incentive.subscription_100_per_target|default:"N/A" }}%</p></div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">75%–99.9% Target Achievement %</label>
+            <div class="col-sm-8"><p class="form-control-plaintext">{{ incentive.subscription_75_per_target|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">50%–74.9% Target Achievement %</label>
+            <div class="col-sm-8"><p class="form-control-plaintext">{{ incentive.subscription_50_per_target|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-4 col-form-label">Below 50% Target Achievement %</label>
+            <div class="col-sm-8"><p class="form-control-plaintext">{{ incentive.subscription_below_50_per|default:"N/A" }}%</p></div>
+          </div>
+        </fieldset>
+
+
+        <fieldset class="border p-3 rounded mb-4">
+          <legend class="w-auto px-2 text-primary">Best Performer of the Year</legend>
+
+          <p class="text-muted mb-3">
+            Employees who achieve 100% and above are recognized as stars and may receive surprise gifts. Top 2 among them will be awarded additional surprises.
+          </p>
+
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="enable_topper_1" {% if incentive.enable_topper_1 %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_topper_1">
+              Surprise Gift for Top Performer 1
+            </label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enable_topper_2" {% if incentive.enable_topper_2 %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_topper_2">
+              Surprise Gift for Top Performer 2
+            </label>
+          </div>
+        </fieldset>
+
+
+
+        <fieldset class="border p-3 rounded mb-4">
+          <legend class="w-auto px-2 text-primary">Best Team Leader of the Year</legend>
+
+          <p class="text-muted mb-3">
+            Recognizing the Best Manager and Team Leader with surprise gifts and awards.
+          </p>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enable_leader_1" {% if incentive.enable_leader_1 %}checked{% endif %} disabled>
+            <label class="form-check-label" for="enable_leader_1">
+              Award for Best Team Leader (Surprise Gift)
+            </label>
+          </div>
+        </fieldset>
+
+
+        <div class="row">
+          <div class="col-sm-9 offset-sm-3">
+            <a href="{% url 'incentive_setup_list' %}" class="btn btn-primary">Back to List</a>
+          </div>
+        </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

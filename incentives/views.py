@@ -604,6 +604,18 @@ def deal_create(request):
         'users': users,
     })
 
+def deal_view(request, pk):
+    deal = get_object_or_404(Deal, pk=pk)
+
+    # Fetch users who are either salesperson or saleshead (if needed for display)
+    users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
+
+    return render(request, 'owner/deal/deal_view.html', {
+        'deal': deal,
+        'users': users,
+        'title': 'View Deal',
+    })
+    
 def deal_update(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
 
@@ -1111,7 +1123,28 @@ def incentive_setup_delete(request, pk):
     # Confirmation page to delete
     return render(request, 'owner/incentive_setup/incentive_setup_confirm_delete.html', {'incentive': incentive})
 
+def incentive_setup_view(request, pk):
+    incentive = get_object_or_404(IncentiveSetup, pk=pk)
 
+    current_year = datetime.now().year
+    financial_years = [f"{year}" for year in range(current_year - 1, current_year + 4)]
+    segments = Segment.objects.all()
+    months = list(range(1, 13))
+
+    setup_slabs = SetupChargeSlab.objects.filter(incentive_setup=incentive)
+    topper_slabs = TopperMonthSlab.objects.filter(incentive_setup=incentive)
+    highvalue_slabs = HighValueDealSlab.objects.filter(incentive_setup=incentive)
+
+    return render(request, 'owner/incentive_setup/incentive_setup_view.html', {
+        'incentive': incentive,
+        'setup_slabs': setup_slabs,
+        'topper_slabs': topper_slabs,
+        'highvalue_slabs': highvalue_slabs,
+        'segments': segments,
+        'financial_years': financial_years,
+        'months': months,
+        'title': 'View Incentive Setup',
+    })
 
 def incentive_setup_update(request, pk):
     incentive = get_object_or_404(IncentiveSetup, pk=pk)

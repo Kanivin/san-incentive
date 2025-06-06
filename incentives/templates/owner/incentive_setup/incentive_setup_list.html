@@ -59,8 +59,9 @@
           <td>{{ incentive.financial_year }}</td>
          
           <td>
-      
-
+            {% if request.permissions|has_any_permission:"IncentiveSetup, view" %}
+            <a class="btn btn-info btn-sm me-1" href="{% url 'incentive_setup_view' incentive.pk %}">View</a>
+            {% endif %}
 {% if request.permissions|has_any_permission:"IncentiveSetup, edit" %}
             <a class="btn btn-primary btn-sm me-1" href="{% url 'incentive_setup_update' incentive.pk %}">Edit</a>
               {% endif %}

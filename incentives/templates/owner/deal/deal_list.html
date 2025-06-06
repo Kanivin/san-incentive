@@ -63,7 +63,10 @@
         <td>{{ deal.status }}</td>
         <td>
        
-
+{% if request.permissions|has_any_permission:"Deals, view" %}
+          <a class="btn btn-info btn-sm me-1" href="{% url 'deal_view' deal.pk %}">View</a>
+         
+  {% endif %}
 {% if request.permissions|has_any_permission:"Deals, edit" %}
           <a class="btn btn-primary btn-sm me-1" href="{% url 'deal_update' deal.pk %}">Edit</a>
          

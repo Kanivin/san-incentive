@@ -1,0 +1,194 @@
+{% extends 'layouts/layout.html' %}
+{% load static %}
+ {% load permissions_tags %}
+{% load form_filters %}
+
+{% block content %}
+<div class="card mb-4 shadow-sm">
+  <div class="card-body py-2 px-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'dashboard_router' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-house-door-fill me-1"></i> Home
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'deal_list' %}" class="text-decoration-none text-primary">
+            <i class="bi bi-journal-check  me-1"></i> Deal
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-journal-check me-1"></i> {{ title }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="col-lg-12">
+  <div class="card">
+    <div class="px-4 py-3 border-bottom">
+      <h4 class="card-title mb-0">{{ title }}</h4>
+    </div>
+    <div class="card-body">
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Client Information</legend>
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Client Name</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.clientName|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Segment</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.segment|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Lead Source</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.leadSource|default:"N/A" }}</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Information</legend>
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Deal Type</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.get_dealType_display|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Deal Won Date</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.dealWonDate|date:"Y-m-d"|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Setup Charges</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">₹{{ deal.setupCharges|default:"0.00" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Monthly Subscription</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">₹{{ deal.monthlySubscription|default:"0.00" }}</p>
+            </div>
+          </div>
+
+          {% if deal.dealType == 'international' %}
+          <div id="newMarketPenetrationFieldset">
+            <fieldset class="border p-3 mb-4">
+              <legend class="float-none w-auto px-3">New Market Penetration</legend>
+              <div class="mb-3 row align-items-center">
+                <label class="col-sm-3 col-form-label">New Market Penetration?</label>
+                <div class="col-sm-9 d-flex align-items-center">
+                  <div class="form-check me-3">
+                    <input type="radio" id="newMarketYes" class="form-check-input" value="Yes"
+                      {% if deal.newMarketPenetration == 'Yes' %}checked{% endif %} disabled>
+                    <label for="newMarketYes" class="form-check-label">Yes</label>
+                  </div>
+                  <div class="form-check">
+                    <input type="radio" id="newMarketNo" class="form-check-input" value="No"
+                      {% if deal.newMarketPenetration == 'No' %}checked{% endif %} disabled>
+                    <label for="newMarketNo" class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+
+              {% if deal.newMarketPenetration == 'Yes' %}
+              <div class="mb-3 row align-items-center">
+                <label class="col-sm-3 col-form-label">Country</label>
+                <div class="col-sm-9">
+                  <p class="form-control-plaintext">{{ deal.newMarketCountry|default:"N/A" }}</p>
+                </div>
+              </div>
+              {% endif %}
+            </fieldset>
+          </div>
+          {% endif %}
+        </fieldset>
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Sales Person Performance</legend>
+
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Deal Owner</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.dealownerSalesPerson.fullname|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Follow Up</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.followUpSalesPerson.fullname|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 1</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.demo1SalesPerson.fullname|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-4 row align-items-center">
+            <label class="form-label col-sm-3 col-form-label">Demo 2</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.demo2SalesPerson.fullname|default:"N/A" }}</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Annual Subscription Details</legend>
+            <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Subscription Start Date</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.subDate|date:"Y-m-d"|default:"N/A" }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Annual Subscription Amount</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">₹{{ deal.subAmount|default:"0.00" }}</p>
+            </div>
+          </div>
+           <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Subscription Renewal Date</label>
+            <div class="col-sm-9">
+              <p class="form-control-plaintext">{{ deal.subrenewDate|date:"Y-m-d"|default:"N/A" }}</p>
+            </div>
+          </div>
+           <div class="mb-3 row align-items-center">
+            <label class="col-sm-3 col-form-label">Upload Ref Documents</label>
+            <div class="col-sm-9">
+              {% if deal.refDocs %}
+                <p class="form-control-plaintext"><a href="{{ deal.refDocs.url }}" target="_blank">View Document</a></p>
+              {% else %}
+                <p class="form-control-plaintext">No document uploaded</p>
+              {% endif %}
+            </div>
+          </div>
+          </fieldset>
+        <div class="row">
+          <div class="col-sm-9 offset-sm-3">
+            <a href="{% url 'deal_list' %}" class="btn btn-primary">Back to List</a>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
