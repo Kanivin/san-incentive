@@ -615,7 +615,7 @@ def deal_view(request, pk):
         'users': users,
         'title': 'View Deal',
     })
-    
+
 def deal_update(request, pk):
     deal = get_object_or_404(Deal, pk=pk)
 
@@ -1115,10 +1115,22 @@ def incentive_setup_delete(request, pk):
     incentive = get_object_or_404(IncentiveSetup, pk=pk)
     
     if request.method == "POST":
+        financial_year_to_delete = incentive.financial_year
         # Delete the incentive setup
-        incentive.delete()
-        messages.success(request, "Monthly Incentive deleted successfully.")
-        return redirect('incentive_setup_list')
+        approved_deals_exist = Deal.objects.filter(
+            dealWonDate__year=financial_year_to_delete,
+            status='Approved' # <--- Adjust 'status' and 'Approved' to your Deal model's actual fields
+        ).exists()
+
+        if approved_deals_exist:
+            messages.error(request, f"Cannot delete incentive setup for {financial_year_to_delete} as approved deals exist for this financial year.")
+            request.session['show_modal'] = True
+            return redirect('incentive_setup_list')
+        else:
+            # Delete the incentive setup
+            incentive.delete()
+            messages.success(request, f"Incentive setup for {financial_year_to_delete} deleted successfully.")
+            return redirect('incentive_setup_list')
 
     # Confirmation page to delete
     return render(request, 'owner/incentive_setup/incentive_setup_confirm_delete.html', {'incentive': incentive})
@@ -1153,6 +1165,17 @@ def incentive_setup_update(request, pk):
     financial_years = [f"{year}" for year in range(current_year -1, current_year + 4)]
     segments = Segment.objects.all()
     months = list(range(1, 13))
+    
+    # --- Restriction: Prevent update if approved deals exist ---
+    approved_deals_exist = Deal.objects.filter(
+        dealWonDate__year=incentive.financial_year,
+        status='Approved'
+    ).exists()
+
+    if approved_deals_exist:
+        messages.error(request, f"Incentive setup for {incentive.financial_year} cannot be updated because approved deals already exist.")
+        request.session['show_modal'] = True  # trigger modal in template
+        return redirect('incentive_setup_list')
 
     if request.method == 'POST':
         form = IncentiveSetupForm(request.POST, instance=incentive)

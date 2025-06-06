@@ -37,3 +37,11 @@ class PermissionsMiddleware:
         else:
             request.permissions = {}
         return self.get_response(request)
+        
+def clear_modal_flag_middleware(get_response):
+    def middleware(request):
+        response = get_response(request)
+        if 'show_modal' in request.session:
+            del request.session['show_modal']
+        return response
+    return middleware
