@@ -579,6 +579,22 @@ def deal_create(request):
     # Fetch users with user_type 'salesperson' or 'saleshead'
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
 
+    user_id = request.session.get('user_id') 
+     
+    try:
+        # This line (user_profile = UserProfile.objects.get(id=user_id))
+        # and subsequent lines within the 'try' block MUST be indented.
+        user_profile = UserProfile.objects.get(id=user_id)
+        isCoordinator = user_profile.coordinator
+    except UserProfile.DoesNotExist:
+        # All lines within the 'except' block MUST be indented.
+        isCoordinator = False
+        print(f"Warning: UserProfile with ID {user_id} does not exist.")
+    except Exception as e:
+        # All lines within this 'except' block MUST be indented.
+        isCoordinator = False
+        print(f"An unexpected error occurred: {e}")    
+
     if request.method == 'POST':
         form = DealForm(request.POST)
 
@@ -600,6 +616,7 @@ def deal_create(request):
     return render(request, 'owner/deal/deal_form.html', {
         'form': form,
         'action': 'Create',
+        'isCoordinator': isCoordinator,
         'title': 'Create Deal',
         'users': users,
     })
@@ -621,6 +638,21 @@ def deal_update(request, pk):
 
     # Fetch the users that are either salesperson or saleshead
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
+    user_id = request.session.get('user_id') 
+    
+    try:
+        # This line (user_profile = UserProfile.objects.get(id=user_id))
+        # and subsequent lines within the 'try' block MUST be indented.
+        user_profile = UserProfile.objects.get(id=user_id)
+        isCoordinator = user_profile.coordinator
+    except UserProfile.DoesNotExist:
+        # All lines within the 'except' block MUST be indented.
+        isCoordinator = False
+        print(f"Warning: UserProfile with ID {user_id} does not exist.")
+    except Exception as e:
+        # All lines within this 'except' block MUST be indented.
+        isCoordinator = False
+        print(f"An unexpected error occurred: {e}") 
 
     if request.method == 'POST':
         form = DealForm(request.POST, instance=deal)
@@ -636,6 +668,7 @@ def deal_update(request, pk):
         'form': form,
         'action': 'Update',
         'title': 'Update Deal',
+        'isCoordinator': isCoordinator,
         'deal': deal,
         'users': users,  # Pass users to populate dropdowns
     })

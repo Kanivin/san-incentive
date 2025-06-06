@@ -224,7 +224,8 @@
             </div>
           </div>
         </fieldset>
- <fieldset class="border p-3 mb-4">
+        {% if isCoordinator %}     
+        <fieldset class="border p-3 mb-4">
           <legend class="float-none w-auto px-3">Annual Subscription Details
           </legend>
             <div class="mb-3 row align-items-center">
@@ -254,7 +255,8 @@
               {{ form.refDocs|add_class:"form-control" }}
             </div>
           </div>
-          </fieldset>
+          </fieldset>                
+        {% endif %}  
         <!-- Submit Buttons -->
         <div class="row">
           <div class="col-sm-3"></div>
