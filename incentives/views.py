@@ -22,7 +22,7 @@ from django.http import JsonResponse
 from .models import JobRunLog, ScheduledJob, ChangeLog
 from .tasks import monthly_sales_incentive, annual_target_achievement
 from django.db.models import Sum
-
+from django.db.models.functions import ExtractMonth
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
@@ -86,7 +86,10 @@ def sales_dashboard(request):
 
 def dashboard_router(request):    
     user_id = request.session.get('user_id')   
-    user_type = request.session.get('user_type')    
+    user_type = request.session.get('user_type')
+    current_year = datetime.now().year    
+    financial_years = [current_year - i for i in range(5)]    
+
     if user_type == 'saleshead' or user_type == 'salesperson':
 
         try:
@@ -111,7 +114,7 @@ def dashboard_router(request):
         else:
             selected_user_id = current_profile.id
 
-        current_year = datetime.now().year
+        
         selected_year = request.GET.get('financial_year')
 
         if selected_year:
@@ -121,8 +124,6 @@ def dashboard_router(request):
                 selected_year = current_year
         else:
             selected_year = current_year
-
-        financial_years = [current_year - i for i in range(5)]        
 
         payouts = PayoutTransaction.objects.filter(user=selected_user_id,payout_date__year=selected_year)
        
@@ -200,7 +201,88 @@ def dashboard_router(request):
         return render(request, 'sales/dashboard.html', context)
        
     else:
-        return render(request, 'owner/dashboard.html')
+        context = {}
+
+        selected_year = request.GET.get('financial_year')
+
+        if selected_year:
+            try:
+                selected_year = int(selected_year)
+            except ValueError:
+                selected_year = current_year
+        else:
+            selected_year = current_year
+        previous_year = selected_year - 1
+
+        context['selected_year'] = selected_year
+        context['financial_years'] = financial_years
+        # Dynamic Counts
+        context['employee_count'] = UserProfile.objects.count()
+        context['client_count'] = Deal.objects.values('clientName').distinct().count()
+        context['product_count'] = Segment.objects.values('name').distinct().count()
+
+        # Total Payout
+        context['total_payout'] = (
+            PayoutTransaction.objects.filter(payout_status='Paid')
+            .aggregate(total=Sum('payout_amount'))['total'] or Decimal(0)
+        )
+
+        # Top Performers (Highest Target Achievement %)
+        
+        top_performers = []
+
+        targets = AnnualTarget.objects.select_related('employee').filter(financial_year=str(selected_year))
+        for target in targets:
+            earned = (
+                TargetTransaction.objects.filter(
+                    user=target.employee,
+                    transaction_type='Earned',
+                    transaction_date__year=selected_year
+                )
+                .aggregate(total=Sum('amount'))['total'] or Decimal(0)
+            )
+
+            achievement = float((earned / target.annual_target_amount) * 100) if target.annual_target_amount > 0 else 0
+            top_performers.append({
+                'name': target.employee.fullname,
+                'email': target.employee.mail_id,
+                'target': target.annual_target_amount,
+                'actual': earned,
+                'priority': 'High' if achievement > 90 else 'Medium' if achievement > 75 else 'Low',
+            })
+
+        context['top_performers'] = sorted(top_performers, key=lambda x: x['actual'], reverse=True)[:5]
+
+        def get_monthly_payouts(year):
+            monthly_totals = [0] * 12
+            payouts = (
+                PayoutTransaction.objects.filter(payout_status='Paid', payout_date__year=year)
+                .annotate(month=ExtractMonth('payout_date'))
+                .values('month')
+                .annotate(total=Sum('payout_amount'))
+            )
+            for entry in payouts:
+                monthly_totals[entry['month'] - 1] = float(entry['total']) if entry['total'] else 0
+            return monthly_totals
+
+
+        context['earnings_incentives_data'] = json.dumps({
+            'current_year': selected_year,
+            'previous_year': previous_year,
+            'months': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'series': [
+                {
+                    'name': 'Current Year',
+                    'data': get_monthly_payouts(selected_year)
+                },
+                {
+                    'name': 'Previous Year',
+                    'data': get_monthly_payouts(previous_year)
+                },
+            ]
+        })
+        
+        return render(request, 'owner/dashboard.html', context)
 
 # ---------- User Management Views ----------
 def user_list(request):

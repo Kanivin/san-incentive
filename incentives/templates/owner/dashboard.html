@@ -1,353 +1,194 @@
 {% extends 'layouts/layout.html' %}
 {% load static %}
-{% load permissions_tags %}
 {% block content %}
 
+<!-- Carousel Stats -->
 <div class="owl-carousel counter-carousel owl-theme">
-    <div class="item">
-      <div class="card border-0 zoom-in bg-primary-subtle shadow-none">
-        <div class="card-body">
-          <div class="text-center">
-            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-user-male.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
-            <p class="fw-semibold fs-3 text-primary mb-1">
-              Employees
-            </p>
-            <h5 class="fw-semibold text-primary mb-0">96</h5>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="item">
-      <div class="card border-0 zoom-in bg-warning-subtle shadow-none">
-        <div class="card-body">
-          <div class="text-center">
-            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-briefcase.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
-            <p class="fw-semibold fs-3 text-warning mb-1">Clients</p>
-            <h5 class="fw-semibold text-warning mb-0">720</h5>
-          </div>
-        </div>
-      </div>
-    </div>  
-    <div class="item">
-      <div class="card border-0 zoom-in bg-success-subtle shadow-none">
-        <div class="card-body">
-          <div class="text-center">
-            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-speech-bubble.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
-            <p class="fw-semibold fs-3 text-success mb-1">Payout</p>
-            <h5 class="fw-semibold text-success mb-0">₹9600000</h5>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="item">
-      <div class="card border-0 zoom-in bg-info-subtle shadow-none">
-        <div class="card-body">
-          <div class="text-center">
-            <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-connect.svg" width="50" height="50" class="mb-3" alt="modernize-img" />
-            <p class="fw-semibold fs-3 text-info mb-1">Products </p>
-            <h5 class="fw-semibold text-info mb-0">4</h5>
-          </div>
+  <div class="item">
+    <div class="card border-0 zoom-in bg-primary-subtle shadow-none">
+      <div class="card-body">
+        <div class="text-center">
+          <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-user-male.svg" width="50" height="50" class="mb-3" />
+          <p class="fw-semibold fs-3 text-primary mb-1">Employees</p>
+          <h5 class="fw-semibold text-primary mb-0">{{ employee_count }}</h5>
         </div>
       </div>
     </div>
   </div>
-  <!--  Row 1 -->
-  <div class="row">
-    <div class="col-lg-6 d-flex align-items-stretch">
-      <div class="card w-100">
-        <div class="card-body">
-          <h4 class="card-title">Monthly Incentive Expenses vs Previous Year</h4>
-          <p class="card-subtitle mb-0">Overview of Incentive</p>
-          <div id="chart-earnings-incentives"></div>            
+
+  <div class="item">
+    <div class="card border-0 zoom-in bg-warning-subtle shadow-none">
+      <div class="card-body">
+        <div class="text-center">
+          <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-briefcase.svg" width="50" height="50" class="mb-3" />
+          <p class="fw-semibold fs-3 text-warning mb-1">Clients</p>
+          <h5 class="fw-semibold text-warning mb-0">{{ client_count }}</h5>
         </div>
       </div>
     </div>
-    <div class="col-lg-6 d-flex align-items-stretch">
-      <div class="card w-100">
-        <div class="card-body">
-          <div class="d-sm-flex d-block align-items-center justify-content-between mb-7">
-            <div class="mb-3 mb-sm-0">
-              <h4 class="card-title fw-semibold">Top Performers</h4>
-              <p class="card-subtitle">Best Employees</p>
-            </div>           
-          </div>
-          <div class="table-responsive">
-            <table class="table align-middle text-nowrap mb-0">
-              <thead>
-                <tr class="text-muted fw-semibold">
-                  <th scope="col" class="ps-0">Employees</th>
-                  <th scope="col">Target</th>
-                  <th scope="col">Actual</th>
-                  <th scope="col">Priority</th>                 
-                </tr>
-              </thead>
-              <tbody class="border-top">
-                <tr>
-                  <td class="ps-0">
-                    <div class="d-flex align-items-center">
-                     
-                      <div>
-                        <h6 class="fw-semibold mb-1">Employee 1</h6>
-                        <p class="fs-2 mb-0 text-muted">
-                            employee1@saneforce.com
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="mb-0 fs-3">₹390000</p>
-                  </td>
-                  <td>
-                    <p class="fs-3 text-dark mb-0">₹300000</p>
-                  </td>
-                  <td>
-                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-primary">Low</span>
-                  </td>
-                 
-                </tr>
-                <tr>
-                  <td class="ps-0">
-                    <div class="d-flex align-items-center">
-                      
-                      <div>
-                        <h6 class="fw-semibold mb-1">Employee 2</h6>
-                        <p class="fs-2 mb-0 text-muted">
-                            employee2@saneforce.com
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="mb-0 fs-3">₹240000</p>
-                  </td>
-                  <td>
-                    <p class="fs-3 text-dark mb-0">₹220000</p>
-                  </td>
-                  <td>
-                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-warning">Medium</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="ps-0">
-                    <div class="d-flex align-items-center">                    
-                      <div>
-                        <h6 class="fw-semibold mb-1">Employee 3</h6>
-                        <p class="fs-2 mb-0 text-muted">
-                            employee3@saneforce.com
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="mb-0 fs-3">₹120000</p>
-                  </td>
-                  <td>
-                    <p class="fs-3 text-dark mb-0">₹128000</p>
-                  </td>
-                  <td>
-                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-info">High</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="ps-0">
-                    <div class="d-flex align-items-center">
-                      <div>
-                        <h6 class="fw-semibold mb-1"Eemployee 4</h6>
-                        <p class="fs-2 mb-0 text-muted">
-                            employee4@saneforce.com
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="mb-0 fs-3">₹480000</p>
-                  </td>
-                  <td>
-                    <p class="fs-3 text-dark mb-0">₹320000</p>
-                  </td>
-                  <td>
-                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-primary">Low</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="border-0 ps-0">
-                    <div class="d-flex align-items-center">
-                     <div>
-                        <h6 class="fw-semibold mb-1">Employee 5</h6>
-                        <p class="fs-2 mb-0 text-muted">
-                            employee5@saneforce.com
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="mb-0 fs-3">₹920000</p>
-                  </td>
-                  <td>
-                    <p class="fs-3 text-dark mb-0">₹980000</p>
-                  </td>
-                  <td>
-                    <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-info">High</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>          
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6 d-flex align-items-stretch">     
-      <!-- Products Wise Sales -->
-      <div class="card w-100">
-        <div class="card-body">
-          <h4 class="card-title">Products Wise Sales</h4>
-          <div id="chart-pie-product"></div>
-        </div>      
-      </div>
-    </div> 
-      <!-- Products Sales -->
-    <div class="col-lg-6 d-flex align-items-stretch">    
-      <div class="card w-100">
-        <div class="card-body">
-          <h4 class="card-title">Monthly Sales by Product</h4>
-          <div id="chart-line-product"></div>
-        </div>      
-      </div>
-    </div>  
   </div>
- 
-  {% block extra_js %}
+
+  <div class="item">
+    <div class="card border-0 zoom-in bg-success-subtle shadow-none">
+      <div class="card-body">
+        <div class="text-center">
+          <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-speech-bubble.svg" width="50" height="50" class="mb-3" />
+          <p class="fw-semibold fs-3 text-success mb-1">Payout</p>
+          <h5 class="fw-semibold text-success mb-0">₹{{ total_payout|floatformat:0 }}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="item">
+    <div class="card border-0 zoom-in bg-info-subtle shadow-none">
+      <div class="card-body">
+        <div class="text-center">
+          <img src="https://bootstrapdemos.adminmart.com/modernize/dist/assets/images/svgs/icon-connect.svg" width="50" height="50" class="mb-3" />
+          <p class="fw-semibold fs-3 text-info mb-1">Products</p>
+          <h5 class="fw-semibold text-info mb-0">{{ product_count }}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Row 1 Charts and Tables -->
+<div class="row mt-4">
+
+  <form method="get" class="mb-3">
+    <div class="d-flex align-items-center">
+      <label for="fy" class="me-2"><strong>Financial Year:</strong></label>
+      <select name="financial_year" id="financial_year" onchange="this.form.submit()" class="form-select w-auto">
+        {% for fy in financial_years %}
+          <option value="{{ fy }}" {% if fy == selected_year %}selected{% endif %}>{{ fy }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <!-- Monthly Incentive Chart -->
+  <div class="col-lg-6">
+    <div class="card w-100">
+      <div class="card-body">
+        <h4 class="card-title">Monthly Incentive Expenses vs Previous Year</h4>
+        <p class="card-subtitle mb-0">Overview of Incentive</p>        
+        <div id="chart-earnings-incentives" data-earnings='{{ earnings_incentives_data|safe }}'></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Performers Table -->
+  <div class="col-lg-6">
+    <div class="card w-100">
+      <div class="card-body">
+        <h4 class="card-title fw-semibold">Top Performers</h4>
+        <p class="card-subtitle">Best Employees</p>
+        <div class="table-responsive">
+          <table class="table align-middle text-nowrap mb-0">
+            <thead>
+              <tr class="text-muted fw-semibold">
+                <th scope="col">Employees</th>
+                <th scope="col">Target</th>
+                <th scope="col">Actual</th>
+                <th scope="col">Priority</th>
+              </tr>
+            </thead>
+            <tbody class="border-top">
+              {% for performer in top_performers %}
+              <tr>
+                <td>
+                  <div>
+                    <h6 class="fw-semibold mb-1">{{ performer.name }}</h6>
+                    <p class="fs-2 mb-0 text-muted">{{ performer.email }}</p>
+                  </div>
+                </td>
+                <td><p class="mb-0 fs-3">₹{{ performer.target|floatformat:0 }}</p></td>
+                <td><p class="fs-3 text-dark mb-0">₹{{ performer.actual|floatformat:0 }}</p></td>
+                <td>
+                  <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-{{ performer.priority|lower }}">{{ performer.priority }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Pie Chart -->
+ <!-- <div class="col-lg-6 mt-4">
+    <div class="card w-100">
+      <div class="card-body">
+        <h4 class="card-title">Product Wise Sales</h4>
+        <div id="chart-pie-product"></div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Product Line Chart -->
+  <!-- <div class="col-lg-6 mt-4">
+    <div class="card w-100">
+      <div class="card-body">
+        <h4 class="card-title">Monthly Sales by Product</h4>
+        <div id="chart-line-product"></div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
- const options = {
-  series: [
-    {
-      name: 'Current Year',
-      data: [8000, 9000, 8500, 8700, 9200, 9500, 9600, 10000, 9800, 10200, 10500, 11000]
-    },
-    {
-      name: 'Previous Year',
-      data: [7000, 8000, 7500, 7700, 8000, 8200, 8500, 8800, 8600, 9000, 9200, 9500]
-    }
-  ],
-  chart: {
-    type: 'bar',
-    height: 400
-  },
-  plotOptions: {
-    bar: {
-      horizontal: false,
-      columnWidth: '50%',
-      endingShape: 'rounded'
-    },
-  },
-  dataLabels: {
-    enabled: false
-  },
-  stroke: {
-    show: true,
-    width: 2,
-    colors: ['transparent']
-  },
-  xaxis: {
-    categories: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
-  },
-  yaxis: {
-    title: {
-      text: 'Amount (INR)'
-    }
-  },
-  fill: {
-    opacity: 1
-  },
-  tooltip: {
-    y: {
-      formatter: function (val) {
-        return "₹" + val.toLocaleString();
-      }
-    }
-  }
-};
+// Static chart data – you can also use AJAX with Django JsonResponse for live data
+document.addEventListener("DOMContentLoaded", function () {
 
-const pieOptions = {
-chart: {
-  type: 'pie',
-  height: 350
-},
-series: [235680, 58568, 56568, 14600],
-labels: ['SAN SFA', '2Grow HR', 'Sales Jump', 'Twozo CRM'],
-responsive: [{
-  breakpoint: 480,
-  options: {
-    chart: {
-      width: 300
-    },
-    legend: {
-      position: 'bottom'
-    }
-  }
-}],
-tooltip: {
-  y: {
-    formatter: function (val) {
-      return "₹" + val.toLocaleString();
-    }
-  }
-}
-};
+  const earnings = JSON.parse(document.getElementById('chart-earnings-incentives').dataset.earnings);
 
-
-var lineOptions = {
-      chart: {
-        type: 'line',
-        height: 350
-      },
-      series: [
-        {
-          name: 'SAN SFA',
-          data: [10, 20, 15, 30, 40, 35, 50, 55, 60, 65, 70, 75]
-        },
-        {
-          name: '2GrowHR',
-          data: [5, 15, 10, 25, 30, 28, 45, 50, 55, 60, 62, 68]
-        },
-        {
-          name: 'Sales Jump',
-          data: [8, 18, 13, 22, 38, 32, 48, 53, 59, 63, 67, 72]
-        },
-        {
-          name: 'TwozoCRM',
-          data: [1, 2, 3, 1, 4, 5, 8, 16, 22, 32, 46, 58]
+  const earningsOptions = {
+      series: earnings.series,
+      chart: { type: 'bar', height: 400 },
+      plotOptions: { bar: { horizontal: false, columnWidth: '50%', endingShape: 'rounded' } },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 2, colors: ['transparent'] },
+      xaxis: { categories: earnings.months },
+      yaxis: { title: { text: 'Amount (INR)' } },
+      fill: { opacity: 1 },
+      tooltip: {
+        y: {
+          formatter: val => "₹" + val.toLocaleString()
         }
-      ],
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      },
-      stroke: {
-        curve: 'smooth'
-      },
-      markers: {
-        size: 5
-      },
-      title: {
-        text: 'Monthly Sales by Product',
-        align: 'center'
       }
     };
+  new ApexCharts(document.querySelector("#chart-earnings-incentives"), earningsOptions).render();
+  });
 
-    
-const chart = new ApexCharts(document.querySelector("#chart-earnings-incentives"), options);
-chart.render();
+const pieOptions = {
+  chart: { type: 'pie', height: 350 },
+  series: [235680, 58568, 56568, 14600],
+  labels: ['SAN SFA', '2Grow HR', 'Sales Jump', 'Twozo CRM'],
+  tooltip: { y: { formatter: val => "₹" + val.toLocaleString() } }
+};
+new ApexCharts(document.querySelector("#chart-pie-product"), pieOptions).render();
 
-const pieChart = new ApexCharts(document.querySelector("#chart-pie-product"), pieOptions);
-pieChart.render();
-
-
-var lineChart = new ApexCharts(document.querySelector("#chart-line-product"), lineOptions);
-lineChart.render();
-
+const lineOptions = {
+  chart: { type: 'line', height: 350 },
+  series: [
+    { name: 'SAN SFA', data: [10, 20, 15, 30, 40, 35, 50, 55, 60, 65, 70, 75] },
+    { name: '2GrowHR', data: [5, 15, 10, 25, 30, 28, 45, 50, 55, 60, 62, 68] },
+    { name: 'Sales Jump', data: [8, 18, 13, 22, 38, 32, 48, 53, 59, 63, 67, 72] },
+    { name: 'TwozoCRM', data: [1, 2, 3, 1, 4, 5, 8, 16, 22, 32, 46, 58] }
+  ],
+  xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+  stroke: { curve: 'smooth' },
+  markers: { size: 5 },
+  title: { text: 'Monthly Sales by Product', align: 'center' }
+};
+new ApexCharts(document.querySelector("#chart-line-product"), lineOptions).render();
 </script>
-
 {% endblock %}
 
- {% endblock %}
+{% endblock %}
