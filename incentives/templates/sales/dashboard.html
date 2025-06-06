@@ -7,6 +7,7 @@
 {% if team_members %}
 <form method="get" class="mb-4">
   <div class="row g-3 align-items-center">
+    <!-- Team Member Selection -->
     <div class="col-auto">
       <label for="team_member" class="col-form-label fw-bold">Select Self/Team Member:</label>
     </div>
@@ -20,9 +21,22 @@
         {% endfor %}
       </select>
     </div>
+
+    <!-- Financial Year Selection -->
+    <div class="col-auto">
+      <label for="financial_year" class="col-form-label fw-bold">Financial Year:</label>
+    </div>
+    <div class="col-auto">
+      <select name="financial_year" id="financial_year" class="form-select" onchange="this.form.submit()">
+        {% for year in financial_years %}
+          <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
   </div>
 </form>
 {% endif %}
+
 
 <!--  Row 1 -->
 <div class="row">
@@ -31,7 +45,7 @@
       <div class="card-body">
 
         <!-- Total Payout -->
-        <div class="d-flex flex-row mb-4">
+        <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#totalPayoutModal">
           <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-success">
             <i class="ti ti-credit-card fs-6"></i>
           </div>
@@ -43,9 +57,21 @@
             <h2 class="fs-7 mb-0">₹ {{ total_payout|floatformat:0 }}</h2>
           </div>
         </div>
-
+        <!-- Ready To Pay Payout -->
+        <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#readytopayPayoutModal">
+          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
+            <i class="ti ti-credit-card fs-6"></i>
+          </div>
+          <div class="ms-3 align-self-center">
+            <h4 class="mb-0 fs-5">Ready To Pay</h4>
+            <span>Income</span>
+          </div>
+          <div class="ms-auto align-self-center">
+            <h2 class="fs-7 mb-0">₹ {{ total_readytopay_payout|floatformat:0 }}</h2>
+          </div>
+        </div>
         <!-- Pending Payout -->
-        <div class="d-flex flex-row mb-4">
+        <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#pendingPayoutModal">
           <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
             <i class="ti ti-credit-card fs-6"></i>
           </div>
@@ -54,40 +80,47 @@
             <span>Income</span>
           </div>
           <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ pending_payout|floatformat:0 }}</h2>
+            <h2 class="fs-7 mb-0">₹ {{ total_pending_payout|floatformat:0 }}</h2>
           </div>
         </div>
 
-        <!-- Annual Target Achievement -->
-        <div class="d-flex flex-row mb-4">
-          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
-            <i class="ti ti-target fs-6"></i>
+      <!-- Annual Incentives Section -->
+      <div class="card w-100 mt-4">
+        <div class="card-body">
+          <h4 class="card-title mb-4">Annual Incentive Summary</h4>
+
+          <!-- Annual Target Achievement -->
+          <div class="d-flex flex-row mb-4">
+            <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
+              <i class="ti ti-target fs-6"></i>
+            </div>
+            <div class="ms-3 align-self-center">
+              <h4 class="mb-0 fs-5">Annual Target Achievement</h4>
+              <span class="text-muted">Calculated based on % of annual target achieved</span>
+            </div>
+            <div class="ms-auto align-self-center text-end">
+              <h2 class="fs-7 mb-0">₹ {{ annual_target_incentive|floatformat:0 }}</h2>
+              <span class="text-muted">1 Month Gross Salary</span>
+            </div>
           </div>
-          <div class="ms-3 align-self-center">
-            <h4 class="mb-0 fs-5">Annual Target Achievement</h4>
-            <span>As per current target achievement</span>
-          </div>
-          <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ annual_target_incentive|floatformat:0 }}</h2>
-            <span>1 Month Gross Salary</span>
+
+          <!-- Annual Subscription Incentive -->
+          <div class="d-flex flex-row">
+            <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-warning">
+              <i class="ti ti-currency-rupee fs-6"></i>
+            </div>
+            <div class="ms-3 align-self-center">
+              <h4 class="mb-0 fs-5">Annual Subscription Incentive</h4>
+              <span class="text-muted">6% of Total Subscription Collection</span>
+            </div>
+            <div class="ms-auto align-self-center text-end">
+              <h2 class="fs-7 mb-0">₹ {{ subscription_incentive|floatformat:0 }}</h2>
+              <span class="text-muted">Auto calculated</span>
+            </div>
           </div>
         </div>
-
-        <!-- Annual Subscription Incentive -->
-        <div class="d-flex flex-row">
-          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-warning">
-            <i class="ti ti-currency-rupee fs-6"></i>
-          </div>
-          <div class="ms-3 align-self-center">
-            <h4 class="mb-0 fs-5">Annual Subscription Incentive</h4>
-            <span>As per current target achievement</span>
-          </div>
-          <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ subscription_incentive|floatformat:0 }}</h2>
-            <span>6% of Collection Amount</span>
-          </div>
-        </div>
-
+      </div>
+      
       </div>
     </div>
   </div>
@@ -99,6 +132,51 @@
         <h4 class="card-title">Annual Target Achievement</h4>
         <p class="card-subtitle mb-0">Overview of Achievement</p>
         <div id="chart-target-achivement" data-percent="{{ target_percentage }}"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Total Payout Modal -->
+<div class="modal fade" id="totalPayoutModal" tabindex="-1" aria-labelledby="totalPayoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="totalPayoutModalLabel">Total Payout Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "sales/payout_table.html" with payouts=paid_payouts %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Payout Modal -->
+<div class="modal fade" id="readytopayPayoutModal" tabindex="-1" aria-labelledby="readytopayPayoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="readytopayPayoutModalLabel">Ready To Pay Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "sales/payout_table.html" with payouts=readytopay_payouts %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Payout Modal -->
+<div class="modal fade" id="pendingPayoutModal" tabindex="-1" aria-labelledby="pendingPayoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="pendingPayoutModalLabel">Pending Payout Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "sales/payout_table.html" with payouts=pending_payouts %}
       </div>
     </div>
   </div>

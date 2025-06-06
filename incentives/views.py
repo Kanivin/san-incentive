@@ -102,30 +102,48 @@ def dashboard_router(request):
 
         selected_user_id = request.GET.get('team_member')
         selected_user = current_profile  # default
-
+       
         if selected_user_id:
             try:
                 selected_user = UserProfile.objects.get(id=selected_user_id)
             except UserProfile.DoesNotExist:
                 selected_user = current_profile
-
-        payouts = PayoutTransaction.objects.filter(user=selected_user_id)
+        else:
+            selected_user_id = current_profile.id
 
         current_year = datetime.now().year
+        selected_year = request.GET.get('financial_year')
 
-        total_payout = payouts.filter(payout_status='Paid').aggregate(total=Sum('payout_amount'))['total'] or 0
-        pending_payout = payouts.filter(payout_status='ReadyToPay').aggregate(total=Sum('payout_amount'))['total'] or 0
+        if selected_year:
+            try:
+                selected_year = int(selected_year)
+            except ValueError:
+                selected_year = current_year
+        else:
+            selected_year = current_year
+
+        financial_years = [current_year - i for i in range(5)]        
+
+        payouts = PayoutTransaction.objects.filter(user=selected_user_id,payout_date__year=selected_year)
+       
+        paid_payouts = payouts.filter(payout_status='Paid')
+        pending_payouts = payouts.filter(payout_status='Pending')
+        readytopay_payouts = payouts.filter(payout_status='ReadyToPay')
+
+        total_payout = paid_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
+        total_pending_payout = pending_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
+        total_readytopay_payout = readytopay_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
         
         # 1. Total Earned Target Amount this year
         total_target = TargetTransaction.objects.filter(
-            user_id=user_id,
+            user_id=selected_user_id,
             transaction_type='Earned',
-            transaction_date__year=current_year
+            transaction_date__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
         # 2. Get Annual Target
         try:
-            annual_target = AnnualTarget.objects.get(employee_id=user_id, financial_year=current_year)
+            annual_target = AnnualTarget.objects.get(employee_id=selected_user_id, financial_year=selected_year)
             annual_target_amount = annual_target.annual_target_amount
             net_salary = annual_target.net_salary
         except AnnualTarget.DoesNotExist:
@@ -168,10 +186,16 @@ def dashboard_router(request):
             'team_members': team_members,
             'selected_user': selected_user,
             'total_payout': total_payout,
-            'pending_payout': pending_payout,
+            'total_pending_payout': total_pending_payout,
+            'total_readytopay_payout': total_readytopay_payout,            
             'annual_target_incentive': annual_target_incentive,
             'subscription_incentive': subscription_incentive,
             'target_percentage': round(target_percentage, 2),
+            'financial_years': financial_years,
+            'selected_year': selected_year,
+            'paid_payouts': paid_payouts,
+            'readytopay_payouts': readytopay_payouts,            
+            'pending_payouts': pending_payouts,
         }
         return render(request, 'sales/dashboard.html', context)
        

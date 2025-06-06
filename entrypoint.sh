@@ -3,6 +3,6 @@ echo "Checking SQLite DB..."
 echo "Running Django migrations..."
 python manage.py migrate
 echo "Loading initial setup data..."
-python manage.py shell < incentives/initial_setup.py
+# python manage.py shell < incentives/initial_setup.py
 echo "Starting Gunicorn..."
 exec gunicorn app.wsgi:application --bind 0.0.0.0:8000

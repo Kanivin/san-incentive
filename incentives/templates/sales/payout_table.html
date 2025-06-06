@@ -1,0 +1,28 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Date</th>
+      <th>Remarks</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for payout in payouts %}
+      <tr>
+        <td>{{ payout.deal.clientName }}</td>
+        <td>{{ payout.incentive_person_type }}</td>
+        <td>₹ {{ payout.payout_amount|floatformat:2 }}</td>
+        <td>{{ payout.payout_status }}</td>
+        <td>{{ payout.payout_date }}</td>
+        <td>{{ payout.payout_message }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="6" class="text-center">No records found.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
