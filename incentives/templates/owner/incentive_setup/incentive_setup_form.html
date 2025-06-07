@@ -86,7 +86,7 @@
                   </div>
                   <div class="col">
                     <input type="number" name="setup_incentive_percentage[]" class="form-control" placeholder="% Incentive" value="{{ slab.incentive_percentage }}">
-                  </div>
+                  </div>             
                 </div>
               {% endfor %}
             {% else %}
@@ -106,6 +106,9 @@
                 </div>
                 <div class="col">
                   <input type="number" name="setup_incentive_percentage[]" class="form-control" placeholder="% Incentive">
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
                 </div>
               </div>
             {% endif %}
@@ -162,7 +165,7 @@
                   </div>
                   <div class="col">
                     <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive" value="{{ slab.incentive_percentage }}">
-                  </div>
+                  </div>                 
                 </div>
               {% endfor %}
             {% else %}
@@ -188,6 +191,9 @@
                 </div>
                 <div class="col">
                   <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
                 </div>
               </div>
             {% endif %}
@@ -220,7 +226,7 @@
                   </div>
                   <div class="col">
                     <input type="number" name="high_value_incentive_percentage[]" class="form-control" placeholder="% Incentive" value="{{ slab.incentive_percentage }}">
-                  </div>
+                  </div>                 
                 </div>
               {% endfor %}
             {% else %}
@@ -240,6 +246,9 @@
                 </div>
                 <div class="col">
                   <input type="number" name="high_value_incentive_percentage[]" class="form-control" placeholder="% Incentive">
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
                 </div>
               </div>
             {% endif %}
@@ -437,6 +446,9 @@
 <div class="col">
   <input type="number" name="setup_incentive_percentage[]" class="form-control" placeholder="% Incentive">
 </div>
+<div class="col-auto">
+  <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+</div>
     `;
     container.appendChild(row);
   }
@@ -467,6 +479,9 @@
       <div class="col">
         <input type="number" name="incentive_percentage[]" class="form-control" placeholder="% Incentive">
       </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+      </div>
     `;
     container.appendChild(row);
   }
@@ -492,6 +507,9 @@
 <div class="col">
   <input type="number" name="high_value_incentive_percentage[]" class="form-control" placeholder="% Incentive">
 </div>
+<div class="col-auto">
+  <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+</div>
     `;
     container.appendChild(row);
   }
@@ -508,6 +526,13 @@
         allowClear: true
       });
     });
+
+  function removeRow(button) {
+    const row = button.closest('.slab-row');
+    if (row) {
+      row.remove();
+    }
+  }
   </script>
 {% endblock %}
 {% endblock %}
