@@ -148,6 +148,7 @@ class AnnualTarget(AuditMixin):
     financial_year = models.CharField(max_length=10)
     net_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     annual_target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(max_length=255, default="Not Completed")
 
     def __str__(self):
         return f"{self.employee.fullname} - {self.financial_year}"

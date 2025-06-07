@@ -49,6 +49,7 @@
         <th>Financial Year</th>
         <th>Annual Target Amount</th>
         <th>Net Salary</th>
+        <th>Status</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -60,6 +61,7 @@
         <td>{{ target.financial_year }}</td>
         <td>₹{{ target.annual_target_amount }}</td>
         <td>₹{{ target.net_salary }}</td>
+        <td>₹{{ target.status }}</td>
         <td>
           {% load permissions_tags %}
           {% if request.permissions|has_any_permission:"Annual Targets, edit" %}
