@@ -1,10 +1,12 @@
 from celery import shared_task
 from django.utils import timezone
-from .models import JobRunLog, ScheduledJob, PayoutTransaction, TargetTransaction, IncentiveSetup , Deal
+from .models import JobRunLog, ScheduledJob, PayoutTransaction, AnnualTarget, TargetTransaction, IncentiveSetup , Deal, UserProfile
 import time
 from decimal import Decimal
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+from django.db.models import Sum
+from django.db.models import Q
 
 
 @shared_task(bind=True)
@@ -132,12 +134,109 @@ def monthly_sales_incentive(self):
 def annual_target_achievement(self):
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Annual Target Achievement", status="Running")
+    all_success = True  # ← Track global success
+    output_lines = []   # ← Collect log output
 
     try:
-        time.sleep(5)  # Simulate processing
-        output = "[INFO] Annual target processing complete"
-        log.status = "success"
-        log.output = output
+        current_year = timezone.now().year
+        setup = IncentiveSetup.objects.filter(financial_year=str(current_year)).order_by('-created_at').first()
+
+         # process_subscription_incentive
+        users = UserProfile.objects.filter(Q(user_type__name='saleshead') | Q(user_type__name='salesperson'))
+
+        for user in users:           
+
+            if not user or not setup:
+                continue
+            try:
+                # 1. Total Earned Target Amount this year
+                total_target = TargetTransaction.objects.filter(
+                    user_id=user.id,
+                    transaction_type='Earned',
+                    transaction_date__year=current_year
+                ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+
+                # 2. Get Annual Target
+                try:
+                    annual_target = AnnualTarget.objects.get(employee_id=user.id, financial_year=current_year)
+                    annual_target_amount = annual_target.annual_target_amount
+                    net_salary = annual_target.net_salary
+                except AnnualTarget.DoesNotExist:
+                    annual_target_amount = Decimal(0)
+                    net_salary = Decimal(0)
+
+                # 3. Compute Target % Achievement
+                if annual_target_amount > 0:
+                    target_percentage = (total_target / annual_target_amount) * 100
+                else:
+                    target_percentage = Decimal(0)
+
+                # 4. Annual Incentive Calculation (based on slabs)
+                annual_target_incentive = Decimal(0)
+                if target_percentage >= 100:
+                    annual_target_incentive = net_salary * Decimal('2.0')  # 200%
+                elif target_percentage >= 95:
+                    annual_target_incentive = net_salary * Decimal('1.5')  # 150%
+                elif target_percentage >= 90:
+                    annual_target_incentive = net_salary * Decimal('1.25')  # 125%
+                elif target_percentage >= 75:
+                    annual_target_incentive = net_salary * Decimal('1.0')  # 100%
+                else:
+                    annual_target_incentive = Decimal(0)  # Below 75% gets no incentive
+
+                try:
+                    PayoutTransaction.objects.create(                        
+                        user=user,
+                        incentive_person_type='Annual Target Incentive',
+                        payout_amount=annual_target_incentive,
+                        payout_status='ReadyToPay',
+                        payment_method='Bank Transfer',
+                        created_by='system-yjob',
+                    )
+                except Exception as e:
+                    all_success = False
+                    output_lines.append(f"[Error] {user.id} → Failed to create Annual Target Incentive: {e}")  
+                    print(f"[Error] {user.id} → Failed to create Annual Target Incentive: {e}")    
+
+                # 5. Subscription Incentive %
+                if target_percentage >= 100:
+                    subscription_incentive_percent = setup.subscription_100_per_target or Decimal('0.00')
+                elif target_percentage >= 75:
+                    subscription_incentive_percent = setup.subscription_75_per_target or Decimal('0.00')
+                elif target_percentage >= 50:
+                    subscription_incentive_percent = setup.subscription_50_per_target or Decimal('0.00')
+                else:
+                    subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
+
+                # 6. Subscription Incentive = % of target achieved amount
+                subscription_incentive = total_target * (subscription_incentive_percent / 100)
+
+                try:
+                    PayoutTransaction.objects.create(                        
+                        user=user,
+                        incentive_person_type='Annual subscription Incentive',
+                        payout_amount=subscription_incentive,
+                        payout_status='ReadyToPay',
+                        payment_method='Bank Transfer',
+                        created_by='system-yjob',
+                    )
+                except Exception as e:
+                    all_success = False
+                    output_lines.append(f"[Error] {user.id} → Failed to create Annual subscription Incentive: {e}")  
+                    print(f"[Error] {user.id} → Failed to create Annual subscription Incentive: {e}")            
+              
+            except Exception as e:
+                all_success = False
+                output_lines.append(f"[ERROR] Subscription handling failed for user {user.id}: {e}")                
+
+        if all_success:
+            output_lines.append("[INFO] Calculated monthly incentive")
+            log.status = "success"
+        else:
+            log.status = "failed"
+            output_lines.append("[ERROR] Some payouts or deals failed. Check logs.")
+
+        log.output = "\n".join(output_lines)
 
         try:
             job = ScheduledJob.objects.get(name="Annual Target Achievement")

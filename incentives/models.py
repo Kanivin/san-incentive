@@ -317,7 +317,9 @@ class PayoutTransaction(AuditMixin):
     incentive_transaction = models.ForeignKey(
         'Transaction', 
         on_delete=models.CASCADE,
-        related_name='payouts'
+        related_name='payouts',
+        null=True,
+        blank=True
     )
     user = models.ForeignKey(UserProfile, related_name='payout_trans', on_delete=models.CASCADE, null=True, blank=True)
     

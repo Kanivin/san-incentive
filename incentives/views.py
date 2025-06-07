@@ -171,14 +171,16 @@ def dashboard_router(request):
             annual_target_incentive = Decimal(0)  # Below 75% gets no incentive
 
         # 5. Subscription Incentive %
+        setup = IncentiveSetup.objects.filter(financial_year=str(selected_year)).order_by('-created_at').first()
+
         if target_percentage >= 100:
-            subscription_incentive_percent = Decimal('8.00')
+            subscription_incentive_percent = setup.subscription_100_per_target or Decimal('0.00')
         elif target_percentage >= 75:
-            subscription_incentive_percent = Decimal('6.00')
+            subscription_incentive_percent = setup.subscription_75_per_target or Decimal('0.00')
         elif target_percentage >= 50:
-            subscription_incentive_percent = Decimal('4.00')
+            subscription_incentive_percent = setup.subscription_50_per_target or Decimal('0.00')
         else:
-            subscription_incentive_percent = Decimal('0.00')
+            subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
 
         # 6. Subscription Incentive = % of target achieved amount
         subscription_incentive = total_target * (subscription_incentive_percent / 100)

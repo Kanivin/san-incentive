@@ -26,7 +26,15 @@ SECRET_KEY = 'django-insecure-(si(3u!gm7wie8e_oarnyn7g$g2!d0tq97=4@x+y&c2)%l3gto
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost","incentive.kanivin.com","san-incentive-719751516787.asia-southeast1.run.app"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://incentive.kanivin.com",
+    "http://localhost",
+]
+
 
 
 # Application definition
@@ -41,6 +49,7 @@ INSTALLED_APPS = [
     'incentives',
     'widget_tweaks',
     'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'incentives.middleware.ThreadLocalMiddleware',
     'incentives.middleware.PermissionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -83,7 +93,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': '/app/db.sqlite3',
     }
 }
 
@@ -125,9 +135,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Adjust to your actual static directory
-    "F:/KANIVIN/san-incentive/app/incentives/static",
+    BASE_DIR / "static",  # Adjust to your actual static directory    
 ]
+
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
@@ -139,3 +152,4 @@ LOGIN_URL = '/login/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CELERY_TASK_ALWAYS_EAGER = True

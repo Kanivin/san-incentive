@@ -9,6 +9,8 @@
    ```bash
    pip install -r requirements.txt
    ```
+python manage.py makemigrations incentives
+python manage.py migrate
 
 4. **Run the server**:
    ```bash
