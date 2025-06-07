@@ -32,7 +32,7 @@
       <h4 class="card-title mb-0">{{ title }}</h4>
     </div>
     <div class="card-body">
-      <form method="post" novalidate>
+      <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
         <!-- Client Information -->
@@ -253,6 +253,9 @@
             <label class="col-sm-3 col-form-label">Upload Ref Documents</label>
             <div class="col-sm-9">
               {{ form.refDocs|add_class:"form-control" }}
+              {% if form.refDocs.errors %}
+                <div class="text-danger small">{{ form.refDocs.errors }}</div>
+              {% endif %}
             </div>
           </div>
           </fieldset>                

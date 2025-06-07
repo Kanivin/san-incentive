@@ -577,6 +577,13 @@ def deal_export_pdf(request):
     pisa.CreatePDF(html, dest=response)
     return response
 
+def upload_to_gcs(uploaded_file, bucket_name, destination_blob_name):
+    from google.cloud import storage
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_file(uploaded_file, rewind=True)
+
 def deal_create(request):
     # Fetch users with user_type 'salesperson' or 'saleshead'
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
@@ -599,19 +606,24 @@ def deal_create(request):
 
     if request.method == 'POST':
         form = DealForm(request.POST)
+        import uuid, os
+        if request.FILES.get('refDocs'):
+            uploaded_file = request.FILES['refDocs']
+        if uploaded_file.size > 10 * 1024 * 1024:
+            form.add_error('refDocs', 'File too large (max 10MB)')
+        else:
+            base_name = os.path.splitext(uploaded_file.name)[0]
+            ext = os.path.splitext(uploaded_file.name)[1]
+            unique_id = uuid.uuid4().hex[:8]
+            safe_file_name = f"{base_name}_{unique_id}{ext}"
+            gcs_path = f"deals/ref_docs/{safe_file_name}"
+            upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
 
         if form.is_valid():
             deal = form.save(commit=False)
-
-            # Save the deal instance
+            deal.refDocs.name = gcs_path            
             deal.save()
-            return redirect('deal_list')  # Success: redirect to deal list
-        else:
-            # For safe debugging without JSON serialization issues
-            pprint(form.errors)
-            # You can also safely view cleaned_data as a dict:
-            # pprint({k: str(v) if isinstance(v, date) else v for k, v in form.cleaned_data.items()})
-
+            return redirect('deal_list')
     else:
         form = DealForm()
 
@@ -658,8 +670,24 @@ def deal_update(request, pk):
 
     if request.method == 'POST':
         form = DealForm(request.POST, instance=deal)
+
+        import uuid, os
+        if request.FILES.get('refDocs'):
+            uploaded_file = request.FILES['refDocs']
+        if uploaded_file.size > 10 * 1024 * 1024:
+            form.add_error('refDocs', 'File too large (max 10MB)')
+        else:
+            base_name = os.path.splitext(uploaded_file.name)[0]
+            ext = os.path.splitext(uploaded_file.name)[1]
+            unique_id = uuid.uuid4().hex[:8]
+            safe_file_name = f"{base_name}_{unique_id}{ext}"
+            gcs_path = f"deals/ref_docs/{safe_file_name}"
+            upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
+
         if form.is_valid():
-            form.save()
+            deal = form.save(commit=False)
+            deal.refDocs.name = gcs_path            
+            deal.save()
             return redirect('deal_list')
         else:
             print(form.errors)  # Optional: Debugging form errors

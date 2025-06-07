@@ -5,6 +5,8 @@ from .views import CustomLogoutView
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # Login and Logout paths
@@ -89,4 +91,6 @@ urlpatterns = [
     path('changelog/', views.changelog, name='changelog'),
     path('payout/mark-paid/<int:payout_id>/', views.mark_payout_paid, name='mark_payout_paid'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

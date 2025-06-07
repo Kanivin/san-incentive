@@ -117,6 +117,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+MEDIA_ROOT = '/home/san-incentive'
+MEDIA_URL = '/media/'
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
