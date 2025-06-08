@@ -34,7 +34,7 @@
                 <th>Job Name</th>
                 <th>Schedule</th>
                 <th>Last Run</th>
-                <th>Next Run</th>
+                <!-- <th>Next Run</th> -->
                 <th>Action</th>
               </tr>
             </thead>
@@ -44,7 +44,7 @@
     <td>{{ job.name }}</td>
     <td>{{ job.schedule }}</td>
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
-    <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
+    <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td> -->
     <td>
       <a href="{% url 'run_now' 'monthly' %}" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-play-fill"></i> Run Now
@@ -71,7 +71,7 @@
                 <th>Job Name</th>
                 <th>Schedule</th>
                 <th>Last Run</th>
-                <th>Next Run</th>
+                <!-- <th>Next Run</th> -->
                 <th>Action</th>
               </tr>
             </thead>
@@ -81,7 +81,7 @@
     <td>{{ job.name }}</td>
     <td>{{ job.schedule }}</td>
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
-    <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>
+    <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>  -->
     <td>
       <a href="{% url 'run_now' 'annual' %}" class="btn btn-sm btn-outline-success">
         <i class="bi bi-play-fill"></i> Run Now

@@ -1,4 +1,3 @@
-from celery import shared_task
 from django.utils import timezone
 from django.db import transaction
 from .models import (
@@ -11,9 +10,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Q
 
-
-@shared_task(bind=True)
-def monthly_sales_incentive(self):
+def monthly_sales_incentive():
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Monthly Sales Incentive Calculation", status="Running")
     all_success = True
@@ -124,8 +121,7 @@ def monthly_sales_incentive(self):
         log.save()
 
 
-@shared_task(bind=True)
-def annual_target_achievement(self):
+def annual_target_achievement():
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Annual Target Achievement", status="Running")
     all_success = True
