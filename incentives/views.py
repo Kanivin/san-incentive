@@ -609,19 +609,21 @@ def deal_create(request):
         import uuid, os
         if request.FILES.get('refDocs'):
             uploaded_file = request.FILES['refDocs']
-        if uploaded_file.size > 10 * 1024 * 1024:
-            form.add_error('refDocs', 'File too large (max 10MB)')
-        else:
-            base_name = os.path.splitext(uploaded_file.name)[0]
-            ext = os.path.splitext(uploaded_file.name)[1]
-            unique_id = uuid.uuid4().hex[:8]
-            safe_file_name = f"{base_name}_{unique_id}{ext}"
-            gcs_path = f"deals/ref_docs/{safe_file_name}"
-            upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
+            if uploaded_file.size > 10 * 1024 * 1024:
+                form.add_error('refDocs', 'File too large (max 10MB)')
+            else:
+                base_name = os.path.splitext(uploaded_file.name)[0]
+                ext = os.path.splitext(uploaded_file.name)[1]
+                unique_id = uuid.uuid4().hex[:8]
+                safe_file_name = f"{base_name}_{unique_id}{ext}"
+                gcs_path = f"deals/ref_docs/{safe_file_name}"
+                upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
 
         if form.is_valid():
             deal = form.save(commit=False)
-            deal.refDocs.name = gcs_path            
+            if request.FILES.get('refDocs'):
+                deal.refDocs.name = gcs_path         
+            deal.created_by=request.session.get('mail_id')
             deal.save()
             return redirect('deal_list')
     else:
@@ -674,19 +676,21 @@ def deal_update(request, pk):
         import uuid, os
         if request.FILES.get('refDocs'):
             uploaded_file = request.FILES['refDocs']
-        if uploaded_file.size > 10 * 1024 * 1024:
-            form.add_error('refDocs', 'File too large (max 10MB)')
-        else:
-            base_name = os.path.splitext(uploaded_file.name)[0]
-            ext = os.path.splitext(uploaded_file.name)[1]
-            unique_id = uuid.uuid4().hex[:8]
-            safe_file_name = f"{base_name}_{unique_id}{ext}"
-            gcs_path = f"deals/ref_docs/{safe_file_name}"
-            upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
+            if uploaded_file.size > 10 * 1024 * 1024:
+                form.add_error('refDocs', 'File too large (max 10MB)')
+            else:
+                base_name = os.path.splitext(uploaded_file.name)[0]
+                ext = os.path.splitext(uploaded_file.name)[1]
+                unique_id = uuid.uuid4().hex[:8]
+                safe_file_name = f"{base_name}_{unique_id}{ext}"
+                gcs_path = f"deals/ref_docs/{safe_file_name}"
+                upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
 
         if form.is_valid():
             deal = form.save(commit=False)
-            deal.refDocs.name = gcs_path            
+            if request.FILES.get('refDocs'):
+                deal.refDocs.name = gcs_path
+            deal.updated_by=request.session.get('mail_id')
             deal.save()
             return redirect('deal_list')
         else:
@@ -1054,7 +1058,8 @@ def incentive_setup_create(request):
                     deal_type_setup=deal_type,  # <-- This was missing
                     min_amount=min_amt or 0,
                     max_amount=max_amt or 0,
-                    incentive_percentage=inc_perc or 0
+                    incentive_percentage=inc_perc or 0,
+                    created_by=request.session.get('mail_id')
                 )
 
             # ✅ Save TopperMonthSlabs
@@ -1071,7 +1076,8 @@ def incentive_setup_create(request):
                         deal_type_top=deal_type,
                         segment=segment_instance,
                         min_subscription=min_sub or 0,
-                        incentive_percentage=inc_perc or 0
+                        incentive_percentage=inc_perc or 0,
+                        created_by=request.session.get('mail_id')
                     )
 
             # ✅ Save HighValueDealSlabs
@@ -1086,7 +1092,8 @@ def incentive_setup_create(request):
                     deal_type_high=deal_type,
                     min_amount=min_val or 0,
                     max_amount=max_val or 0,
-                    incentive_percentage=inc_perc or 0
+                    incentive_percentage=inc_perc or 0,
+                    created_by=request.session.get('mail_id')
                 )
 
             return redirect('incentive_setup_list')
@@ -1265,6 +1272,7 @@ def incentive_setup_update(request, pk):
                     slab.min_amount = min_amounts[i]
                     slab.max_amount = max_amounts[i]
                     slab.incentive_percentage = setup_incentive_percentage[i]
+                    slab.updated_by=request.session.get('mail_id')
                     slab.save()
                 except Exception as e:
                     logger.error(f"[Setup Slab] Error at index {i}: {e}")
@@ -1304,6 +1312,7 @@ def incentive_setup_update(request, pk):
                     slab.segment = segment_instance
                     slab.min_subscription = min_subscription[i]
                     slab.incentive_percentage = incentive_percentage[i]
+                    slab.updated_by=request.session.get('mail_id')
                     slab.save()
                     print(f"Saved slab: {slab}")
                 except Exception as e:
@@ -1330,6 +1339,7 @@ def incentive_setup_update(request, pk):
                     slab.min_amount = high_value_min_amount[i]
                     slab.max_amount = high_value_max_amount[i]
                     slab.incentive_percentage = high_value_incentive_percentage[i]
+                    slab.updated_by=request.session.get('mail_id')
                     slab.save()
                 except Exception as e:
                     logger.error(f"[High Value Slab] Error at index {i}: {e}")
