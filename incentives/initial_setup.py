@@ -65,12 +65,13 @@ print(f'Superadmin profile {"created" if created else "updated"}: {superadmin_pr
 
 # Create Monthly Sales Incentive Calculation
 
+#ScheduledJob.objects.filter(name="Monthly Sales Incentive Calculation").delete()
+#ScheduledJob.objects.filter(name="Annual Target Achievement").delete()
+
 ScheduledJob.objects.get_or_create(
 name="Monthly Sales Incentive Calculation",
 job_type="monthly",
-schedule="1st of every month at 12:00 AM",
-last_run=datetime(2025, 5, 1, 0, 0),
-next_run=datetime(2025, 6, 1, 0, 0),
+schedule="Runs on last day of every month at 11:00 PM",
 button_class="btn-outline-success"
 )
 print('Create Monthly Sales Incentive Calculation')
@@ -78,10 +79,7 @@ print('Create Monthly Sales Incentive Calculation')
 ScheduledJob.objects.get_or_create(
     name="Annual Target Achievement",
     job_type="yearly",
-    schedule="January 1st at 2:00 AM",
-    last_run=datetime(2025, 1, 1, 2, 0),
-    next_run=datetime(2026, 1, 1, 2, 0),
+    schedule="Runs on December 31st at 11:30 PM",
     button_class="btn-outline-success"
 )
-
 print('Create Annual Target Achievement')
