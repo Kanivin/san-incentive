@@ -59,13 +59,22 @@ def monthly_sales_incentive():
                     sub_amount = deal.subAmount or Decimal('0.0')
                     success = True
 
-                    payout_split = {
-                        'Deal Owner': (deal.dealownerSalesPerson, setup.deal_owner),
-                        'Lead Source': (deal.leadSource, setup.lead_source),
-                        'Follow Up': (deal.followUpSalesPerson, setup.follow_up),
-                        'Demo 1': (deal.demo1SalesPerson, setup.demo_1),
-                        'Demo 2': (deal.demo2SalesPerson, setup.demo_2),
-                    }
+                    if deal.dealType == 'Domestic':
+                        payout_split = {
+                            'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
+                            'Lead Source': (deal.leadSource, setup.domestic_lead_source),
+                            'Follow Up': (deal.followUpSalesPerson, setup.domestic_follow_up),
+                            'Demo 1': (deal.demo1SalesPerson, setup.domestic_demo_1),
+                            'Demo 2': (deal.demo2SalesPerson, setup.domestic_demo_2),
+                        }
+                   else :
+                        payout_split = {
+                            'Deal Owner': (deal.dealownerSalesPerson, setup.international_deal_owner),
+                            'Lead Source': (deal.leadSource, setup.international_lead_source),
+                            'Follow Up': (deal.followUpSalesPerson, setup.international_follow_up),
+                            'Demo 1': (deal.demo1SalesPerson, setup.international_demo_1),
+                            'Demo 2': (deal.demo2SalesPerson, setup.international_demo_2),
+                        }
 
                     for label, (user, percent) in payout_split.items():
                         if user and percent:

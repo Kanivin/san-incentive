@@ -259,26 +259,49 @@
 
         <!-- Deal Bifurcation Rules -->
         <fieldset class="border p-3 mb-4">
-          <legend class="float-none w-auto px-3">Deal Bifurcation Rules</legend>
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules - Domestic</legend>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
-            <div class="col-sm-9"><input type="number" name="deal_owner" value="{{ form.deal_owner.value }}" class="form-control" placeholder="e.g., 20" /></div>
+            <div class="col-sm-9"><input type="number" name="domestic_deal_owner" value="{{ form.domestic_deal_owner.value }}" class="form-control" placeholder="e.g., 20" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Lead Source %</label>
-            <div class="col-sm-9"><input type="number" name="lead_source" value="{{ form.lead_source.value }}" class="form-control" placeholder="e.g., 20" /></div>
+            <div class="col-sm-9"><input type="number" name="domestic_lead_source" value="{{ form.domestic_lead_source.value }}" class="form-control" placeholder="e.g., 20" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Follow Up %</label>
-            <div class="col-sm-9"><input type="number" name="follow_up" value="{{ form.follow_up.value }}"class="form-control" placeholder="e.g., 40" /></div>
+            <div class="col-sm-9"><input type="number" name="domestic_follow_up" value="{{ form.domestic_follow_up.value }}"class="form-control" placeholder="e.g., 40" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Demo 1 %</label>
-            <div class="col-sm-9"><input type="number" name="demo_1" value="{{ form.demo_1.value }}" class="form-control" placeholder="e.g., 15" /></div>
+            <div class="col-sm-9"><input type="number" name="domestic_demo_1" value="{{ form.domestic_demo_1.value }}" class="form-control" placeholder="e.g., 15" /></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Demo 2 %</label>
-            <div class="col-sm-9"><input type="number" name="demo_2" value="{{ form.demo_2.value }}" class="form-control" placeholder="e.g., 25" /></div>
+            <div class="col-sm-9"><input type="number" name="domestic_demo_2" value="{{ form.domestic_demo_2.value }}" class="form-control" placeholder="e.g., 25" /></div>
+          </div>
+        </fieldset>
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules - International</legend>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
+            <div class="col-sm-9"><input type="number" name="international_deal_owner" value="{{ form.international_deal_owner.value }}" class="form-control" placeholder="e.g., 20" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Lead Source %</label>
+            <div class="col-sm-9"><input type="number" name="international_lead_source" value="{{ form.international_lead_source.value }}" class="form-control" placeholder="e.g., 20" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Follow Up %</label>
+            <div class="col-sm-9"><input type="number" name="international_follow_up" value="{{ form.international_follow_up.value }}"class="form-control" placeholder="e.g., 40" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 1 %</label>
+            <div class="col-sm-9"><input type="number" name="international_demo_1" value="{{ form.international_demo_1.value }}" class="form-control" placeholder="e.g., 15" /></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 2 %</label>
+            <div class="col-sm-9"><input type="number" name="international_demo_2" value="{{ form.international_demo_2.value }}" class="form-control" placeholder="e.g., 25" /></div>
           </div>
         </fieldset>
         <fieldset class="border p-3 rounded mb-4">

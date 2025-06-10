@@ -162,13 +162,22 @@ class DealRuleEngine:
         self.create_payouts(transaction, incentive_amount)
 
     def create_payouts(self, transaction, incentive_amount):
+        if self.deal.dealType == 'Domestic':
+            payout_split = {
+            'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
+            'Lead Source': (deal.leadSource, setup.domestic_lead_source),
+            'Follow Up': (deal.followUpSalesPerson, setup.domestic_follow_up),
+            'Demo 1': (deal.demo1SalesPerson, setup.domestic_demo_1),
+            'Demo 2': (deal.demo2SalesPerson, setup.domestic_demo_2),
+            }
+        else :
         payout_split = {
-            'dealownerSalesPerson': (transaction.incentive_component_type + ' Deal Owner', self.setup.deal_owner),
-            'leadSource': (transaction.incentive_component_type + ' Lead Source', self.setup.lead_source),
-            'followUpSalesPerson': (transaction.incentive_component_type + ' Follow Up', self.setup.follow_up),
-            'demo1SalesPerson': (transaction.incentive_component_type + ' Demo 1', self.setup.demo_1),
-            'demo2SalesPerson': (transaction.incentive_component_type + ' Demo 2', self.setup.demo_2),
-        }
+            'Deal Owner': (deal.dealownerSalesPerson, setup.international_deal_owner),
+            'Lead Source': (deal.leadSource, setup.international_lead_source),
+            'Follow Up': (deal.followUpSalesPerson, setup.international_follow_up),
+            'Demo 1': (deal.demo1SalesPerson, setup.international_demo_1),
+            'Demo 2': (deal.demo2SalesPerson, setup.international_demo_2),
+            }
 
         for field_name, (label, percent) in payout_split.items():
             if not percent:

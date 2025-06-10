@@ -163,11 +163,17 @@ class IncentiveSetup(AuditMixin):
     new_market_deal_incentive = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     # Deal Bifurcation
-    deal_owner = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    lead_source = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    follow_up = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    demo_1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    demo_2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    domestic_deal_owner = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    domestic_lead_source = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    domestic_follow_up = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    domestic_demo_1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    domestic_demo_2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    international_deal_owner = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    international_lead_source = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    international_follow_up = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    international_demo_1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    international_demo_2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Annual Target
     enable_minimum_benchmark = models.BooleanField(default=True)

@@ -154,26 +154,50 @@
 
 
         <fieldset class="border p-3 mb-4">
-          <legend class="float-none w-auto px-3">Deal Bifurcation Rules</legend>
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules - Domestic</legend>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
-            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.deal_owner|default:"N/A" }}%</p></div>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.domestic_deal_owner|default:"N/A" }}%</p></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Lead Source %</label>
-            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.lead_source|default:"N/A" }}%</p></div>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.domestic_lead_source|default:"N/A" }}%</p></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Follow Up %</label>
-            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.follow_up|default:"N/A" }}%</p></div>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.domestic_follow_up|default:"N/A" }}%</p></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Demo 1 %</label>
-            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.demo_1|default:"N/A" }}%</p></div>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.domestic_demo_1|default:"N/A" }}%</p></div>
           </div>
           <div class="row mb-3">
             <label class="col-sm-3 col-form-label">Demo 2 %</label>
-            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.demo_2|default:"N/A" }}%</p></div>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.domestic_demo_2|default:"N/A" }}%</p></div>
+          </div>
+        </fieldset>
+        
+        <fieldset class="border p-3 mb-4">
+          <legend class="float-none w-auto px-3">Deal Bifurcation Rules - International</legend>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Deal Owner (Lead) %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.international_deal_owner|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Lead Source %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.international_lead_source|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Follow Up %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.international_follow_up|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 1 %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.international_demo_1|default:"N/A" }}%</p></div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">Demo 2 %</label>
+            <div class="col-sm-9"><p class="form-control-plaintext">{{ incentive.international_demo_2|default:"N/A" }}%</p></div>
           </div>
         </fieldset>
 
