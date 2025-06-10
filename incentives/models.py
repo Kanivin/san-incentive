@@ -136,6 +136,10 @@ class Deal(AuditMixin):
     demo2SalesPerson = models.ForeignKey(UserProfile, related_name='deals_as_demo2', on_delete=models.CASCADE, null=True, blank=True)
     leadSource = models.ForeignKey(UserProfile, related_name='leadsource', on_delete=models.CASCADE, null=True, blank=True)
  
+    # NEW FIELDS to track rule execution status
+    monthly_rule_executed = models.BooleanField(default=False)  
+    yearly_rule_executed = models.BooleanField(default=False)
+ 
     status = models.CharField(max_length=255, default="Non Approve")
 
     def __str__(self):
