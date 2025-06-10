@@ -241,6 +241,7 @@ class Transaction(AuditMixin):
     ]
 
     deal_id = models.ForeignKey('Deal', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE, null=True, blank=True)
     version = models.PositiveIntegerField(default=1)
     transaction_type = models.CharField(max_length=50, choices=DEAL_TYPE_CHOICES)
     incentive_component_type = models.CharField(max_length=100, choices=TRANSACTION_COMPONENT_CHOICES)
