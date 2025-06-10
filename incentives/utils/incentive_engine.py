@@ -162,21 +162,22 @@ class DealRuleEngine:
         self.create_payouts(transaction, incentive_amount)
 
     def create_payouts(self, transaction, incentive_amount):
-        if deal.dealType == 'Domestic':
-            payout_split = {
-            'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
-            'Lead Source': (deal.leadSource, setup.domestic_lead_source),
-            'Follow Up': (deal.followUpSalesPerson, setup.domestic_follow_up),
-            'Demo 1': (deal.demo1SalesPerson, setup.domestic_demo_1),
-            'Demo 2': (deal.demo2SalesPerson, setup.domestic_demo_2), }
+        if self.deal.dealType == 'domestic':
+             payout_split = {
+            'dealownerSalesPerson': (transaction.incentive_component_type + ' Deal Owner', self.setup.domestic_deal_owner),
+            'leadSource': (transaction.incentive_component_type + ' Lead Source', self.setup.domestic_lead_source),
+            'followUpSalesPerson': (transaction.incentive_component_type + ' Follow Up', self.setup.domestic_follow_up),
+            'demo1SalesPerson': (transaction.incentive_component_type + ' Demo 1', self.setup.domestic_demo_1),
+            'demo2SalesPerson': (transaction.incentive_component_type + ' Demo 2', self.setup.domestic_demo_2),
+        }
         else:
             payout_split = {
-            'Deal Owner': (deal.dealownerSalesPerson, setup.international_deal_owner),
-            'Lead Source': (deal.leadSource, setup.international_lead_source),
-            'Follow Up': (deal.followUpSalesPerson, setup.international_follow_up),
-            'Demo 1': (deal.demo1SalesPerson, setup.international_demo_1),
-            'Demo 2': (deal.demo2SalesPerson, setup.international_demo_2), }
-
+            'dealownerSalesPerson': (transaction.incentive_component_type + ' Deal Owner', self.setup.international_deal_owner),
+            'leadSource': (transaction.incentive_component_type + ' Lead Source', self.setup.international_lead_source),
+            'followUpSalesPerson': (transaction.incentive_component_type + ' Follow Up', self.setup.international_follow_up),
+            'demo1SalesPerson': (transaction.incentive_component_type + ' Demo 1', self.setup.international_demo_1),
+            'demo2SalesPerson': (transaction.incentive_component_type + ' Demo 2', self.setup.international_demo_2),    
+            }
         for field_name, (label, percent) in payout_split.items():
             if not percent:
                 continue
@@ -221,14 +222,22 @@ class DealRuleEngine:
 
         sub_amount = self.deal.subAmount
 
-        payout_split = {
-            'dealownerSalesPerson': (self.deal.dealownerSalesPerson, 'Deal Owner', self.setup.deal_owner),
-            'leadSource': (self.deal.leadSource, 'Lead Source', self.setup.lead_source),
-            'followUpSalesPerson': (self.deal.followUpSalesPerson, 'Follow Up', self.setup.follow_up),
-            'demo1SalesPerson': (self.deal.demo1SalesPerson, 'Demo 1', self.setup.demo_1),
-            'demo2SalesPerson': (self.deal.demo2SalesPerson, 'Demo 2', self.setup.demo_2),
+        if self.deal.dealType == 'domestic':
+            payout_split = {
+            'dealownerSalesPerson': (self.deal.dealownerSalesPerson + ' Deal Owner', self.setup.domestic_deal_owner),
+            'leadSource': (self.deal.leadSource + ' Lead Source', self.setup.domestic_lead_source),
+            'followUpSalesPerson': (self.deal.followUpSalesPerson + ' Follow Up', self.setup.domestic_follow_up),
+            'demo1SalesPerson': (self.deal.demo1SalesPerson + ' Demo 1', self.setup.domestic_demo_1),
+            'demo2SalesPerson': (transaction.incentive_component_type + ' Demo 2', self.setup.domestic_demo_2),
         }
-
+        else:
+            payout_split = {
+            'dealownerSalesPerson': (self.deal.dealownerSalesPerson + ' Deal Owner', self.setup.international_deal_owner),
+            'leadSource': (self.deal.leadSource + ' Lead Source', self.setup.international_lead_source),
+            'followUpSalesPerson': (self.deal.followUpSalesPerson + ' Follow Up', self.setup.domestic_follow_up),
+            'demo1SalesPerson': (self.deal.demo1SalesPerson + ' Demo 1', self.setup.domestic_demo_1),
+            'demo2SalesPerson': (self.deal.demo2SalesPerson + ' Demo 2', self.setup.domestic_demo_2),    
+            }
         for field_name, (user, label, percent) in payout_split.items():
             if user and percent:
                 try:

@@ -58,7 +58,7 @@ def monthly_sales_incentive():
                 if deal.subDate < cutoff_date:
                     sub_amount = deal.subAmount or Decimal('0.0')
                     success = True
-                    if deal.dealType == 'Domestic':
+                    if deal.dealType == 'domestic':
                         payout_split = {
                             'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
                             'Lead Source': (deal.leadSource, setup.domestic_lead_source),
