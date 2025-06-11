@@ -9,14 +9,17 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Q
+from incentives.utils.monthly_incentive_engine import MonthlyRuleEngine
 
-def monthly_sales_incentive():
+def monthly_sales_incentive(run_month):
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Monthly Sales Incentive Calculation", status="Running")
     all_success = True
     output_lines = []
 
     try:
+        MonthlyRuleEngine(run_month).run_rules()
+
         current_year = timezone.now().year
         setup = IncentiveSetup.objects.filter(financial_year=str(current_year)).order_by('-created_at').first()
 
@@ -53,58 +56,63 @@ def monthly_sales_incentive():
                 continue
 
             try:
-                cutoff_date = timezone.now().date() - relativedelta(months=setup.min_subscription_month or 0)
-
-                if deal.subDate < cutoff_date:
-                    sub_amount = deal.subAmount or Decimal('0.0')
-                    success = True
-                    if deal.dealType == 'domestic':
-                        payout_split = {
-                            'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
-                            'Lead Source': (deal.leadSource, setup.domestic_lead_source),
-                            'Follow Up': (deal.followUpSalesPerson, setup.domestic_follow_up),
-                            'Demo 1': (deal.demo1SalesPerson, setup.domestic_demo_1),
-                            'Demo 2': (deal.demo2SalesPerson, setup.domestic_demo_2),
-                        }
-                    else:
-                        payout_split = {
-                            'Deal Owner': (deal.dealownerSalesPerson, setup.international_deal_owner),
-                            'Lead Source': (deal.leadSource, setup.international_lead_source),
-                            'Follow Up': (deal.followUpSalesPerson, setup.international_follow_up),
-                            'Demo 1': (deal.demo1SalesPerson, setup.international_demo_1),
-                            'Demo 2': (deal.demo2SalesPerson, setup.international_demo_2),
-                        }
-                    
-                    for label, (user, percent) in payout_split.items():
-                        if user and percent:
-                            try:
-                                incentive_amount = (sub_amount * percent) / Decimal('100.0')
-                                TargetTransaction.objects.create(
+                sub_amount = deal.subAmount or Decimal('0.0')
+                                 
+                success = True
+                if deal.dealType == 'domestic':
+                    payout_split = {
+                        'Deal Owner': (deal.dealownerSalesPerson, setup.domestic_deal_owner),
+                        'Lead Source': (deal.leadSource, setup.domestic_lead_source),
+                        'Follow Up': (deal.followUpSalesPerson, setup.domestic_follow_up),
+                        'Demo 1': (deal.demo1SalesPerson, setup.domestic_demo_1),
+                        'Demo 2': (deal.demo2SalesPerson, setup.domestic_demo_2),
+                    }
+                else:
+                    payout_split = {
+                        'Deal Owner': (deal.dealownerSalesPerson, setup.international_deal_owner),
+                        'Lead Source': (deal.leadSource, setup.international_lead_source),
+                        'Follow Up': (deal.followUpSalesPerson, setup.international_follow_up),
+                        'Demo 1': (deal.demo1SalesPerson, setup.international_demo_1),
+                        'Demo 2': (deal.demo2SalesPerson, setup.international_demo_2),
+                    }                
+                for label, (user, percent) in payout_split.items():
+                    if user and percent:
+                        try:
+                            incentive_amount = (sub_amount * percent) / Decimal('100.0')
+                            TargetTransaction.objects.create(
                                     deal=deal,
                                     user=user,
                                     transaction_type='Earned',
                                     incentive_component_type='subscription',
                                     amount=incentive_amount,
-                                    eligibility_status='Eligible',
+                                    eligibility_status='Ineligible',
                                     eligibility_message=f'Subscription incentive {percent:.2f}%',
                                     notes=f'{label} gets {percent:.2f}% of ₹{sub_amount}',
                                     created_by="system-mjob"
-                                )
-                            except Exception as e:
-                                success = False
-                                all_success = False
-                                output_lines.append(f"[ERROR] Subscription incentive for {label} → {e}")
-                        else:
-                            output_lines.append(f"[INFO] Skipped {label} → Missing user or percent")
+                                    )                            
+                        except Exception as e:
+                            success = False
+                            all_success = False
+                            output_lines.append(f"[ERROR] Subscription incentive for {label} → {e}")
+                    else:
+                        output_lines.append(f"[INFO] Skipped {label} → Missing user or percent")
 
-                    if success:
-                        deal.status = 'Completed'
-                        deal.save()
+                if success:
+                    deal.status = 'Completed'
+                    deal.yearly_rule_executed = True            
+                    deal.save()
 
             except Exception as e:
                 all_success = False
                 output_lines.append(f"[ERROR] Subscription handling failed for deal {deal.id}: {e}")
 
+             # After creation, if deal is eligible, update transactions to 'Eligible'
+            cutoff_date = timezone.now().date() - relativedelta(months=setup.min_subscription_month or 0) 
+            if deal.subDate < cutoff_date:
+                TargetTransaction.objects.filter(deal=deal).update(
+                eligibility_status='Eligible',
+                eligibility_message='Subscription is eligibility')
+         
         log.status = "success" if all_success else "failed"
         output_lines.append("[INFO] Monthly incentives processed" if all_success else "[ERROR] Issues occurred during monthly incentive calculation")
 

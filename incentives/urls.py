@@ -80,13 +80,16 @@ urlpatterns = [
 
     path('salesteam/', views.salesteam, name='salesteam'),
     path('payout/', views.payout, name='payout'),
-    path('transaction/', views.transaction, name='transaction'),
-    path('targettransaction/', views.targettransaction, name='targettransaction'),
+    path('transaction/', views.transaction, name='transaction'),   
     path('transaction/export/excel/', views.transaction_export_excel, name='transaction_export_excel'),
     path('transaction/export/pdf/', views.transaction_export_pdf, name='transaction_export_pdf'),
+    path('targettransaction/', views.targettransaction, name='targettransaction'),
+    path('targettransaction/export/excel/', views.targettransaction_export_excel, name='targettransaction_export_excel'),
+    path('targettransaction/export/pdf/', views.targettransaction_export_pdf, name='targettransaction_export_pdf'),
     path("backup_db/", views.backup_db_view, name="backup_db"),
 
     path('run-now/<str:job>/', views.run_now, name='run_now'),
+    path('run-now/<str:job>/<str:runmonth>', views.run_now, name='run_now'),
     path('schedulelog/', views.schedulelog, name='schedulelog'),
     path('changelog/', views.changelog, name='changelog'),
     path('payout/mark-paid/<int:payout_id>/', views.mark_payout_paid, name='mark_payout_paid'),

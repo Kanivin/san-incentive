@@ -41,14 +41,44 @@
     <table class="table table-striped table-bordered align-middle">
       <thead>
         <tr>
-          <th>User</th>
-          <th>Deal ID</th>
+          <th><a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'user__fullname' %}-user__fullname{% else %}user__fullname{% endif %}">User
+          {% if order_by == 'user__fullname' %}
+            ▲
+          {% elif order_by == '-user__fullname' %}
+            ▼
+          {% endif %}
+          </a></th>
+          
+          <th><a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'deal__clientName' %}-deal__clientName{% else %}deal__clientName{% endif %}">Deal Name
+          {% if order_by == 'deal__clientName' %}
+            ▲
+          {% elif order_by == '-deal__clientName' %}
+            ▼
+          {% endif %}  
+          </a></th>
+      
           <th>Person Type</th>
-          <th>Status</th>
-          <th>Amount</th>
+      
+          <th><a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'payout_status' %}-payout_status{% else %}payout_status{% endif %}">Status
+          {% if order_by == 'payout_status' %}
+            ▲
+          {% elif order_by == '-payout_status' %}
+            ▼
+          {% endif %}
+          </a></th>
+      
+          <th><a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'payout_amount' %}-payout_amount{% else %}payout_amount{% endif %}">Amount
+          {% if order_by == 'payout_amount' %}
+            ▲
+          {% elif order_by == '-payout_amount' %}
+            ▼
+          {% endif %}
+          </a></th>
+      
           <th>Actions</th>
         </tr>
       </thead>
+      
       <tbody>
         {% for payout in payouts %}
         <tr>

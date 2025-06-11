@@ -23,6 +23,8 @@ from .models import JobRunLog, ScheduledJob, ChangeLog
 from .tasks import monthly_sales_incentive, annual_target_achievement
 from django.db.models import Sum
 from django.db.models.functions import ExtractMonth
+from django.utils import timezone
+import tablib
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
@@ -138,10 +140,18 @@ def dashboard_router(request):
         # 1. Total Earned Target Amount this year
         total_target = TargetTransaction.objects.filter(
             user_id=selected_user_id,
-            transaction_type='Earned',
+            eligibility_status='Eligible',
             transaction_date__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
+        print(f"Warning: total_target is {total_target} .")  
+        overall_total_target = TargetTransaction.objects.filter(
+                    user_id=selected_user_id,
+                    eligibility_status__in=['Ineligible', 'Eligible'],
+                    transaction_date__year=selected_year
+        ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+            
+        print(f"Warning: overall_total_target is {overall_total_target} .")      
         # 2. Get Annual Target
         try:
             annual_target = AnnualTarget.objects.get(employee_id=selected_user_id, financial_year=selected_year)
@@ -156,6 +166,15 @@ def dashboard_router(request):
             target_percentage = (total_target / annual_target_amount) * 100
         else:
             target_percentage = Decimal(0)
+
+        print(f"Warning: target_percentage is {target_percentage} .")  
+
+        if overall_total_target > 0:
+            overall_target_percentage = (overall_total_target / annual_target_amount) * 100
+        else:
+            overall_target_percentage = Decimal(0)    
+
+        print(f"Warning: overall_target_percentage is {overall_target_percentage} .")  
 
         # 4. Annual Incentive Calculation (based on slabs)
         annual_target_incentive = Decimal(0)
@@ -194,6 +213,7 @@ def dashboard_router(request):
             'annual_target_incentive': annual_target_incentive,
             'subscription_incentive': subscription_incentive,
             'target_percentage': round(target_percentage, 2),
+            'overall_target_percentage': round(overall_target_percentage, 2),            
             'financial_years': financial_years,
             'selected_year': selected_year,
             'paid_payouts': paid_payouts,
@@ -238,7 +258,7 @@ def dashboard_router(request):
             earned = (
                 TargetTransaction.objects.filter(
                     user=target.employee,
-                    transaction_type='Earned',
+                    eligibility_status='Eligible',
                     transaction_date__year=selected_year
                 )
                 .aggregate(total=Sum('amount'))['total'] or Decimal(0)
@@ -1377,7 +1397,7 @@ def deal_approve(request, pk):
         deal.save()
 
         # Call Rule Engine after approval
-        DealRuleEngine(deal).run_rules()  # Encapsulate logic inside a method
+        # DealRuleEngine(deal).run_rules()  # Encapsulate logic inside a method        
     return redirect('deal_list')
 
 
@@ -1406,8 +1426,9 @@ def payout(request):
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
     export_format = request.GET.get('export')
+    order_by = request.GET.get('order_by', '-created_at')  # Default to descending creation date
 
-    payouts = PayoutTransaction.objects.all().order_by('-created_at')
+    payouts = PayoutTransaction.objects.all()
 
     # Apply search
     if search_query:
@@ -1421,7 +1442,15 @@ def payout(request):
         from_date = parse_date(from_date)
         to_date = parse_date(to_date)
         if from_date and to_date:
+            to_date = datetime.combine(to_date, datetime.max.time())
+            from_date = datetime.combine(from_date, datetime.min.time())
             payouts = payouts.filter(created_at__range=(from_date, to_date))
+
+    # Apply ordering
+    try:
+        payouts = payouts.order_by(order_by)
+    except:
+        payouts = payouts.order_by('-created_at')  # Fallback
 
     # Export
     if export_format == 'xlsx':
@@ -1430,7 +1459,7 @@ def payout(request):
         return export_payouts_to_pdf(payouts)
 
     # Pagination
-    paginator = Paginator(payouts, 10)  # 10 per page
+    paginator = Paginator(payouts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1438,7 +1467,8 @@ def payout(request):
         'payouts': page_obj,
         'search_query': search_query,
         'from_date': from_date,
-        'to_date': to_date
+        'to_date': to_date,
+        'order_by': order_by
     })
 
 def export_payouts_to_xlsx(payouts):
@@ -1555,11 +1585,16 @@ def transaction(request):
             Q(transaction_type__icontains=search)
         )
 
-    # Date filter
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
 
     transactions = transactions.order_by('-transaction_date')
 
@@ -1587,13 +1622,20 @@ def transaction_export_excel(request):
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
+ 
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
 
     data = tablib.Dataset()
-    data.headers = ['Deal ID', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
+    data.headers = ['Deal Name', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
 
     for txn in transactions:
         data.append([
@@ -1606,7 +1648,7 @@ def transaction_export_excel(request):
             txn.is_latest,
             txn.eligibility_status,
             txn.eligibility_message,
-            txn.transaction_date,
+            txn.transaction_date.replace(tzinfo=None) if txn.transaction_date else None,
             txn.notes or '-'
         ])
 
@@ -1626,10 +1668,16 @@ def transaction_export_pdf(request):
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
 
     template = get_template('owner/reports/transaction_pdf.html')
     html = template.render({'transactions': transactions})
@@ -1653,11 +1701,16 @@ def targettransaction(request):
             Q(transaction_type__icontains=search)
         )
 
-    # Date filter
-    if from_date:
-        transactions = transactions.filter(transaction_date__gte=from_date)
-    if to_date:
-        transactions = transactions.filter(transaction_date__lte=to_date)
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)    
 
     transactions = transactions.order_by('-transaction_date')
 
@@ -1671,6 +1724,82 @@ def targettransaction(request):
         'from_date': from_date,
         'to_date': to_date,
     })
+def targettransaction_export_excel(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = TargetTransaction.objects.all()
+
+    if search:
+        transactions = transactions.filter(
+            Q(deal__clientName__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+ 
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
+
+    data = tablib.Dataset()
+    data.headers = ['Deal Name', 'Version', 'Type', 'Component', 'Amount', 'Frozen', 'Latest', 'Eligibility', 'Message', 'Date', 'Notes']
+
+    for txn in transactions:
+        data.append([
+            txn.deal,
+            txn.version,
+            txn.transaction_type,
+            txn.incentive_component_type,
+            txn.amount,
+            txn.freeze,
+            txn.is_latest,
+            txn.eligibility_status,
+            txn.eligibility_message,
+            txn.transaction_date.replace(tzinfo=None) if txn.transaction_date else None,
+            txn.notes or '-'
+        ])
+
+    response = HttpResponse(data.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="targettransaction.xlsx"'
+    return response
+
+def targettransaction_export_pdf(request):
+    search = request.GET.get('search', '')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    transactions = TargetTransaction.objects.all()
+    if search:
+        transactions = transactions.filter(
+            Q(deal__clientName__icontains=search) |
+            Q(notes__icontains=search) |
+            Q(transaction_type__icontains=search)
+        )
+    # Date filter   
+    if from_date and from_date != 'None':
+        parsed_from_date = parse_date(from_date)
+        if parsed_from_date:
+            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
+
+    if to_date and to_date != 'None':
+        parsed_to_date = parse_date(to_date)
+        if parsed_to_date:
+            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
+
+    template = get_template('owner/reports/transaction_pdf.html')
+    html = template.render({'targettransaction': transactions})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="targettransaction.pdf"'
+    pisa.CreatePDF(html, dest=response)
+    return response
 
 def backup_db_view(request):
     if request.method == "POST":
@@ -1682,7 +1811,7 @@ def schedulelog(request):
     monthly_jobs = ScheduledJob.objects.filter(job_type='monthly').order_by('next_run')
     yearly_jobs = ScheduledJob.objects.filter(job_type='yearly').order_by('next_run')
     logs = JobRunLog.objects.all()  # optional, if you show logs
-
+           
     return render(request, 'owner/activity/schedule.html', {
         'monthly_jobs': monthly_jobs,
         'yearly_jobs': yearly_jobs,
@@ -1696,12 +1825,18 @@ def changelog(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'owner/activity/changelog.html', {'page_obj': page_obj})
 
-def run_now(request, job):
-    if job == "monthly":
-       monthly_sales_incentive()
+def run_now(request, job, runmonth=None):
+    if not runmonth:  # If still None or blank, fallback to current month
+        run_month = datetime.now().month
+    else:
+        run_month = runmonth
+    print(f"Warning:Runing month is {run_month}.")
+    
+    if job == "monthly" and run_month:
+        monthly_sales_incentive(int(run_month))
     elif job == "annual":
         annual_target_achievement()
-    return redirect('schedulelog') 
+    return redirect('schedulelog')
 
 def mark_payout_paid(request, payout_id):
     payout = get_object_or_404(PayoutTransaction, pk=payout_id)

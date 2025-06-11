@@ -51,7 +51,7 @@
           </div>
           <div class="ms-3 align-self-center">
             <h4 class="mb-0 fs-5">Total Payout</h4>
-            <span>Income</span>
+            <span>Incentive allready paid</span>
           </div>
           <div class="ms-auto align-self-center">
             <h2 class="fs-7 mb-0">₹ {{ total_payout|floatformat:0 }}</h2>
@@ -64,7 +64,7 @@
           </div>
           <div class="ms-3 align-self-center">
             <h4 class="mb-0 fs-5">Ready To Pay</h4>
-            <span>Income</span>
+            <span>Waiting for the accounts team to process the payment </span>
           </div>
           <div class="ms-auto align-self-center">
             <h2 class="fs-7 mb-0">₹ {{ total_readytopay_payout|floatformat:0 }}</h2>
@@ -77,7 +77,7 @@
           </div>
           <div class="ms-3 align-self-center">
             <h4 class="mb-0 fs-5">Pending Payout</h4>
-            <span>Income</span>
+            <span>Awaiting for eligibility </span>
           </div>
           <div class="ms-auto align-self-center">
             <h2 class="fs-7 mb-0">₹ {{ total_pending_payout|floatformat:0 }}</h2>
@@ -130,7 +130,9 @@
     <div class="card w-100">
       <div class="card-body">
         <h4 class="card-title">Annual Target Achievement</h4>
-        <p class="card-subtitle mb-0">Overview of Achievement</p>
+        <p class="card-subtitle mb-0">Over All Target Achievement(Ineligible and Eligible)</p>
+        <div id="chart-overall-target-achivement" data-percent="{{ overall_target_percentage }}"></div>
+        <p class="card-subtitle mb-0">Overview of Eligible Achievement (Eligible Only)</p>
         <div id="chart-target-achivement" data-percent="{{ target_percentage }}"></div>
       </div>
     </div>
@@ -187,17 +189,28 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const percent = parseFloat(document.getElementById('chart-target-achivement').dataset.percent || 0);
-  
     const options = {
       chart: {
         type: 'radialBar',
         height: 350
       },
       series: [percent],
-      labels: ['Target Achievement']
+      labels: ['Target']
+    };  
+    new ApexCharts(document.querySelector("#chart-target-achivement"), options).render();
+
+    const overallPercent = parseFloat(document.getElementById('chart-overall-target-achivement').dataset.percent || 0);
+    const overallOptions = {
+      chart: {
+        type: 'radialBar',
+        height: 350
+      },
+      series: [overallPercent],
+      labels: ['Over All Target']
     };
   
-    new ApexCharts(document.querySelector("#chart-target-achivement"), options).render();
+    new ApexCharts(document.querySelector("#chart-overall-target-achivement"), overallOptions).render();
+
   });
   </script>
   

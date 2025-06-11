@@ -7,3 +7,4 @@ google-cloud-storage
 xhtml2pdf
 openpyxl
 django-apscheduler
+tablib

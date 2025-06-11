@@ -4,6 +4,7 @@ from apscheduler.jobstores.base import JobLookupError
 from .tasks import monthly_sales_incentive, annual_target_achievement
 import logging
 from datetime import datetime
+from django.utils import timezone
 import calendar
 
 logger = logging.getLogger(__name__)
@@ -14,12 +15,14 @@ scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
 # Monthly job: runs daily at 23:00 but only executes on the last day of the month
 @scheduler.scheduled_job(CronTrigger(hour=23, minute=0))
 def run_monthly_incentive():
+    
     today = datetime.now().date()
     last_day = calendar.monthrange(today.year, today.month)[1]
+    current_month= timezone.now().month
 
     if today.day == last_day:
         logger.info("Running monthly sales incentive task (Last day of the month)")
-        monthly_sales_incentive()
+        monthly_sales_incentive(current_month)
     else:
         logger.info("Skipping monthly sales incentive task — today is not the last day of the month")
 
