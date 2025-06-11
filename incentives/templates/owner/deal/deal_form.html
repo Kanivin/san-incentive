@@ -36,7 +36,7 @@
         {% csrf_token %}
 
         <!-- Client Information -->
-        <fieldset class="border p-3 mb-4" {% if deal.monthly_rule_executed %}disabled{% endif %}>
+        <fieldset class="border p-3 mb-4" {% if deal.yearly_rule_executed %}disabled{% endif %}>
           <legend class="float-none w-auto px-3">Client Information</legend>
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Client Name<span class="mandy">*</span></label>
@@ -70,7 +70,7 @@
         </fieldset>
 
         <!-- Deal Information -->
-        <fieldset class="border p-3 mb-4" {% if deal.monthly_rule_executed %}disabled{% endif %}>
+        <fieldset class="border p-3 mb-4" {% if deal.yearly_rule_executed %}disabled{% endif %}>
           <legend class="float-none w-auto px-3">Deal Information</legend>
           <div class="mb-3 row align-items-center">
             <label class="col-sm-3 col-form-label">Deal Type</label>
@@ -141,7 +141,7 @@
         </fieldset>
 
         <!-- Sales Person Performance -->
-        <fieldset class="border p-3 mb-4" {% if deal.monthly_rule_executed %}disabled{% endif %}>
+        <fieldset class="border p-3 mb-4" {% if deal.yearly_rule_executed %}disabled{% endif %}>
           <legend class="float-none w-auto px-3">Sales Person Performance</legend>
 
           <!-- Deal Owner -->
@@ -275,13 +275,6 @@
 <script>
 
 document.addEventListener('DOMContentLoaded', function () {
-      const fieldsets = document.querySelectorAll("fieldset[disabled]");
-      fieldsets.forEach(fs => {
-        const requiredInputs = fs.querySelectorAll("[required]");
-        requiredInputs.forEach(input => {
-          input.removeAttribute("required");
-        });
-      });
       const dealTypeSelect = document.getElementById("dealType");
       const newMarketPenetrationFieldset = document.getElementById("newMarketPenetrationFieldset");
       const newMarketCountryDiv = document.getElementById("newMarketCountryDiv");
