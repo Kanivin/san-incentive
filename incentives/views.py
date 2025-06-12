@@ -198,7 +198,7 @@ def dashboard_router(request):
             subscription_incentive_percent = setup.subscription_75_per_target or Decimal('0.00')
         elif target_percentage >= 50:
             subscription_incentive_percent = setup.subscription_50_per_target or Decimal('0.00')
-        elif target_percentage > 50:
+        elif target_percentage < 50:
             subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
         else: 
             subscription_incentive_percent = Decimal('0.00')
