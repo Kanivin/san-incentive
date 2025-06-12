@@ -52,9 +52,8 @@ def monthly_sales_incentive(run_month):
         approved_deals = Deal.objects.filter(status='Approved',yearly_rule_executed=False)
 
         for deal in approved_deals:
-            if not deal or not deal.subDate or not setup:
+            if not deal or not deal.subDate or not deal.subAmount or not setup:
                 continue
-
             try:
                 sub_amount = deal.subAmount or Decimal('0.0')
                                  
