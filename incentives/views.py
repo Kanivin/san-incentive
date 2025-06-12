@@ -1808,6 +1808,8 @@ def backup_db_view(request):
     return HttpResponse("Use POST to trigger backup.")
 
 def schedulelog(request):
+    months = range(1, 13)
+    current_month = datetime.now().month 
     monthly_jobs = ScheduledJob.objects.filter(job_type='monthly').order_by('next_run')
     yearly_jobs = ScheduledJob.objects.filter(job_type='yearly').order_by('next_run')
     logs = JobRunLog.objects.all()  # optional, if you show logs
@@ -1815,6 +1817,8 @@ def schedulelog(request):
     return render(request, 'owner/activity/schedule.html', {
         'monthly_jobs': monthly_jobs,
         'yearly_jobs': yearly_jobs,
+        'months': months,  
+        'current_month': current_month,       
         'logs': logs
     })
 
@@ -1840,9 +1844,55 @@ def run_now(request, job, runmonth=None):
 
 def mark_payout_paid(request, payout_id):
     payout = get_object_or_404(PayoutTransaction, pk=payout_id)
-    if payout.payout_status == 'ReadyToPay':
-        payout.payout_status = 'Paid'
-        payout.save()
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'invalid status'}, status=400)  
- 
+
+    if payout.payout_status != 'ReadyToPay':
+        return JsonResponse({'status': 'invalid status'}, status=400)
+
+    payout.payout_status = 'Paid'
+    payout.save(update_fields=['payout_status'])
+    return JsonResponse({'status': 'success'})
+
+def bulk_mark_paid(request):
+    try:
+        data = json.loads(request.body)        
+        ids = data.get('payout_ids', [])
+        if not isinstance(ids, list) or not ids:
+            return JsonResponse({"error": "Invalid or missing payout_ids."}, status=400)
+        
+        ids = list(map(int, ids))
+        queryset = PayoutTransaction.objects.filter(pk__in=ids, payout_status='ReadyToPay')            
+        updated = queryset.update(payout_status='Paid')
+
+        return JsonResponse({"success": True, "updated_count": updated})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON."}, status=400)
+    except Exception as e:
+        print(f"Error: {e} .") 
+        return JsonResponse({"error": str(e)}, status=500)
+
+def change_password(request):
+    from django.contrib.auth.hashers import check_password, make_password
+    user_id = request.session.get('user_id')  # Assuming session stores user_id
+    if not user_id:
+        return redirect('login')
+
+    user = UserProfile.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if not check_password(current_password, user.password):
+            return render(request, 'change_password.html', {'error': 'Incorrect current password'})
+
+        if new_password != confirm_password:
+            return render(request, 'change_password.html', {'error': 'New passwords do not match'})
+
+        user.password = make_password(new_password)
+        user.save()
+
+        return render(request, 'change_password.html', {'success': 'Password changed successfully!'})
+
+    return render(request, 'change_password.html')

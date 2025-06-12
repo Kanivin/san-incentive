@@ -44,12 +44,21 @@
     <td>{{ job.name }}</td>
     <td>{{ job.schedule }}</td>
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
-    <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td> -->
+    <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td> -->    
     <td>
-      <a href="{% url 'run_now' 'monthly' %}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-play-fill"></i> Run Now
-      </a>
+      <div class="d-flex align-items-center gap-2">
+        <label  class="form-label">Select Month:</label>
+        <select id="month-select" name="month-select" class="form-select form-select-sm w-auto">
+          {% for m in months %}
+            <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+        <a href="#" class="btn btn-sm btn-outline-primary" onclick="runMonthlyJob({{ job.id }})">
+          <i class="bi bi-play-fill"></i> Run Now
+        </a>
+      </div>
     </td>
+
   </tr>
   {% empty %}
   <tr><td colspan="5" class="text-center">No monthly jobs configured.</td></tr>
@@ -209,6 +218,17 @@
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
   <script>
+  function runMonthlyJob() {
+    const selectElement = document.getElementById("month-select");
+    const selectedMonth = selectElement.value;
+
+    if (!selectedMonth || isNaN(selectedMonth) || selectedMonth < 1 || selectedMonth > 12) {
+      alert("Please select a valid month.");
+      return;
+    }
+
+    window.location.href = `/run-now/monthly/${selectedMonth}`;
+  }
     $(document).ready(function () {
       $('#zero_config').DataTable({
         paging: false,  // Disable DataTables internal pagination (because we're using Django's)

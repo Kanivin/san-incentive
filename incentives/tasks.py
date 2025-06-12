@@ -49,7 +49,7 @@ def monthly_sales_incentive(run_month):
                 all_success = False
                 output_lines.append(f"[ERROR] Payout calc for deal {deal.id}: {e}")
 
-        approved_deals = Deal.objects.filter(status='Approved')
+        approved_deals = Deal.objects.filter(status='Approved',yearly_rule_executed=False)
 
         for deal in approved_deals:
             if not deal or not deal.subDate or not setup:
@@ -98,7 +98,7 @@ def monthly_sales_incentive(run_month):
                         output_lines.append(f"[INFO] Skipped {label} → Missing user or percent")
 
                 if success:
-                    deal.status = 'Completed'
+                    # deal.status = 'Completed'
                     deal.yearly_rule_executed = True            
                     deal.save()
 

@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('change-password/', views.change_password, name='change_password'),
 
     # Dashboards
     
@@ -93,6 +94,7 @@ urlpatterns = [
     path('schedulelog/', views.schedulelog, name='schedulelog'),
     path('changelog/', views.changelog, name='changelog'),
     path('payout/mark-paid/<int:payout_id>/', views.mark_payout_paid, name='mark_payout_paid'),
+    path('payout/bulk-mark-paid/', views.bulk_mark_paid, name='bulk_mark_paid'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
