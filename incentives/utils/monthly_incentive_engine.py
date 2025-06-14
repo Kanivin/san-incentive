@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ..models import (
     Transaction, PayoutTransaction, IncentiveSetup,
-    SetupChargeSlab, TopperMonthSlab, Deal, AnnualTarget, TargetTransaction,
+    SetupChargeSlab, TopperMonthSlab, Deal, AnnualTarget, TargetTransaction,Segment,
     HighValueDealSlab, UserProfile
 )
 
@@ -58,11 +58,25 @@ class MonthlyRuleEngine:
                 deal.demo1SalesPerson,
                 deal.demo2SalesPerson,
             ]
+            setupChargesAmount= Decimal(deal.setupCharges or 0)
+            
             for user in filter(None, participants):
                 key = (user.id, deal.id)
                 if key not in user_deal_tracker:
-                    user_setup_totals[user.id] += Decimal(deal.setupCharges or 0)
-                    user_monthly_subscription_totals[user.id] += Decimal(deal.monthlySubscription or 0)
+                    if user == deal.dealownerSalesPerson:  
+                        print(f"[Warning] deal.dealownerSalesPerson is {deal.dealownerSalesPerson}. Skipping...")                     
+                        if user.user_type and user.user_type.name.lower() == "admin":
+                            if deal.dealType == 'domestic':
+                                percent = Decimal(self.setup.domestic_deal_owner or 0)
+                            else:
+                                percent = Decimal(self.setup.international_deal_owner or 0)                                                        
+                            setupChargesAfter = setupChargesAmount * percent / 100
+                            setupChargesAmount = setupChargesAmount - setupChargesAfter
+                            print(f"[Warning] setupChargesAmount is {setupChargesAmount}. Skipping...") 
+                    user_setup_totals[user.id] += setupChargesAmount 
+                    segment_id = deal.segment.id if deal.segment else None
+                    subscription_key = (user.id, segment_id)                   
+                    user_monthly_subscription_totals[subscription_key] += Decimal(deal.monthlySubscription or 0)
                     user_deal_tracker.add(key)
 
         for deal in self.deals_in_month:
@@ -82,8 +96,7 @@ class MonthlyRuleEngine:
                 if setup_charges != 0:
                     self.process_setup_incentive(deal, payout_split, deal_type, setup_charges, user_setup_totals)
                 if monthly_subscription_charges != 0:    
-                    self.process_topper_incentive(deal, payout_split, deal_type, deal_segment, monthly_subscription_charges, user_monthly_subscription_totals)
-                    self.process_high_value_incentive(deal, payout_split, monthly_subscription_charges)
+                   self.process_high_value_incentive(deal, payout_split, monthly_subscription_charges)
                 if deal.newMarketPenetration == 'Yes':
                     self.process_new_market_incentive(deal, payout_split)
                 # Mark as executed after successful processing
@@ -93,6 +106,8 @@ class MonthlyRuleEngine:
                 # Optional: log or handle the error without stopping the loop
                 print(f"[ERROR] Skipping deal {deal.id} due to: {e}")
 
+        self.process_topper_incentive(user_monthly_subscription_totals)
+                    
     def get_payout_split(self, deal):
         if deal.dealType == 'domestic':
             return {
@@ -115,19 +130,41 @@ class MonthlyRuleEngine:
             label_with_tag = f"{label}(Setup)"
             if user and percent:
                 try:
-                    total_user_amount = user_setup_totals.get(user.id, Decimal('0.00'))
-                    slab = SetupChargeSlab.objects.filter(
-                        incentive_setup=self.setup,
-                        deal_type_setup=deal_type,
-                        min_amount__lte=total_user_amount,
-                        max_amount__gte=total_user_amount
-                    ).first()
 
-                    if not slab:
-                        print(f"[INFO] {user.fullname} → No matching slab for ₹{total_user_amount}")
+                    if user.user_type and user.user_type.name.lower() == "admin":
+                        print(f"[Warning] user.user_type.name.lower()  is {user.user_type.name.lower() }. Skipping...") 
                         continue
 
-                    incentive_amount = (setup_charges * slab.incentive_percentage) / Decimal('100.0')
+                    total_user_amount = user_setup_totals.get(user.id, Decimal('0.00'))
+                    
+                    # Actual matching slab  
+                    matching_slab = SetupChargeSlab.objects.filter(
+                        incentive_setup=self.setup,
+                        deal_type_setup=deal_type
+                    ).order_by('min_amount').first()
+
+                    if not matching_slab:
+                        continue
+
+                    lowest_slab = matching_slab    
+                               
+                    if total_user_amount <= lowest_slab.max_amount:
+                        # Less than all slabs — use lowest slab
+                        slab_percentage = lowest_slab.incentive_percentage
+                    else:
+                        slab = SetupChargeSlab.objects.filter(
+                        incentive_setup=self.setup,
+                        deal_type_setup=deal_type,
+                        min_amount__lte=setup_charges,
+                        max_amount__gte=setup_charges
+                         ).first()
+
+                        if slab: 
+                            slab_percentage = slab.incentive_percentage
+                        else:    
+                            slab_percentage = lowest_slab.incentive_percentage
+
+                    incentive_amount = (setup_charges * slab_percentage) / Decimal('100.0')
                     incentive_amount_user = (incentive_amount * percent) / Decimal('100.0')
 
                     transaction = Transaction.objects.create(
@@ -138,7 +175,7 @@ class MonthlyRuleEngine:
                         amount=incentive_amount_user,
                         eligibility_status='Eligible',
                         eligibility_message='Matched Setup Charge Slab',
-                        notes=f'Slab {slab.min_amount}-{slab.max_amount} @ {slab.incentive_percentage}%',
+                        notes=f'Slab @ {slab_percentage}%',
                         created_by="system-mjob"
                     )
                     self.create_payouts(deal, transaction, user, label_with_tag, incentive_amount_user)
@@ -147,42 +184,71 @@ class MonthlyRuleEngine:
             else:
                 print(f"[INFO] Skipped {label} → Missing user or percent")
 
-    def process_topper_incentive(self, deal, payout_split, deal_type, segment, monthly_subscription_charges, user_monthly_subscription_totals):
-        for label, (user, percent) in payout_split.items():
-            label_with_tag = f"{label}(Topper Month)"
-            if user and percent:
-                try:
-                    total_user_amount = user_monthly_subscription_totals.get(user.id, Decimal('0.00'))
-                    slab = TopperMonthSlab.objects.filter(
-                        incentive_setup=self.setup,
-                        deal_type_top__in=[deal_type, 'all'],
-                        segment=segment,
-                        min_subscription__lte=total_user_amount
-                    ).order_by('-min_subscription').first()
+    def process_topper_incentive(self, user_monthly_subscription_totals):
+        topper_by_segment = dict()
 
-                    if not slab:
-                        print(f"[INFO] {user.fullname} → No matching slab for ₹{total_user_amount}")
-                        continue
+        # 1. Group totals by segment
+        segment_user_totals = defaultdict(list)
+        for (user_id, segment_id), total in user_monthly_subscription_totals.items():
+            segment_user_totals[segment_id].append((user_id, total))
 
-                    incentive_amount = (monthly_subscription_charges * slab.incentive_percentage) / Decimal('100.0')
-                    incentive_amount_user = (incentive_amount * percent) / Decimal('100.0')
+        # 2. Find the top user for each segment
+        for segment_id, user_totals in segment_user_totals.items():
+            if user_totals:
+                top_user = max(user_totals, key=lambda x: x[1])
+                topper_by_segment[segment_id] = {
+                    "user_id": top_user[0],
+                    "total_subscription": top_user[1]
+                }
 
-                    transaction = Transaction.objects.create(
-                        deal_id=deal,
-                        user=user,
-                        transaction_type='Earned',
-                        incentive_component_type='topper_month',
-                        amount=incentive_amount_user,
-                        eligibility_status='Eligible',
-                        eligibility_message='Top performer of the month',
-                        notes=f'Segment: {segment.name}, Slab: ≥ {slab.min_subscription}',
-                        created_by="system-mjob"
-                    )
-                    self.create_payouts(deal, transaction, user, label_with_tag, incentive_amount_user)
-                except Exception as e:
-                    print(f"[ERROR] Processing {label} for deal {deal.id} → {e}")
-            else:
-                print(f"[INFO] Skipped {label} → Missing user or percent")
+        # 3. Process incentives
+        for segment_id, topper_info in topper_by_segment.items():
+            try:
+                user_id = topper_info["user_id"]
+                total_user_amount = topper_info["total_subscription"]
+                user = UserProfile.objects.get(id=user_id)
+                segment = Segment.objects.get(id=segment_id) if segment_id else None
+
+                # Determine applicable slab (deal_type logic can be extended)
+                slab = TopperMonthSlab.objects.filter(
+                    incentive_setup=self.setup,
+                    deal_type_top__in=['all'],  # Add 'domestic'/'international' as needed
+                    segment=segment,
+                    min_subscription__lte=total_user_amount
+                ).order_by('-min_subscription').first()
+
+                if not slab:
+                    continue
+
+                percent = slab.incentive_percentage
+                incentive_amount = total_user_amount * percent / Decimal(100)
+
+                transaction = Transaction.objects.create(
+                    user=user,
+                    deal_id=None,
+                    transaction_type='Earned',
+                    incentive_component_type='topper_month',
+                    amount=incentive_amount,
+                    eligibility_status='Eligible',
+                    eligibility_message='Top performer of the month',
+                    notes=f"Segment: {segment.name if segment else 'N/A'}, Slab: ≥ {slab.min_subscription}",
+                    created_by="system-mjob"
+                )
+
+                PayoutTransaction.objects.create(
+                    incentive_transaction=transaction,
+                    user=user,
+                    deal=None,
+                    incentive_person_type=f'{self.run_month} Month Top Performer ({segment.name if segment else "N/A"})',
+                    payout_amount=incentive_amount,
+                    payout_status='ReadyToPay',
+                    payment_method='Bank Transfer',
+                    created_by="system-mjob"
+                )
+
+            except Exception as e:
+                print(f"[ERROR] Processing topper for segment ID {segment_id} → {e}")
+            
 
     def process_high_value_incentive(self, deal, payout_split, monthly_subscription_charges):
         slab = HighValueDealSlab.objects.filter(

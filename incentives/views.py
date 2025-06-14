@@ -1513,7 +1513,7 @@ def transaction(request):
     # Filter by search
     if search:
         transactions = transactions.filter(
-            Q(deal__clientName__icontains=search) |
+            Q(deal_id__clientName__icontains=search) |
             Q(transaction_type__icontains=search) |
             Q(incentive_component_type__icontains=search) |
             Q(eligibility_message__icontains=search) |
@@ -1570,46 +1570,6 @@ def export_transaction_pdf(transactions):
     response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
     pisa.CreatePDF(html, dest=response)
     return response
-
-
-def transaction(request):
-    search = request.GET.get('search', '')
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    transactions = Transaction.objects.all()
-
-    # Search filter (e.g., deal_id, message)
-    if search:
-        transactions = transactions.filter(
-            Q(deal__clientName__icontains=search) |
-            Q(notes__icontains=search) |
-            Q(transaction_type__icontains=search)
-        )
-
-    # Date filter   
-    if from_date and from_date != 'None':
-        parsed_from_date = parse_date(from_date)
-        if parsed_from_date:
-            transactions = transactions.filter(transaction_date__gte=parsed_from_date)
-
-    if to_date and to_date != 'None':
-        parsed_to_date = parse_date(to_date)
-        if parsed_to_date:
-            transactions = transactions.filter(transaction_date__lte=parsed_to_date)
-
-    transactions = transactions.order_by('-transaction_date')
-
-    paginator = Paginator(transactions, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'owner/reports/transaction.html', {
-        'page_obj': page_obj,
-        'search': search,
-        'from_date': from_date,
-        'to_date': to_date,
-    })
 
 def transaction_export_excel(request):
     search = request.GET.get('search', '')
