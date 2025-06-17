@@ -68,6 +68,15 @@
           </a></th>
       
           <th>Person Type</th>
+          <th>
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'transaction_date' %}-transaction_date{% else %}transaction_date{% endif %}">Transaction Date
+              {% if order_by == 'transaction_date' %}
+                ▲
+              {% elif order_by == '-transaction_date' %}
+                ▼
+              {% endif %}
+            </a>
+          </th>
       
           <th><a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'payout_status' %}-payout_status{% else %}payout_status{% endif %}">Status
           {% if order_by == 'payout_status' %}
@@ -109,6 +118,9 @@
           <td>{{ payout.deal.clientName }}</td>
           <td>
             <span class="badge bg-info text-white">{{ payout.incentive_person_type|title }}</span>
+          </td>
+           <td>
+            <span class="badge bg-info text-white">{{ payout.transaction_date }}</span>
           </td>
           <td>
             {% if payout.payout_status == 'Paid' %}

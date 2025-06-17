@@ -4,29 +4,22 @@
 
 {% block content %}
 
+<!-- Form Alignment -->
 {% if team_members %}
 <form method="get" class="mb-4">
   <div class="row g-3 align-items-center">
-    <!-- Team Member Selection -->
-    <div class="col-auto">
-      <label for="team_member" class="col-form-label fw-bold">Select Self/Team Member:</label>
-    </div>
-    <div class="col-auto">
+    <div class="col-md-3">
+      <label for="team_member" class="form-label fw-bold">Select Self/Team Member:</label>
       <select name="team_member" id="team_member" class="form-select" onchange="this.form.submit()">
         <option value="">-- Select Member --</option>
         {% for member in team_members %}
-          <option value="{{ member.id }}" {% if selected_user and member.id == selected_user.id %}selected{% endif %}>
-            {{ member.fullname }}
-          </option>
+          <option value="{{ member.id }}" {% if selected_user and member.id == selected_user.id %}selected{% endif %}>{{ member.fullname }}</option>
         {% endfor %}
       </select>
     </div>
 
-    <!-- Financial Year Selection -->
-    <div class="col-auto">
-      <label for="financial_year" class="col-form-label fw-bold">Financial Year:</label>
-    </div>
-    <div class="col-auto">
+    <div class="col-md-3">
+      <label for="financial_year" class="form-label fw-bold">Financial Year:</label>
       <select name="financial_year" id="financial_year" class="form-select" onchange="this.form.submit()">
         {% for year in financial_years %}
           <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
@@ -37,103 +30,112 @@
 </form>
 {% endif %}
 
-
-<!--  Row 1 -->
+<!-- Summary and Charts Row -->
 <div class="row">
-  <div class="col-lg-6 d-flex align-items-stretch">
-    <div class="card w-100">
+  <!-- Left Column: Payout Summary + Annual Incentives -->
+  <div class="col-lg-6 d-flex flex-column gap-3">
+    <div class="card h-100">
       <div class="card-body">
 
         <!-- Total Payout -->
         <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#totalPayoutModal">
-          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-success">
+          <div class="round-40 text-white d-flex align-items-center justify-content-center text-bg-success">
             <i class="ti ti-credit-card fs-6"></i>
           </div>
-          <div class="ms-3 align-self-center">
-            <h4 class="mb-0 fs-5">Total Payout</h4>
-            <span>Incentive allready paid</span>
+          <div class="ms-3">
+            <h4 class="fs-5 mb-0">Total Payout</h4>
+            <span>Incentive already paid</span>
           </div>
-          <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ total_payout|floatformat:0 }}</h2>
+          <div class="ms-auto">
+            <h2 class="fs-6 mb-0">₹ {{ total_payout|floatformat:0 }}</h2>
           </div>
         </div>
-        <!-- Ready To Pay Payout -->
+
+        <!-- Ready to Pay -->
         <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#readytopayPayoutModal">
-          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
+          <div class="round-40 text-white d-flex align-items-center justify-content-center text-bg-info">
             <i class="ti ti-credit-card fs-6"></i>
           </div>
-          <div class="ms-3 align-self-center">
-            <h4 class="mb-0 fs-5">Ready To Pay</h4>
-            <span>Waiting for the accounts team to process the payment </span>
+          <div class="ms-3">
+            <h4 class="fs-5 mb-0">Ready To Pay</h4>
+            <span>Waiting for accounts team</span>
           </div>
-          <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ total_readytopay_payout|floatformat:0 }}</h2>
+          <div class="ms-auto">
+            <h2 class="fs-6 mb-0">₹ {{ total_readytopay_payout|floatformat:0 }}</h2>
           </div>
         </div>
-        <!-- Pending Payout -->
+
+        <!-- Pending -->
         <div class="d-flex flex-row mb-4" role="button" data-bs-toggle="modal" data-bs-target="#pendingPayoutModal">
-          <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-info">
+          <div class="round-40 text-white d-flex align-items-center justify-content-center text-bg-info">
             <i class="ti ti-credit-card fs-6"></i>
           </div>
-          <div class="ms-3 align-self-center">
-            <h4 class="mb-0 fs-5">Pending Payout</h4>
-            <span>Awaiting for eligibility </span>
+          <div class="ms-3">
+            <h4 class="fs-5 mb-0">Ineligible Payout</h4>
+            <span>Awaiting eligibility</span>
           </div>
-          <div class="ms-auto align-self-center">
-            <h2 class="fs-7 mb-0">₹ {{ total_pending_payout|floatformat:0 }}</h2>
+          <div class="ms-auto">
+            <h2 class="fs-6 mb-0">₹ {{ total_pending_payout|floatformat:0 }}</h2>
+          </div>
+        </div>
+
+        <!-- Annual Incentives -->
+        <hr>
+        <h5 class="mb-3">Annual Incentive Summary</h5>
+
+        <div class="d-flex flex-row mb-4">
+          <div class="round-40 text-white d-flex align-items-center justify-content-center text-bg-danger">
+            <i class="ti ti-target fs-6"></i>
+          </div>
+          <div class="ms-3">
+            <h4 class="fs-5 mb-0">Annual Target Achievement</h4>
+            <span class="text-muted">Based on % of annual target</span>
+          </div>
+          <div class="ms-auto text-end">
+            <h2 class="fs-6 mb-0">₹ {{ annual_target_incentive|floatformat:0 }}</h2>
+            <span class="text-muted">Gross Salary</span>
           </div>
         </div>
 
-      <!-- Annual Incentives Section -->
-      <div class="card w-100 mt-4">
-        <div class="card-body">
-          <h4 class="card-title mb-4">Annual Incentive Summary</h4>
-
-          <!-- Annual Target Achievement -->
-          <div class="d-flex flex-row mb-4">
-            <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-danger">
-              <i class="ti ti-target fs-6"></i>
-            </div>
-            <div class="ms-3 align-self-center">
-              <h4 class="mb-0 fs-5">Annual Target Achievement</h4>
-              <span class="text-muted">Calculated based on % of annual target achieved</span>
-            </div>
-            <div class="ms-auto align-self-center text-end">
-              <h2 class="fs-7 mb-0">₹ {{ annual_target_incentive|floatformat:0 }}</h2>
-              <span class="text-muted">Gross Salary</span>
-            </div>
+        <div class="d-flex flex-row">
+          <div class="round-40 text-white d-flex align-items-center justify-content-center text-bg-warning">
+            <i class="ti ti-currency-rupee fs-6"></i>
           </div>
-
-          <!-- Annual Subscription Incentive -->
-          <div class="d-flex flex-row">
-            <div class="round-40 rounded-circle text-white d-flex align-items-center justify-content-center text-bg-warning">
-              <i class="ti ti-currency-rupee fs-6"></i>
-            </div>
-            <div class="ms-3 align-self-center">
-              <h4 class="mb-0 fs-5">Annual Subscription Incentive</h4>
-              <span class="text-muted">Calculated based on % of annual Subscription Collection</span>
-            </div>
-            <div class="ms-auto align-self-center text-end">
-              <h2 class="fs-7 mb-0">₹ {{ subscription_incentive|floatformat:0 }}</h2>
-              <span class="text-muted">Auto calculated</span>
-            </div>
+          <div class="ms-3">
+            <h4 class="fs-5 mb-0">Subscription Incentive</h4>
+            <span class="text-muted">Based on % Subscription Collection</span>
+          </div>
+          <div class="ms-auto text-end">
+            <h2 class="fs-6 mb-0">₹ {{ subscription_incentive|floatformat:0 }}</h2>
+            <span class="text-muted">Auto calculated</span>
           </div>
         </div>
+
       </div>
+    </div>
 
+    <!-- Product-wise Pie Chart -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Product-wise Achievements</h5>
+        <p class="card-subtitle text-muted mb-3">Overview of achievements</p>
+        <div id="product-wise-achievement" style="min-height: 300px;" data-series='{{ product_wise_series|safe }}'
+        data-labels='{{ product_wise_labels|safe }}'
+        data-colors='{{ product_wise_colors|safe }}'></div>
       </div>
     </div>
   </div>
 
-  <!-- Target Achievement Chart -->
-  <div class="col-lg-6 d-flex align-items-stretch">
-    <div class="card w-100">
+  <!-- Right Column: Charts -->
+  <div class="col-lg-6 d-flex flex-column">
+    <div class="card flex-fill">
       <div class="card-body">
-        <h4 class="card-title">Annual Target Achievement</h4>
-        <p class="card-subtitle mb-0">Over All Target Achievement(Ineligible and Eligible)</p>
-        <div id="chart-overall-target-achivement" data-percent="{{ overall_target_percentage }}"></div>
-        <p class="card-subtitle mb-0">Overview of Eligible Achievement (Eligible Only)</p>
-        <div id="chart-target-achivement" data-percent="{{ target_percentage }}"></div>
+        <h5 class="card-title">Annual Target Achievement</h5>
+        <p class="text-muted mb-2">Overall Achievement (Eligible + Ineligible)</p>
+        <div id="chart-overall-target-achivement" style="min-height: 300px;" data-percent="{{ overall_target_percentage }}"></div>
+        <hr>
+        <p class="text-muted mb-2">Eligible Only</p>
+        <div id="chart-target-achivement" style="min-height: 300px;" data-percent="{{ target_percentage }}"></div>
       </div>
     </div>
   </div>
@@ -188,6 +190,24 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    
+    const el = document.getElementById('product-wise-achievement');
+    const series = JSON.parse(el.dataset.series);
+    const labels = JSON.parse(el.dataset.labels);
+    const colors = JSON.parse(el.dataset.colors);
+
+    var optionsproductwise = {
+      chart: {
+        type: 'pie',
+        height: 350
+      },
+      series: series, // Example data
+      labels: labels, // Labels for each slice
+      colors: colors, // Optional custom colors
+    };
+
+    new ApexCharts(document.querySelector("#product-wise-achievement"), optionsproductwise).render();
+
     const percent = parseFloat(document.getElementById('chart-target-achivement').dataset.percent || 0);
     const options = {
       chart: {
@@ -212,6 +232,7 @@
     new ApexCharts(document.querySelector("#chart-overall-target-achivement"), overallOptions).render();
 
   });
+ 
   </script>
   
 {% endblock %}

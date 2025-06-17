@@ -22,6 +22,7 @@ from django.http import JsonResponse
 from .models import JobRunLog, ScheduledJob, ChangeLog
 from .tasks import monthly_sales_incentive, annual_target_achievement
 from django.db.models import Sum
+from collections import defaultdict
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 import tablib
@@ -169,7 +170,7 @@ def dashboard_router(request):
 
         print(f"Warning: target_percentage is {target_percentage} .")  
 
-        if overall_total_target > 0:
+        if overall_total_target > 0 and annual_target_amount > 0:
             overall_target_percentage = (overall_total_target / annual_target_amount) * 100
         else:
             overall_target_percentage = Decimal(0)    
@@ -205,7 +206,33 @@ def dashboard_router(request):
 
         # 6. Subscription Incentive = % of target achieved amount
         subscription_incentive = total_target * (subscription_incentive_percent / 100)
+
+        # --- Product-Wise Payout Calculation ---
+        product_wise_data = PayoutTransaction.objects.values('deal__segment__name', 'incentive_person_type').annotate(total=Sum('payout_amount')).order_by('-total')
+        product_wise_labels = []
+        product_wise_series = []
+        product_wise_colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#3F51B5', '#546E7A', '#546E7A', '#26A69A','#D10CE8','#F86624','#2E93fA','#66DA26']
         
+        segment_names = list(Segment.objects.values_list('name', flat=True).distinct())
+
+        group_map = defaultdict(float)
+
+        for i, row in enumerate(product_wise_data):
+            segment_name = row['deal__segment__name']
+            fallback = row['incentive_person_type']
+            if segment_name:
+                group_name = segment_name
+            else:
+                # Try to match any known segment name inside incentive_person_type
+                match = next((s for s in segment_names if s.lower() in fallback.lower()), None)
+                group_name = match if match else (fallback or f"Uncategorized {i+1}")
+
+            group_map[group_name] += float(row['total'] or 0)
+            
+        product_wise_labels = list(group_map.keys())
+        product_wise_series = list(group_map.values())
+        product_wise_colors = product_wise_colors[:len(product_wise_labels)]
+       
         context = {
             'team_members': team_members,
             'selected_user': selected_user,
@@ -221,6 +248,9 @@ def dashboard_router(request):
             'paid_payouts': paid_payouts,
             'readytopay_payouts': readytopay_payouts,            
             'pending_payouts': pending_payouts,
+            'product_wise_series': json.dumps(product_wise_series),
+            'product_wise_labels': json.dumps(product_wise_labels),
+            'product_wise_colors': json.dumps(product_wise_colors),
         }
         return render(request, 'sales/dashboard.html', context)
        
