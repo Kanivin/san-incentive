@@ -161,7 +161,7 @@ def annual_target_achievement():
                     total_target = TargetTransaction.objects.filter(
                         user_id=user.id,
                         transaction_type='Earned',
-                        transaction_date__year=current_year
+                        deal__subDate__year=current_year
                     ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
                     annual_target_amount = annual_target.annual_target_amount or Decimal('0.0')

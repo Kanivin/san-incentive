@@ -30,7 +30,17 @@
 </form>
 {% endif %}
 
-<!-- Summary and Charts Row -->
+<div class="row">
+<div class="col-lg-12 d-flex flex-column gap-12"></div>
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title mb-2">Month-wise Achievement vs Target</h5>
+    <p class="card-subtitle text-muted mb-3">Progress vs ideal monthly growth</p>
+    <div id="monthly-target-chart"></div>
+  </div>
+</div>
+</div>
+</div>
 <div class="row">
   <!-- Left Column: Payout Summary + Annual Incentives -->
   <div class="col-lg-6 d-flex flex-column gap-3">
@@ -124,6 +134,8 @@
         data-colors='{{ product_wise_colors|safe }}'></div>
       </div>
     </div>
+
+   
   </div>
 
   <!-- Right Column: Charts -->
@@ -176,7 +188,7 @@
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header bg-info text-white">
-        <h5 class="modal-title" id="pendingPayoutModalLabel">Pending Payout Details</h5>
+        <h5 class="modal-title" id="pendingPayoutModalLabel">Ineligible Payout Details</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -232,7 +244,186 @@
     new ApexCharts(document.querySelector("#chart-overall-target-achivement"), overallOptions).render();
 
   });
- 
+
+    //const totalTarget = 100000;
+    //const grossMonthlySalary = 50000;
+    //const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    //const achievement = [6000, 14000, 16240, 32000, 53000];
+
+    const totalTarget = {{ total_target }};
+    const grossMonthlySalary = {{ gross_monthly_salary }};
+    const months = {{ months_json|safe }};
+    const fullAchievement = {{ achievement_json|safe }};
+    const selectedFinancialYear = {{ selected_year }};
+
+    
+    // Get current month index (0-based)
+    const now = new Date();
+    const currentYear = now.getFullYear().toString();
+    const currentMonthIndex = now.getMonth(); // 0 = Jan, 5 = June
+
+    const achievement = selectedFinancialYear == currentYear
+    ? fullAchievement.slice(0, currentMonthIndex + 1)
+    : fullAchievement;
+
+    const achievementPercentage = achievement.map(value =>
+      parseFloat(((value / totalTarget) * 100).toFixed(2))
+    );
+
+    const idealCumulative = months.map((_, i) =>
+      parseFloat((((i + 1) * totalTarget) / 12 / totalTarget * 100).toFixed(2))
+    );
+
+    const chart = new ApexCharts(document.querySelector("#monthly-target-chart"), {
+      chart: {
+        type: 'line',
+        height: 400,
+        zoom: { enabled: false }
+      },
+      series: [
+        {
+          name: 'Achievement (%)',
+          data: achievementPercentage
+        },
+        {
+          name: 'Ideal Progress (%)',
+          data: idealCumulative
+        }
+      ],
+      xaxis: {
+        categories: months,
+        title: { text: 'Month' }
+      },
+      yaxis: {
+        title: { text: 'Achieved (%)' },
+        min: 0,
+        max: 120
+      },
+      colors: ['#3b82f6', '#94a3b8'],
+      stroke: {
+        width: [3, 2],
+        curve: 'smooth',
+        dashArray: [0, 5]
+      },
+      tooltip: {
+        shared: false,
+        custom: function({ seriesIndex, dataPointIndex, w }) {
+          if (seriesIndex === 1) return '';
+          const monthLabel = w.globals.labels[dataPointIndex];
+          const achievedAmount = achievement[dataPointIndex] || 0;
+          const monthsLeft = 12 - dataPointIndex;
+          const achievedPercent = (achievedAmount / totalTarget) * 100;
+
+          let salaryMultiplier = 0;
+          if (achievedPercent >= 100) salaryMultiplier = 2;
+          else if (achievedPercent >= 95) salaryMultiplier = 1.5;
+          else if (achievedPercent >= 90) salaryMultiplier = 1.25;
+          else if (achievedPercent >= 75) salaryMultiplier = 1;
+
+          let subIncentivePercent = 0;
+          if (achievedPercent >= 100) subIncentivePercent = 8;
+          else if (achievedPercent >= 75) subIncentivePercent = 6;
+          else if (achievedPercent >= 50) subIncentivePercent = 4;
+
+          const grossIncentiveAmount = Math.round(salaryMultiplier * grossMonthlySalary);
+          const subscriptionIncentiveAmount = Math.round((subIncentivePercent / 100) * achievedAmount);
+          const totalIncentiveAmount = grossIncentiveAmount + subscriptionIncentiveAmount;
+
+          const incentiveSlabs = [
+            { icon: "🧪", percent: 50, multiplier: 0, subscription: 4 },
+            { icon: "✅", percent: 75, multiplier: 1.0, subscription: 6 },
+            { icon: "⭐", percent: 90, multiplier: 1.25, subscription: 6 },
+            { icon: "💎", percent: 95, multiplier: 1.5, subscription: 6 },
+            { icon: "🏆", percent: 100, multiplier: 2.0, subscription: 8 },
+          ];
+
+          let html = `
+            <div style="padding:12px 16px; font-family:Arial, sans-serif; font-size:14px; line-height:1.6; max-width:560px;">
+              <div style="background:#eff6ff; padding:8px 12px; border-radius:10px; margin-bottom:12px; border:1px solid #bfdbfe;">
+              <div style="font-weight:600; color:#1d4ed8;">🎯 Achieved: ₹${achievedAmount.toLocaleString()} <span class="text-gray-500">(${achievedPercent.toFixed(2)}%)</span></div>
+              <div><strong>🎁 Annual Target Incentive:</strong> ${salaryMultiplier > 0 ? `${salaryMultiplier}× Gross = ₹${grossIncentiveAmount.toLocaleString()}` : '🚫 No Incentive'}</div>
+              <div><strong>📦 Subscription Incentive:</strong> ${subIncentivePercent}% = ₹${subscriptionIncentiveAmount.toLocaleString()}</div>
+              <div style="color:#10b981;"><strong>💵 Total Incentive:</strong> ₹${totalIncentiveAmount.toLocaleString()}</div>
+              </div><strong>📈 To reach:</strong>`;
+
+          incentiveSlabs.filter(slab => achievedPercent < slab.percent).forEach(slab => {
+            const slabTargetAmount = (slab.percent / 100) * totalTarget;
+            const remaining = Math.max(0, slabTargetAmount - achievedAmount);
+            const perMonth = monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : 0;
+
+            const grossIncentive = slab.multiplier * grossMonthlySalary;
+            const subIncentive = (slab.subscription / 100) * slabTargetAmount;
+            const totalIncentive = Math.round(grossIncentive + subIncentive);
+
+            html += `
+              <div style="margin-left:10px;">
+                ${slab.icon} ${slab.percent}% → ₹${remaining.toLocaleString()} more 
+                <span style="color:#6b7280; font-size:13px;">₹${perMonth.toLocaleString()}/month</span>
+                <span style="color:#10b981; font-size:13px;">🪙 Get: ₹${totalIncentive.toLocaleString()}</span>
+              </div>`;
+          });
+
+          html += `</div>`;
+          return html;
+        }
+      },
+      annotations: {
+        yaxis: [
+          {
+            y: 46,
+            borderColor: '#ef4444',
+            label: {
+              text: '📉 Below 50% → No Incentive',
+              style: { background: '#ef4444', color: '#fff' }
+            }
+          },
+          {
+            y: 54,
+            borderColor: '#60a5fa',
+            label: {
+              text: '✅ Above 50% → 4% Sub Amount',
+              style: { background: '#60a5fa', color: '#000' }
+            }
+          },
+          {
+            y: 75,
+            borderColor: '#60a5fa',
+            label: {
+              text: '✅ 75% → 1× Salary + 6% Sub Amount',
+              style: { background: '#60a5fa', color: '#000' }
+            }
+          },
+          {
+            y: 90,
+            borderColor: '#2563eb',
+            label: {
+              text: '⭐ 90% → 1.25× Salary + 6% Sub Amount',
+              style: { background: '#2563eb', color: '#000' }
+            }
+          },
+          {
+            y: 95,
+            borderColor: '#86efac',
+            label: {
+              text: '💎 95% → 1.5× Salary + 6% Sub Amount',
+              style: { background: '#86efac', color: '#000' }
+            }
+          },
+          {
+            y: 100,
+            borderColor: '#22c55e',
+            label: {
+              text: '🏆 100% → 2× Salary + 8% Sub Amount',
+              style: { background: '#22c55e', color: '#000' }
+            }
+          }
+        ]
+      },
+      legend: { position: 'top' }
+    });
+
+    chart.render();
+
   </script>
   
 {% endblock %}

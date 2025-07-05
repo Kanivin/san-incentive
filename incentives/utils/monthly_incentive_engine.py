@@ -3,6 +3,7 @@ from decimal import Decimal
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
+import calendar
 
 from ..models import (
     Transaction, PayoutTransaction, IncentiveSetup,
@@ -15,6 +16,7 @@ class MonthlyRuleEngine:
 
     def __init__(self, run_month):
         self.run_month = run_month
+        self.run_month_name = calendar.month_name[self.run_month]
         self.setup = None
         self.deals_in_month = None
         self.initialize_setup()
@@ -239,7 +241,7 @@ class MonthlyRuleEngine:
                     incentive_transaction=transaction,
                     user=user,
                     deal=None,
-                    incentive_person_type=f'{self.run_month} Month Top Performer ({segment.name if segment else "N/A"})',
+                    incentive_person_type=f'{self.run_month_name} Month Top Performer ({segment.name if segment else "N/A"})',
                     payout_amount=incentive_amount,
                     payout_status='ReadyToPay',
                     payment_method='Bank Transfer',

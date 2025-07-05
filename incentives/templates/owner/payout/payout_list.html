@@ -66,8 +66,15 @@
             ▼
           {% endif %}  
           </a></th>
-      
-          <th>Person Type</th>
+          <th>
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'incentive_person_type' %}-incentive_person_type{% else %}incentive_person_type{% endif %}">Person Type
+              {% if order_by == 'incentive_person_type' %}
+                ▲
+              {% elif order_by == '-incentive_person_type' %}
+                ▼
+              {% endif %}
+            </a>
+          </th>
           <th>
             <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if from_date %}from_date={{ from_date }}&to_date={{ to_date }}&{% endif %}order_by={% if order_by == 'transaction_date' %}-transaction_date{% else %}transaction_date{% endif %}">Transaction Date
               {% if order_by == 'transaction_date' %}

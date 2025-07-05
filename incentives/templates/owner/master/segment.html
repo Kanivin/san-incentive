@@ -75,15 +75,17 @@
               <td>{{ Segment.name }}</td>
               <td>
                 <!-- Edit button: reloads same page with edit id -->
+                {% if request.permissions|has_any_permission:"Segment, edit" %} 
                 <a class="btn btn-custom btn-sm me-1" href="?edit={{ Segment.id }}">Edit</a>
-
+                {% endif %}
+                {% if request.permissions|has_any_permission:"Segment, delete" %}
                 <!-- Delete button: submits a hidden form -->
                 <form method="post" style="display:inline;">
                   {% csrf_token %}
                   <input type="hidden" name="delete_id" value="{{ Segment.id }}">
                   <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Segment?')">Delete</button>
                 </form>
-
+                {% endif %} 
               </td>
             </tr>
             {% empty %}

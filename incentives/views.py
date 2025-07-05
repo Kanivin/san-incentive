@@ -142,14 +142,14 @@ def dashboard_router(request):
         total_target = TargetTransaction.objects.filter(
             user_id=selected_user_id,
             eligibility_status='Eligible',
-            transaction_date__year=selected_year
+            deal__subDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
         print(f"Warning: total_target is {total_target} .")  
         overall_total_target = TargetTransaction.objects.filter(
                     user_id=selected_user_id,
                     eligibility_status__in=['Ineligible', 'Eligible'],
-                    transaction_date__year=selected_year
+                    deal__subDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
             
         print(f"Warning: overall_total_target is {overall_total_target} .")      
@@ -232,7 +232,30 @@ def dashboard_router(request):
         product_wise_labels = list(group_map.keys())
         product_wise_series = list(group_map.values())
         product_wise_colors = product_wise_colors[:len(product_wise_labels)]
-       
+
+        monthly_achievement = [0] * 12
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+       # Step 1: Get per-month totals
+        monthly_data = TargetTransaction.objects.filter(
+            user_id=selected_user_id,
+            eligibility_status__in=['Ineligible', 'Eligible'],
+            deal__subDate__year=selected_year
+        ).annotate(
+            month=ExtractMonth('deal__subDate')
+        ).values('month').annotate(total=Sum('amount'))
+
+        # Step 2: Fill raw monthly totals
+        raw_monthly_totals = [0] * 12
+        for row in monthly_data:
+            month_idx = row['month'] - 1
+            raw_monthly_totals[month_idx] = float(row['total'] or 0)
+
+        # Step 3: Convert to cumulative
+        cumulative_total = 0
+        for i in range(12):
+            cumulative_total += raw_monthly_totals[i]
+            monthly_achievement[i] = round(cumulative_total, 2)
+                
         context = {
             'team_members': team_members,
             'selected_user': selected_user,
@@ -251,6 +274,10 @@ def dashboard_router(request):
             'product_wise_series': json.dumps(product_wise_series),
             'product_wise_labels': json.dumps(product_wise_labels),
             'product_wise_colors': json.dumps(product_wise_colors),
+            'months_json': json.dumps(months),
+            'achievement_json': json.dumps(monthly_achievement),
+            'total_target': float(annual_target_amount),
+            'gross_monthly_salary': float(net_salary),
         }
         return render(request, 'sales/dashboard.html', context)
        
@@ -291,7 +318,7 @@ def dashboard_router(request):
                 TargetTransaction.objects.filter(
                     user=target.employee,
                     eligibility_status='Eligible',
-                    transaction_date__year=selected_year
+                    deal__subDate__year=selected_year
                 )
                 .aggregate(total=Sum('amount'))['total'] or Decimal(0)
             )
@@ -302,6 +329,7 @@ def dashboard_router(request):
                 'email': target.employee.mail_id,
                 'target': target.annual_target_amount,
                 'actual': earned,
+                'achievement' : achievement,
                 'priority': 'High' if achievement > 90 else 'Medium' if achievement > 75 else 'Low',
             })
 
@@ -768,12 +796,28 @@ def deal_delete(request, pk):
 
 # ---------- Annual Target Views ----------
 def target_list(request):
+    user_id = request.session.get('user_id')
+    
+    if not user_id:
+        return []  # Or redirect to login
+    try:
+        current_user = UserProfile.objects.get(id=user_id)
+    except UserProfile.DoesNotExist:
+        return []
+   
     search_query = request.GET.get('search', '').strip()
     start_year = request.GET.get('start_year', '').strip()
     end_year = request.GET.get('end_year', '').strip()
 
+    allowed_roles = ['superadmin', 'accounts', 'admin']
+    role_name = current_user.user_type.name.lower() if current_user.user_type else ''
+
+    if role_name in allowed_roles:
     # Base queryset with related employee to avoid N+1
-    targets = AnnualTarget.objects.all().select_related('employee').order_by('employee__fullname', 'financial_year')
+        targets = AnnualTarget.objects.all().select_related('employee').order_by('employee__fullname', 'financial_year')
+    else:
+        targets = AnnualTarget.objects.filter(
+            Q(employee=current_user) | Q(employee__team_head=current_user)).select_related('employee').order_by('employee__fullname', 'financial_year')
 
     # Apply search filter on employee fullname or financial_year
     if search_query:

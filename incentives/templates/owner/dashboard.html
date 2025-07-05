@@ -93,7 +93,8 @@
                 <th scope="col">Employees</th>
                 <th scope="col">Target</th>
                 <th scope="col">Actual</th>
-                <th scope="col">Priority</th>
+                <th scope="col">Achievement</th>               
+                
               </tr>
             </thead>
             <tbody class="border-top">
@@ -107,9 +108,7 @@
                 </td>
                 <td><p class="mb-0 fs-3">₹{{ performer.target|floatformat:0 }}</p></td>
                 <td><p class="fs-3 text-dark mb-0">₹{{ performer.actual|floatformat:0 }}</p></td>
-                <td>
-                  <span class="badge fw-semibold py-1 w-85 bg-primary-subtle text-{{ performer.priority|lower }}">{{ performer.priority }}</span>
-                </td>
+                <td><p class="fs-3 text-dark mb-0">%{{ performer.achievement|floatformat:0 }}</p></td>               
               </tr>
               {% endfor %}
             </tbody>
