@@ -48,14 +48,14 @@ for mod in Module.objects.all():
 
 # Create or update superadmin user
 superadmin_profile, created = UserProfile.objects.update_or_create(
-    mail_id='info.kanivin@gmail.com',
+    mail_id='superadmin@saneforce.com',
     defaults={
-        'fullname': 'kanivin',
+        'fullname': 'superadmin',
         'phone': '9445532899',
-        'password': make_password('kanivin2025'),  # hashed password
+        'password': make_password('admin12345'),  # hashed password
         'user_type': superadmin_role,
         'doj': now().date(),
-        'employee_id': 'EMP0001',
+        'employee_id': 'superadmin',
         'enable_login': True
     }
 )

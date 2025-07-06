@@ -1,3 +1,5 @@
+echo "Checking SQLite DB..."
+[ -f /home/san-incentive/database/db.sqlite3 ] && cp /home/san-incentive/database/db.sqlite3 /app/db.sqlite3
 echo "Running Django migrations..."
 python manage.py migrate
 # First time only

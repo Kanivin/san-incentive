@@ -27,11 +27,13 @@ SECRET_KEY = 'django-insecure-(si(3u!gm7wie8e_oarnyn7g$g2!d0tq97=4@x+y&c2)%l3gto
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "localhost","incentive.kanivin.com","san-incentive-719751516787.asia-southeast1.run.app"
+    "localhost","incentive.saneforce.com","incentive.kanivin.com","san-incentive-719751516787.asia-southeast1.run.app"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://incentive.kanivin.com",
+    "https://incentive.saneforce.com",
+    "http://incentive.saneforce.com",
     "http://localhost",
 ]
 
@@ -92,7 +94,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/app/db.sqlite3',
+        'NAME': '/app/databse/db.sqlite3',
     }
 }
 
@@ -116,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-MEDIA_ROOT = '/home/san-incentive'
+MEDIA_ROOT = '/app/media'
 MEDIA_URL = '/media/'
 
 # Internationalization
