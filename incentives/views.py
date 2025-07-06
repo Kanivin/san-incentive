@@ -26,6 +26,8 @@ from collections import defaultdict
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 import tablib
+import os
+from django.conf import settings
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login') 
