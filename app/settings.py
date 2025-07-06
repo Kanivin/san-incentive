@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-(si(3u!gm7wie8e_oarnyn7g$g2!d0tq97=4@x+y&c2)%l3gto
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "localhost","incentive.saneforce.com","incentive.kanivin.com","san-incentive-719751516787.asia-southeast1.run.app"
+    "localhost","103.171.45.12","incentive.saneforce.com","incentive.kanivin.com","san-incentive-719751516787.asia-southeast1.run.app"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -94,7 +94,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/app/databse/db.sqlite3',
+        'NAME': '/app/database/db.sqlite3',
     }
 }
 

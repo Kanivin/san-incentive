@@ -664,6 +664,17 @@ def upload_to_gcs(uploaded_file, bucket_name, destination_blob_name):
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_file(uploaded_file, rewind=True)
 
+def upload_to_locally(uploaded_file, bucket_name, destination_blob_name):
+    base_dir = settings.MEDIA_ROOT
+    full_path = os.path.join(base_dir, destination_blob_name)
+    # Create target directory if it doesn't exist
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    # Write file
+    with open(full_path, 'wb+') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+
+
 def deal_create(request):
     # Fetch users with user_type 'salesperson' or 'saleshead'
     users = UserProfile.objects.filter(user_type__name__in=['salesperson', 'saleshead'])
@@ -697,7 +708,9 @@ def deal_create(request):
                 unique_id = uuid.uuid4().hex[:8]
                 safe_file_name = f"{base_name}_{unique_id}{ext}"
                 gcs_path = f"deals/ref_docs/{safe_file_name}"
-                upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
+                #upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)
+                upload_to_locally(uploaded_file, 'san-incentive', gcs_path)
+                           
 
         if form.is_valid():
             deal = form.save(commit=False)
@@ -764,7 +777,8 @@ def deal_update(request, pk):
                 unique_id = uuid.uuid4().hex[:8]
                 safe_file_name = f"{base_name}_{unique_id}{ext}"
                 gcs_path = f"deals/ref_docs/{safe_file_name}"
-                upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)           
+                #upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)
+                upload_to_locally(uploaded_file, 'san-incentive', gcs_path)           
 
         if form.is_valid():
             deal = form.save(commit=False)
