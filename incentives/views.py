@@ -87,7 +87,197 @@ def superadmin_dashboard(request):
     return render(request, 'super/dashboard.html')
 
 def sales_dashboard(request):
-    return render(request, 'sales/dashboard.html')
+    user_id = request.session.get('user_id')   
+    user_type = request.session.get('user_type')
+    current_year = datetime.now().year    
+    financial_years = [current_year - i for i in range(5)]    
+
+    if user_type == 'admin' or user_type == 'superadmin':
+
+        try:
+            current_profile = UserProfile.objects.get(id=user_id)
+        except UserProfile.DoesNotExist:
+            # Handle missing profile case gracefully
+            return render(request, 'dashboard/error.html', {'message': 'User profile not found.'})
+       
+        team_members_qs = UserProfile.objects.filter(user_type__name__in=['saleshead', 'salesperson'])
+        team_members = list(team_members_qs)
+
+        selected_user_id = request.GET.get('team_member')
+        selected_user = current_profile  # default
+       
+        if selected_user_id:
+            try:
+                selected_user = UserProfile.objects.get(id=selected_user_id)
+            except UserProfile.DoesNotExist:
+                selected_user = current_profile.id
+        else:
+            selected_user_id = current_profile.id
+
+        
+        selected_year = request.GET.get('financial_year')
+
+        if selected_year:
+            try:
+                selected_year = int(selected_year)
+            except ValueError:
+                selected_year = current_year
+        else:
+            selected_year = current_year
+
+        payouts = PayoutTransaction.objects.filter(user=selected_user_id,payout_date__year=selected_year)
+       
+        paid_payouts = payouts.filter(payout_status='Paid')
+        pending_payouts = payouts.filter(payout_status='Pending')
+        readytopay_payouts = payouts.filter(payout_status='ReadyToPay')
+
+        total_payout = paid_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
+        total_pending_payout = pending_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
+        total_readytopay_payout = readytopay_payouts.aggregate(total=Sum('payout_amount'))['total'] or 0
+        
+        # 1. Total Earned Target Amount this year
+        total_target = TargetTransaction.objects.filter(
+            user_id=selected_user_id,
+            eligibility_status='Eligible',
+            deal__subDate__year=selected_year
+        ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+
+        print(f"Warning: total_target is {total_target} .")  
+        overall_total_target = TargetTransaction.objects.filter(
+                    user_id=selected_user_id,
+                    eligibility_status__in=['Ineligible', 'Eligible'],
+                    deal__subDate__year=selected_year
+        ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+            
+        print(f"Warning: overall_total_target is {overall_total_target} .")      
+        # 2. Get Annual Target
+        try:
+            annual_target = AnnualTarget.objects.get(employee_id=selected_user_id, financial_year=selected_year)
+            annual_target_amount = annual_target.annual_target_amount
+            net_salary = annual_target.net_salary
+        except AnnualTarget.DoesNotExist:
+            annual_target_amount = Decimal(0)
+            net_salary = Decimal(0)
+
+        # 3. Compute Target % Achievement
+        if annual_target_amount > 0:
+            target_percentage = (total_target / annual_target_amount) * 100
+        else:
+            target_percentage = Decimal(0)
+
+        print(f"Warning: target_percentage is {target_percentage} .")  
+
+        if overall_total_target > 0 and annual_target_amount > 0:
+            overall_target_percentage = (overall_total_target / annual_target_amount) * 100
+        else:
+            overall_target_percentage = Decimal(0)    
+
+        print(f"Warning: overall_target_percentage is {overall_target_percentage} .")  
+
+        # 4. Annual Incentive Calculation (based on slabs)
+        annual_target_incentive = Decimal(0)
+        if target_percentage >= 100:
+            annual_target_incentive = net_salary * Decimal('2.0')  # 200%
+        elif target_percentage >= 95:
+            annual_target_incentive = net_salary * Decimal('1.5')  # 150%
+        elif target_percentage >= 90:
+            annual_target_incentive = net_salary * Decimal('1.25')  # 125%
+        elif target_percentage >= 75:
+            annual_target_incentive = net_salary * Decimal('1.0')  # 100%
+        else:
+            annual_target_incentive = Decimal(0)  # Below 75% gets no incentive
+
+        # 5. Subscription Incentive %
+        setup = IncentiveSetup.objects.filter(financial_year=str(selected_year)).order_by('-created_at').first()
+
+        if target_percentage >= 100:
+            subscription_incentive_percent = setup.subscription_100_per_target or Decimal('0.00')
+        elif target_percentage >= 75:
+            subscription_incentive_percent = setup.subscription_75_per_target or Decimal('0.00')
+        elif target_percentage >= 50:
+            subscription_incentive_percent = setup.subscription_50_per_target or Decimal('0.00')
+        elif target_percentage < 50:
+            #subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
+            subscription_incentive_percent = Decimal('0.00')
+        else: 
+            subscription_incentive_percent = Decimal('0.00')
+
+        # 6. Subscription Incentive = % of target achieved amount
+        subscription_incentive = total_target * (subscription_incentive_percent / 100)
+
+        # --- Product-Wise Payout Calculation ---
+        product_wise_data = PayoutTransaction.objects.filter(user_id=selected_user_id, payout_date__year=selected_year).values('deal__segment__name', 'incentive_person_type').annotate(total=Sum('payout_amount')).order_by('-total')
+        product_wise_labels = []
+        product_wise_series = []
+        product_wise_colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#3F51B5', '#546E7A', '#546E7A', '#26A69A','#D10CE8','#F86624','#2E93fA','#66DA26']
+        
+        segment_names = list(Segment.objects.values_list('name', flat=True).distinct())
+
+        group_map = defaultdict(float)
+
+        for i, row in enumerate(product_wise_data):
+            segment_name = row['deal__segment__name']
+            fallback = row['incentive_person_type']
+            if segment_name:
+                group_name = segment_name
+            else:
+                # Try to match any known segment name inside incentive_person_type
+                match = next((s for s in segment_names if s.lower() in fallback.lower()), None)
+                group_name = match if match else (fallback or f"Uncategorized {i+1}")
+
+            group_map[group_name] += float(row['total'] or 0)
+            
+        product_wise_labels = list(group_map.keys())
+        product_wise_series = list(group_map.values())
+        product_wise_colors = product_wise_colors[:len(product_wise_labels)]
+
+        monthly_achievement = [0] * 12
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+       # Step 1: Get per-month totals
+        monthly_data = TargetTransaction.objects.filter(
+            user_id=selected_user_id,
+            eligibility_status__in=['Ineligible', 'Eligible'],
+            deal__subDate__year=selected_year
+        ).annotate(
+            month=ExtractMonth('deal__subDate')
+        ).values('month').annotate(total=Sum('amount'))
+
+        # Step 2: Fill raw monthly totals
+        raw_monthly_totals = [0] * 12
+        for row in monthly_data:
+            month_idx = row['month'] - 1
+            raw_monthly_totals[month_idx] = float(row['total'] or 0)
+
+        # Step 3: Convert to cumulative
+        cumulative_total = 0
+        for i in range(12):
+            cumulative_total += raw_monthly_totals[i]
+            monthly_achievement[i] = round(cumulative_total, 2)
+                
+        context = {
+            'team_members': team_members,
+            'selected_user': selected_user,
+            'total_payout': total_payout,
+            'total_pending_payout': total_pending_payout,
+            'total_readytopay_payout': total_readytopay_payout,            
+            'annual_target_incentive': annual_target_incentive,
+            'subscription_incentive': subscription_incentive,
+            'target_percentage': round(target_percentage, 2),
+            'overall_target_percentage': round(overall_target_percentage, 2),            
+            'financial_years': financial_years,
+            'selected_year': selected_year,
+            'paid_payouts': paid_payouts,
+            'readytopay_payouts': readytopay_payouts,            
+            'pending_payouts': pending_payouts,
+            'product_wise_series': json.dumps(product_wise_series),
+            'product_wise_labels': json.dumps(product_wise_labels),
+            'product_wise_colors': json.dumps(product_wise_colors),
+            'months_json': json.dumps(months),
+            'achievement_json': json.dumps(monthly_achievement),
+            'total_target': float(annual_target_amount),
+            'gross_monthly_salary': float(net_salary),
+        }
+        return render(request, 'sales/dashboard.html', context)
 
 def dashboard_router(request):    
     user_id = request.session.get('user_id')   
@@ -202,7 +392,8 @@ def dashboard_router(request):
         elif target_percentage >= 50:
             subscription_incentive_percent = setup.subscription_50_per_target or Decimal('0.00')
         elif target_percentage < 50:
-            subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
+            #subscription_incentive_percent = setup.subscription_below_50_per or Decimal('0.00')
+            subscription_incentive_percent = Decimal('0.00')
         else: 
             subscription_incentive_percent = Decimal('0.00')
 
@@ -210,7 +401,7 @@ def dashboard_router(request):
         subscription_incentive = total_target * (subscription_incentive_percent / 100)
 
         # --- Product-Wise Payout Calculation ---
-        product_wise_data = PayoutTransaction.objects.values('deal__segment__name', 'incentive_person_type').annotate(total=Sum('payout_amount')).order_by('-total')
+        product_wise_data = PayoutTransaction.objects.filter(user_id=selected_user_id, payout_date__year=selected_year).values('deal__segment__name', 'incentive_person_type').annotate(total=Sum('payout_amount')).order_by('-total')
         product_wise_labels = []
         product_wise_series = []
         product_wise_colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#3F51B5', '#546E7A', '#546E7A', '#26A69A','#D10CE8','#F86624','#2E93fA','#66DA26']

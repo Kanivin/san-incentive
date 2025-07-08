@@ -21,7 +21,7 @@ urlpatterns = [
     #path('admin-dashboard/', views.dashboard_router, name='dashboard_router'),
     #path('superadmin-dashboard/', views.dashboard_router, name='dashboard_router'),
     path('dashboard/', views.dashboard_router, name='dashboard_router'),
-    #path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
+    path('sales-dashboard/', views.sales_dashboard, name='sales_dashboard'),
 
     # Admin user management
     path('admin-user/', views.user_list, name='user_list'),
