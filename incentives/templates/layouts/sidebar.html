@@ -24,6 +24,7 @@
               <span class="hide-menu">Dashbaord</span>
             </a>
           </li>
+          {% if request.permissions|has_any_permission:"Users, delete" %}
           <li class="sidebar-item">
             <a class="sidebar-link" href="{% url 'sales_dashboard' %}" aria-expanded="false">
               <span>
@@ -32,7 +33,7 @@
               <span class="hide-menu">User Dashbaord</span>
             </a>
           </li>
-
+          {% endif %}
           {% if request.permissions|has_any_permission:"Users, view" %}
           <li class="sidebar-item">
             <a class="sidebar-link" href="{% url 'user_list' %}" aria-expanded="false">
