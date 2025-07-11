@@ -163,7 +163,7 @@
               </ul>
               </li>
            
-        
+          {% if request.permissions|has_any_permission:"Site Settings , edit" %} 
           <li class="sidebar-item">
             <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
               <span class="d-flex">
@@ -222,11 +222,11 @@
                   <span class="hide-menu">Permission</span>
                 </a>
               </li>
-         {% endif %} 
-           
+         {% endif %}         
             
             </ul>
           </li>
+          {% endif %} 
           <li class="sidebar-item">
             <a class="sidebar-link has-arrow" href="javascript:void(0)" aria-expanded="false">
               <span class="d-flex">

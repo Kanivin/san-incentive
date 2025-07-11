@@ -1,5 +1,5 @@
 {% extends 'layouts/layout.html' %}
-
+{% load permissions_tags %}
 {% block content %}
 <div class="card mb-4 shadow-sm">
   <div class="card-body py-2 px-3">
@@ -64,7 +64,7 @@
         <td>₹{{ target.net_salary }}</td>
         <td>{{ target.status }}</td>
         <td>
-          {% load permissions_tags %}
+        
           {% if request.permissions|has_any_permission:"Annual Targets, edit" %}
             <a class="btn btn-primary btn-sm me-1" href="{% url 'target_update' target.pk %}">Edit</a>
           {% endif %}

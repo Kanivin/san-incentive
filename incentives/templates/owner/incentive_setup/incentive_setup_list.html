@@ -39,8 +39,9 @@
     <a href="?search={{ search }}&from_date={{ from_date }}&to_date={{ to_date }}&export=pdf" class="btn btn-danger">Export PDF</a>
   </div>
 </form>
-
+  {% if request.permissions|has_any_permission:"IncentiveSetup, edit" %}
   <a class="btn btn-custom mb-3" href="{% url 'incentive_setup_create' %}">+ Add Yearly Incentive</a>
+  {% endif %}
 
   <div class="table-responsive">
     <table class="table table-bordered table-striped align-middle">

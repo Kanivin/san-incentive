@@ -1794,7 +1794,7 @@ def transaction(request):
     # Filter by search
     if search:
         transactions = transactions.filter(
-            Q(user__fullname__icontains=search_query) |
+            Q(user__fullname__icontains=search) |
             Q(deal_id__clientName__icontains=search) |
             Q(transaction_type__icontains=search) |
             Q(incentive_component_type__icontains=search) |
@@ -1941,6 +1941,7 @@ def targettransaction(request):
     # Search filter (e.g., deal_id, message)
     if search:
         transactions = transactions.filter(
+            Q(user__fullname__icontains=search) |
             Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
@@ -1978,6 +1979,7 @@ def targettransaction_export_excel(request):
 
     if search:
         transactions = transactions.filter(
+            Q(user__fullname__icontains=search) |
             Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
