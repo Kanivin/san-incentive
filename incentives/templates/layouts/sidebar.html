@@ -235,7 +235,7 @@
               <span class="hide-menu">Activity</span>
             </a>
             <ul aria-expanded="false" class="collapse first-level">
-            {% if request.permissions|has_any_permission:"Scheduled, view" %}  
+            {% if request.permissions|has_any_permission:"Scheduled, edit" %}  
             <li class="sidebar-item">
                 <a href="{% url 'schedulelog' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
