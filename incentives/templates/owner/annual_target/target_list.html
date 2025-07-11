@@ -38,8 +38,9 @@
 
 <a href="{% url 'target_export_excel' %}" class="btn btn-success mb-2 me-2">Export to Excel</a>
 <a href="{% url 'target_export_pdf' %}" class="btn btn-danger mb-2">Export to PDF</a>
+{% if request.permissions|has_any_permission:"Annual Targets, add" %}
 <a class="btn btn-custom mb-3" href="{% url 'target_create' %}">+ Add Annual Target</a>
-
+{% endif %}
 <div class="table-responsive">
   <table class="table table-bordered table-striped align-middle">
     <thead>

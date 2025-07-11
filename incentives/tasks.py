@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Q
 from incentives.utils.monthly_incentive_engine import MonthlyRuleEngine
 
-def monthly_sales_incentive(run_month):
+def monthly_sales_incentive(run_year,run_month):
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Monthly Sales Incentive Calculation", status="Running")
     all_success = True
@@ -20,8 +20,8 @@ def monthly_sales_incentive(run_month):
     try:
         MonthlyRuleEngine(run_month).run_rules()
 
-        current_year = timezone.now().year
-        setup = IncentiveSetup.objects.filter(financial_year=str(current_year)).order_by('-created_at').first()
+        financial_year = run_year
+        setup = IncentiveSetup.objects.filter(financial_year=str(financial_year)).order_by('-created_at').first()
 
         pending_payouts = PayoutTransaction.objects.filter(payout_status='Pending', is_latest=True)
 
@@ -136,15 +136,15 @@ def monthly_sales_incentive(run_month):
         log.save()
 
 
-def annual_target_achievement():
+def annual_target_achievement(run_year):
     start = datetime.now()
     log = JobRunLog.objects.create(job_name="Annual Target Achievement", status="Running")
     all_success = True
     output_lines = []
-
+    financial_year = run_year
     try:
-        current_year = timezone.now().year
-        setup = IncentiveSetup.objects.filter(financial_year=str(current_year)).order_by('-created_at').first()
+        
+        setup = IncentiveSetup.objects.filter(financial_year=str(financial_year)).order_by('-created_at').first()
         users = UserProfile.objects.filter(Q(user_type__name='saleshead') | Q(user_type__name='salesperson'))
 
         for user in users:
@@ -152,7 +152,7 @@ def annual_target_achievement():
                 continue
 
             try:
-                annual_target = AnnualTarget.objects.get(employee_id=user.id, financial_year=current_year, status='Not Completed')
+                annual_target = AnnualTarget.objects.get(employee_id=user.id, financial_year=financial_year, status='Not Completed')
             except AnnualTarget.DoesNotExist:
                 continue
 
@@ -161,7 +161,7 @@ def annual_target_achievement():
                     total_target = TargetTransaction.objects.filter(
                         user_id=user.id,
                         transaction_type='Earned',
-                        deal__subDate__year=current_year
+                        deal__subDate__year=financial_year
                     ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
                     annual_target_amount = annual_target.annual_target_amount or Decimal('0.0')
@@ -180,7 +180,7 @@ def annual_target_achievement():
 
                     PayoutTransaction.objects.create(
                         user=user,
-                        incentive_person_type=f'{current_year} Annual Target Incentive',
+                        incentive_person_type=f'{financial_year} Annual Target Incentive',
                         payout_amount=annual_target_incentive,
                         payout_status='ReadyToPay',
                         payment_method='Bank Transfer',
@@ -201,7 +201,7 @@ def annual_target_achievement():
 
                     PayoutTransaction.objects.create(
                         user=user,
-                        incentive_person_type=f'{current_year} Annual Subscription Incentive',
+                        incentive_person_type=f'{financial_year} Annual Subscription Incentive',
                         payout_amount=subscription_incentive,
                         payout_status='ReadyToPay',
                         payment_method='Bank Transfer',

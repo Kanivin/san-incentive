@@ -47,12 +47,19 @@
     <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td> -->    
     <td>
       <div class="d-flex align-items-center gap-2">
-        <label  class="form-label">Select Month:</label>
-        <select id="month-select" name="month-select" class="form-select form-select-sm w-auto">
+        <label class="form-label">Select Month:</label>
+        <select id="month-select-{{ job.id }}" class="form-select form-select-sm w-auto">
           {% for m in months %}
             <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
           {% endfor %}
         </select>
+        
+        <select id="month-year-select-{{ job.id }}" class="form-select form-select-sm w-auto">
+          {% for y in years %}
+            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        
         <a href="#" class="btn btn-sm btn-outline-primary" onclick="runMonthlyJob({{ job.id }})">
           <i class="bi bi-play-fill"></i> Run Now
         </a>
@@ -92,9 +99,17 @@
     <td>{{ job.last_run|date:"Y-m-d H:i" }}</td>
     <!-- <td>{{ job.next_run|date:"Y-m-d H:i" }}</td>  -->
     <td>
-      <a href="{% url 'run_now' 'annual' %}" class="btn btn-sm btn-outline-success">
-        <i class="bi bi-play-fill"></i> Run Now
-      </a>
+      <div class="d-flex align-items-center gap-2">
+        <label class="form-label">Select Year:</label>
+        <select id="year-select-{{ job.id }}" class="form-select form-select-sm w-auto">
+          {% for y in years %}
+            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <a href="#" class="btn btn-sm btn-outline-success" onclick="runYearlyJob({{ job.id }})">
+          <i class="bi bi-play-fill"></i> Run Now
+        </a>
+      </div>
     </td>
   </tr>
   {% empty %}
@@ -217,18 +232,32 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-  <script>
-  function runMonthlyJob() {
-    const selectElement = document.getElementById("month-select");
-    const selectedMonth = selectElement.value;
+<script>
+ function runMonthlyJob(jobId) {
+  const month = document.getElementById(`month-select-${jobId}`).value;
+  const year = document.getElementById(`month-year-select-${jobId}`).value;
 
-    if (!selectedMonth || isNaN(selectedMonth) || selectedMonth < 1 || selectedMonth > 12) {
-      alert("Please select a valid month.");
-      return;
-    }
-
-    window.location.href = `/run-now/monthly/${selectedMonth}`;
+  if (!month || isNaN(month) || month < 1 || month > 12) {
+    alert("Please select a valid month.");
+    return;
   }
+
+  // Correct URL format for monthly job
+  window.location.href = `/run-now/monthly/${month}/${year}/`;
+}
+
+function runYearlyJob(jobId) {
+  const year = document.getElementById(`year-select-${jobId}`).value;
+
+  if (!year || isNaN(year)) {
+    alert("Please select a valid year.");
+    return;
+  }
+
+  // Correct URL format for yearly job (use 0 as dummy month)
+  window.location.href = `/run-now/annual/0/${year}/`;
+}
+
     $(document).ready(function () {
       $('#zero_config').DataTable({
         paging: false,  // Disable DataTables internal pagination (because we're using Django's)

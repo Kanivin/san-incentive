@@ -1794,6 +1794,7 @@ def transaction(request):
     # Filter by search
     if search:
         transactions = transactions.filter(
+            Q(user__fullname__icontains=search_query) |
             Q(deal_id__clientName__icontains=search) |
             Q(transaction_type__icontains=search) |
             Q(incentive_component_type__icontains=search) |
@@ -1907,6 +1908,7 @@ def transaction_export_pdf(request):
     transactions = Transaction.objects.all()
     if search:
         transactions = transactions.filter(
+            Q(user__fullname__icontains=search_query) |
             Q(deal__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
@@ -2053,6 +2055,8 @@ def backup_db_view(request):
 def schedulelog(request):
     months = range(1, 13)
     current_month = datetime.now().month 
+    current_year = datetime.now().year
+    years = [current_year - 1, current_year] 
     monthly_jobs = ScheduledJob.objects.filter(job_type='monthly').order_by('next_run')
     yearly_jobs = ScheduledJob.objects.filter(job_type='yearly').order_by('next_run')
     logs = JobRunLog.objects.all()  # optional, if you show logs
@@ -2060,6 +2064,7 @@ def schedulelog(request):
     return render(request, 'owner/activity/schedule.html', {
         'monthly_jobs': monthly_jobs,
         'yearly_jobs': yearly_jobs,
+        "years": years,
         'months': months,  
         'current_month': current_month,       
         'logs': logs
@@ -2072,17 +2077,17 @@ def changelog(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'owner/activity/changelog.html', {'page_obj': page_obj})
 
-def run_now(request, job, runmonth=None):
-    if not runmonth:  # If still None or blank, fallback to current month
-        run_month = datetime.now().month
-    else:
-        run_month = runmonth
-    print(f"Warning:Runing month is {run_month}.")
-    
-    if job == "monthly" and run_month:
-        monthly_sales_incentive(int(run_month))
+def run_now(request, job, runmonth, runyear):
+    run_month = runmonth or datetime.now().month
+    run_year = runyear or datetime.now().year
+
+    print(f"Running {job} job for month: {run_month}, year: {run_year}")
+
+    if job == "monthly":
+        monthly_sales_incentive(run_year, run_month)
     elif job == "annual":
-        annual_target_achievement()
+        annual_target_achievement(run_year)
+
     return redirect('schedulelog')
 
 def mark_payout_paid(request, payout_id):

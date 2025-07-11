@@ -235,6 +235,7 @@
               <span class="hide-menu">Activity</span>
             </a>
             <ul aria-expanded="false" class="collapse first-level">
+            {% if request.permissions|has_any_permission:"Scheduled, view" %}  
             <li class="sidebar-item">
                 <a href="{% url 'schedulelog' %}" class="sidebar-link">
                   <div class="round-16 d-flex align-items-center justify-content-center">
@@ -243,6 +244,7 @@
                   <span class="hide-menu">Scheduled Jobs</span>
                 </a>
               </li>
+             {% endif %}
              {% if request.permissions|has_any_permission:"Audit Log, view" %} 
               <li class="sidebar-item">
                 <a href="{% url 'changelog' %}" class="sidebar-link">
