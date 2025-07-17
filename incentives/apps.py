@@ -11,5 +11,5 @@ class IncentivesConfig(AppConfig):
         import incentives.signals.change_log_signal
         from .scheduler import start
         logger.info("Starting APScheduler inside Django app")
-        start()
+        # start()
         logger.info("Completed APScheduler inside Django app")
