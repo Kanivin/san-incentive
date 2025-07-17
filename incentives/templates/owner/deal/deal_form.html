@@ -49,7 +49,7 @@
           </div>
 
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Segment</label>
+            <label class="col-sm-3 col-form-label">Segment<span class="mandy">*</span></label>
             <div class="col-sm-9">
               {{ form.segment|add_class:"form-control" }}
               {% if form.segment.errors %}
@@ -59,7 +59,7 @@
           </div>
 
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Lead Source</label>
+            <label class="col-sm-3 col-form-label">Lead Source<span class="mandy">*</span></label>
             <div class="col-sm-9">
               {{ form.leadSource|add_class:"form-control" }}
               {% if form.leadSource.errors %}
@@ -73,7 +73,7 @@
         <fieldset class="border p-3 mb-4" {% if deal.yearly_rule_executed %}disabled{% endif %}>
           <legend class="float-none w-auto px-3">Deal Information</legend>
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Deal Type</label>
+            <label class="col-sm-3 col-form-label">Deal Type<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <select name="dealType" id="dealType" class="form-control" required>
                 <option value="">Select Deal Type</option>
@@ -89,23 +89,32 @@
           
 
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Deal Won Date</label>
+            <label class="col-sm-3 col-form-label">Deal Won Date<span class="mandy">*</span></label>
             <div class="col-sm-9">
               {{ form.dealWonDate|add_class:"form-control" }}
+              {% if form.dealWonDate.errors %}
+                <div class="text-danger mt-1">{{ form.dealWonDate.errors.as_text|striptags }}</div>
+              {% endif %}
             </div>
           </div>
 
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Setup Charges</label>
+            <label class="col-sm-3 col-form-label">Setup Charges<span class="mandy">*</span></label>
             <div class="col-sm-9">
               {{ form.setupCharges|add_class:"form-control" }}
+              {% if form.setupCharges.errors %}
+                <div class="text-danger mt-1">{{ form.setupCharges.errors.as_text|striptags }}</div>
+              {% endif %}
             </div>
           </div>
 
           <div class="mb-3 row align-items-center">
-            <label class="col-sm-3 col-form-label">Monthly Subscription</label>
+            <label class="col-sm-3 col-form-label">Monthly Subscription<span class="mandy">*</span></label>
             <div class="col-sm-9">
               {{ form.monthlySubscription|add_class:"form-control" }}
+              {% if form.monthlySubscription.errors %}
+                <div class="text-danger mt-1">{{ form.monthlySubscription.errors.as_text|striptags }}</div>
+              {% endif %}
             </div>
           </div>
 
@@ -146,7 +155,7 @@
 
           <!-- Deal Owner -->
           <div class="mb-4 row align-items-center">
-            <label class="form-label col-sm-3 col-form-label">Deal Owner</label>
+            <label class="form-label col-sm-3 col-form-label">Deal Owner<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <select name="dealownerSalesPerson" class="form-select" required>
                 <option value="">Select Deal Owner</option>
@@ -166,7 +175,7 @@
 
           <!-- Follow Up -->
           <div class="mb-4 row align-items-center">
-            <label class="form-label col-sm-3 col-form-label">Follow Up</label>
+            <label class="form-label col-sm-3 col-form-label">Follow Up<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <select name="followUpSalesPerson" class="form-select" required>
                 <option value="">Select Follow Up Person</option>
@@ -186,7 +195,7 @@
 
           <!-- Demo 1 -->
           <div class="mb-4 row align-items-center">
-            <label class="form-label col-sm-3 col-form-label">Demo 1</label>
+            <label class="form-label col-sm-3 col-form-label">Demo 1<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <select name="demo1SalesPerson" class="form-select" required>
                 <option value="">Select Demo 1 Person</option>
@@ -206,7 +215,7 @@
 
           <!-- Demo 2 -->
           <div class="mb-4 row align-items-center">
-            <label class="form-label col-sm-3 col-form-label">Demo 2</label>
+            <label class="form-label col-sm-3 col-form-label">Demo 2<span class="mandy">*</span></label>
             <div class="col-sm-9">
               <select name="demo2SalesPerson" class="form-select" required>
                 <option value="">Select Demo 2 Person</option>

@@ -53,6 +53,18 @@ class DealForm(forms.ModelForm):
         lead_types = ['salesperson', 'saleshead', 'admin']
         self.fields['leadSource'].queryset = UserProfile.objects.filter(user_type__name__in=lead_types)
 
+        self.fields['clientName'].required = True
+        self.fields['segment'].required = True
+        self.fields['leadSource'].required = True
+        self.fields['dealType'].required = True
+        self.fields['dealWonDate'].required = True
+        self.fields['setupCharges'].required = True
+        self.fields['monthlySubscription'].required = True
+        self.fields['dealownerSalesPerson'].required = True
+        self.fields['followUpSalesPerson'].required = True
+        self.fields['demo1SalesPerson'].required = True
+        self.fields['demo2SalesPerson'].required = True
+        
         # Optional fields
         self.fields['newMarketPenetration'].required = False
         self.fields['newMarketCountry'].required = False
