@@ -51,35 +51,45 @@ class MonthlyRuleEngine:
         user_setup_totals = defaultdict(Decimal)
         user_monthly_subscription_totals = defaultdict(Decimal)
         user_deal_tracker = set()
+        user_setup_tracker = set() 
 
         for deal in self.deals_in_month:
-            participants = [
-                deal.dealownerSalesPerson,
-                deal.leadSource,
-                deal.followUpSalesPerson,
-                deal.demo1SalesPerson,
-                deal.demo2SalesPerson,
-            ]
-            setupChargesAmount= Decimal(deal.setupCharges or 0)
-            
-            for user in filter(None, participants):
-                key = (user.id, deal.id)
-                if key not in user_deal_tracker:
-                    if user == deal.dealownerSalesPerson:  
-                        print(f"[Warning] deal.dealownerSalesPerson is {deal.dealownerSalesPerson}. Skipping...")                     
-                        if user.user_type and user.user_type.name.lower() == "admin":
-                            if deal.dealType == 'domestic':
-                                percent = Decimal(self.setup.domestic_deal_owner or 0)
-                            else:
-                                percent = Decimal(self.setup.international_deal_owner or 0)                                                        
-                            setupChargesAfter = setupChargesAmount * percent / 100
-                            setupChargesAmount = setupChargesAmount - setupChargesAfter
-                            print(f"[Warning] setupChargesAmount is {setupChargesAmount}. Skipping...") 
-                    user_setup_totals[user.id] += setupChargesAmount 
-                    segment_id = deal.segment.id if deal.segment else None
-                    subscription_key = (user.id, segment_id)                   
-                    user_monthly_subscription_totals[subscription_key] += Decimal(deal.monthlySubscription or 0)
-                    user_deal_tracker.add(key)
+            user_split = self.get_payout_split(deal)  # Returns {Role: (User, %)}
+            segment_id = deal.segment.id if deal.segment else None
+            setup_charges_amount = Decimal(deal.setupCharges or 0)
+            monthly_subscription_amount = Decimal(deal.monthlySubscription or 0)
+                        
+            for role, (user, percent) in user_split.items():
+                if not user or percent is None:
+                    continue
+
+                deal_key = (user.id, deal.id, role)
+                if deal_key in user_deal_tracker:
+                    continue  # Avoid double-counting same user-role-deal
+
+                # Skip admin Deal Owner and deduct their setup charge portion
+                if  user.user_type and user.user_type.name.lower() == "admin":
+                    admin_percent = Decimal(percent or 0)
+                    setup_charges_deduction = setup_charges_amount * admin_percent / 100
+                    setup_charges_amount -= setup_charges_deduction
+                    print(f"[INFO] Skipped admin Lead Source ({user.id}), reduced setupChargesAmount by {setup_charges_deduction}")
+                    continue
+
+                # Accumulate setup charges once per user — if you want to count this per role, move inside the role loop
+                setup_key = (user.id, deal.id)
+                if setup_key not in user_setup_tracker:
+                    user_setup_totals[user.id] += setup_charges_amount
+                    user_setup_tracker.add(setup_key)
+
+                # Add subscription share
+                subscription_share = monthly_subscription_amount * Decimal(percent) / 100
+                subscription_key = (user.id, segment_id)
+                user_monthly_subscription_totals[subscription_key] += subscription_share
+
+                print(f"monthly_subscription_amount is {monthly_subscription_amount} , percent is {percent} , subscription_key is {subscription_key}  , subscription_share is  {subscription_share}")
+               
+                # Mark this user-role-deal as processed
+                user_deal_tracker.add(deal_key)
 
         for deal in self.deals_in_month:
             try:
@@ -113,15 +123,15 @@ class MonthlyRuleEngine:
     def get_payout_split(self, deal):
         if deal.dealType == 'domestic':
             return {
-                'Deal Owner': (deal.dealownerSalesPerson, self.setup.domestic_deal_owner),
                 'Lead Source': (deal.leadSource, self.setup.domestic_lead_source),
+                'Deal Owner': (deal.dealownerSalesPerson, self.setup.domestic_deal_owner),                
                 'Follow Up': (deal.followUpSalesPerson, self.setup.domestic_follow_up),
                 'Demo 1': (deal.demo1SalesPerson, self.setup.domestic_demo_1),
                 'Demo 2': (deal.demo2SalesPerson, self.setup.domestic_demo_2),
             }
         return {
-            'Deal Owner': (deal.dealownerSalesPerson, self.setup.international_deal_owner),
             'Lead Source': (deal.leadSource, self.setup.international_lead_source),
+            'Deal Owner': (deal.dealownerSalesPerson, self.setup.international_deal_owner),            
             'Follow Up': (deal.followUpSalesPerson, self.setup.international_follow_up),
             'Demo 1': (deal.demo1SalesPerson, self.setup.international_demo_1),
             'Demo 2': (deal.demo2SalesPerson, self.setup.international_demo_2),
@@ -287,6 +297,32 @@ class MonthlyRuleEngine:
                 print(f"[INFO] Skipped {label} → Missing user or percent")
 
     def process_new_market_incentive(self, deal, payout_split):
+        if deal.newMarketPenetration != 'Yes':
+            return
+
+        incentive_amount = self.setup.new_market_deal_incentive
+        user = deal.dealownerSalesPerson
+
+        if user:
+            try:
+                transaction = Transaction.objects.create(
+                    deal_id=deal,
+                    user=user,
+                    transaction_type='Earned',
+                    incentive_component_type='new_market',
+                    amount=incentive_amount,
+                    eligibility_status='Eligible',
+                    eligibility_message='Client in new market window',
+                    notes='New Client onboarded',
+                    created_by="system-mjob"
+                )
+                self.create_payouts(deal, transaction, user, "Deal Owner(New Market)", incentive_amount)
+            except Exception as e:
+                print(f"[ERROR] Processing New Market for deal {deal.id} → {e}")
+        else:
+            print(f"[INFO] Skipped New Market → Missing Deal Owner")
+
+    def process_new_market_incentive_old(self, deal, payout_split):
         if deal.newMarketPenetration != 'Yes':
             return
 

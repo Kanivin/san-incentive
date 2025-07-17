@@ -791,7 +791,7 @@ def deal_list(request):
     if search_query:
         deals = deals.filter(
             Q(clientName__icontains=search_query) |
-            Q(segment__icontains=search_query) |
+            Q(segment__name__icontains=search_query) |
             Q(dealType__icontains=search_query)
         )
 
