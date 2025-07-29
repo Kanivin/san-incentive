@@ -239,7 +239,7 @@ def sales_dashboard(request):
             eligibility_status__in=['Ineligible', 'Eligible'],
             deal__subDate__year=selected_year
         ).annotate(
-            month=ExtractMonth('deal__subDate')
+            month=ExtractMonth('deal__dealWonDate')
         ).values('month').annotate(total=Sum('amount'))
 
         # Step 2: Fill raw monthly totals
@@ -434,7 +434,7 @@ def dashboard_router(request):
             eligibility_status__in=['Ineligible', 'Eligible'],
             deal__subDate__year=selected_year
         ).annotate(
-            month=ExtractMonth('deal__subDate')
+            month=ExtractMonth('deal__dealWonDate')
         ).values('month').annotate(total=Sum('amount'))
 
         # Step 2: Fill raw monthly totals

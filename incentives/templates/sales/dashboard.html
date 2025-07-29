@@ -143,11 +143,11 @@
     <div class="card flex-fill">
       <div class="card-body">
         <h5 class="card-title">Annual Target Achievement</h5>
-        <p class="text-muted mb-2">Overall Achievement (Eligible + Ineligible)</p>
+        <p class="text-muted mb-2">Overall Achievement</p>
         <div id="chart-overall-target-achivement" style="min-height: 300px;" data-percent="{{ overall_target_percentage }}"></div>
         <hr>
-        <p class="text-muted mb-2">Eligible Only</p>
-        <div id="chart-target-achivement" style="min-height: 300px;" data-percent="{{ target_percentage }}"></div>
+        <!-- <p class="text-muted mb-2">Eligible Only</p>
+        <div id="chart-target-achivement" style="min-height: 300px;" data-percent="{{ target_percentage }}"></div> -->
       </div>
     </div>
   </div>
@@ -359,7 +359,7 @@
               <div style="margin-left:10px;">
                 ${slab.icon} ${slab.percent}% → ₹${remaining.toLocaleString()} more 
                 <span style="color:#6b7280; font-size:13px;">₹${perMonth.toLocaleString()}/month</span>
-                <span style="color:#10b981; font-size:13px;">🪙 Get: ₹${totalIncentive.toLocaleString()}</span>
+                <span style="color:#10b981; font-size:13px;">🪙 approx: ₹${totalIncentive.toLocaleString()}</span>
               </div>`;
           });
 

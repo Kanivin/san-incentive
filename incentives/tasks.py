@@ -52,10 +52,10 @@ def monthly_sales_incentive(run_year,run_month):
         approved_deals = Deal.objects.filter(status='Approved',yearly_rule_executed=False)
 
         for deal in approved_deals:
-            if not deal or not deal.subDate or not deal.subAmount or not setup:
+            if not deal or not deal.dealWonDate or not deal.monthlySubscription or not setup:
                 continue
             try:
-                sub_amount = deal.subAmount or Decimal('0.0')
+                sub_amount = deal.monthlySubscription or Decimal('0.0')
                                  
                 success = True
                 if deal.dealType == 'domestic':
@@ -84,7 +84,7 @@ def monthly_sales_incentive(run_year,run_month):
                                     transaction_type='Earned',
                                     incentive_component_type='subscription',
                                     amount=incentive_amount,
-                                    eligibility_status='Ineligible',
+                                    eligibility_status='Eligible',
                                     eligibility_message=f'Subscription incentive {percent:.2f}%',
                                     notes=f'{label} gets {percent:.2f}% of ₹{sub_amount}',
                                     created_by="system-mjob"
@@ -96,21 +96,21 @@ def monthly_sales_incentive(run_year,run_month):
                     else:
                         output_lines.append(f"[INFO] Skipped {label} → Missing user or percent")
 
-                if success:
-                    # deal.status = 'Completed'
-                    deal.yearly_rule_executed = True            
-                    deal.save()
+                #if success:
+                    #deal.status = 'Completed'
+                    #deal.yearly_rule_executed = True            
+                    #deal.save()
 
             except Exception as e:
                 all_success = False
                 output_lines.append(f"[ERROR] Subscription handling failed for deal {deal.id}: {e}")
 
-             # After creation, if deal is eligible, update transactions to 'Eligible'
-            cutoff_date = timezone.now().date() - relativedelta(months=setup.min_subscription_month or 0) 
-            if deal.subDate < cutoff_date:
-                TargetTransaction.objects.filter(deal=deal).update(
-                eligibility_status='Eligible',
-                eligibility_message='Subscription is eligibility')
+            # After creation, if deal is eligible, update transactions to 'Eligible'
+            #cutoff_date = timezone.now().date() - relativedelta(months=setup.min_subscription_month or 0) 
+            #if deal.subDate < cutoff_date:
+            #    TargetTransaction.objects.filter(deal=deal).update(
+            #    eligibility_status='Eligible',
+            #    eligibility_message='Subscription is eligibility')
          
         log.status = "success" if all_success else "failed"
         output_lines.append("[INFO] Monthly incentives processed" if all_success else "[ERROR] Issues occurred during monthly incentive calculation")
