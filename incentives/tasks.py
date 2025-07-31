@@ -96,10 +96,10 @@ def monthly_sales_incentive(run_year,run_month):
                     else:
                         output_lines.append(f"[INFO] Skipped {label} → Missing user or percent")
 
-                #if success:
+                if success:
                     #deal.status = 'Completed'
-                    #deal.yearly_rule_executed = True            
-                    #deal.save()
+                    deal.yearly_rule_executed = True            
+                    deal.save()
 
             except Exception as e:
                 all_success = False
