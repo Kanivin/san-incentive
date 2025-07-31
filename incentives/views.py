@@ -1908,7 +1908,7 @@ def transaction_export_pdf(request):
     transactions = Transaction.objects.all()
     if search:
         transactions = transactions.filter(
-            Q(user__fullname__icontains=search_query) |
+            Q(user__fullname__icontains=search) |
             Q(deal_id__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
