@@ -1862,7 +1862,7 @@ def transaction_export_excel(request):
 
     if search:
         transactions = transactions.filter(
-            Q(deal__clientName__icontains=search) |
+            Q(deal_id__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
@@ -1909,7 +1909,7 @@ def transaction_export_pdf(request):
     if search:
         transactions = transactions.filter(
             Q(user__fullname__icontains=search_query) |
-            Q(deal__clientName__icontains=search) |
+            Q(deal_id__clientName__icontains=search) |
             Q(notes__icontains=search) |
             Q(transaction_type__icontains=search)
         )
