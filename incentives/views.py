@@ -139,14 +139,14 @@ def sales_dashboard(request):
         total_target = TargetTransaction.objects.filter(
             user_id=selected_user_id,
             eligibility_status='Eligible',
-            deal__subDate__year=selected_year
+            deal__dealWonDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
         print(f"Warning: total_target is {total_target} .")  
         overall_total_target = TargetTransaction.objects.filter(
                     user_id=selected_user_id,
                     eligibility_status__in=['Ineligible', 'Eligible'],
-                    deal__subDate__year=selected_year
+                    deal__dealWonDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
             
         print(f"Warning: overall_total_target is {overall_total_target} .")      
@@ -237,7 +237,7 @@ def sales_dashboard(request):
         monthly_data = TargetTransaction.objects.filter(
             user_id=selected_user_id,
             eligibility_status__in=['Ineligible', 'Eligible'],
-            deal__subDate__year=selected_year
+            deal__dealWonDate__year=selected_year
         ).annotate(
             month=ExtractMonth('deal__dealWonDate')
         ).values('month').annotate(total=Sum('amount'))
@@ -334,14 +334,14 @@ def dashboard_router(request):
         total_target = TargetTransaction.objects.filter(
             user_id=selected_user_id,
             eligibility_status='Eligible',
-            deal__subDate__year=selected_year
+            deal__dealWonDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
 
         print(f"Warning: total_target is {total_target} .")  
         overall_total_target = TargetTransaction.objects.filter(
                     user_id=selected_user_id,
                     eligibility_status__in=['Ineligible', 'Eligible'],
-                    deal__subDate__year=selected_year
+                    deal__dealWonDate__year=selected_year
         ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
             
         print(f"Warning: overall_total_target is {overall_total_target} .")      
@@ -432,7 +432,7 @@ def dashboard_router(request):
         monthly_data = TargetTransaction.objects.filter(
             user_id=selected_user_id,
             eligibility_status__in=['Ineligible', 'Eligible'],
-            deal__subDate__year=selected_year
+            deal__dealWonDate__year=selected_year
         ).annotate(
             month=ExtractMonth('deal__dealWonDate')
         ).values('month').annotate(total=Sum('amount'))
@@ -511,7 +511,7 @@ def dashboard_router(request):
                 TargetTransaction.objects.filter(
                     user=target.employee,
                     eligibility_status='Eligible',
-                    deal__subDate__year=selected_year
+                    deal__dealWonDate__year=selected_year
                 )
                 .aggregate(total=Sum('amount'))['total'] or Decimal(0)
             )
