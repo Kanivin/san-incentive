@@ -326,7 +326,7 @@
           else if (achievedPercent >= 50) subIncentivePercent = 4;
 
           const grossIncentiveAmount = Math.round(salaryMultiplier * grossMonthlySalary);
-          const subscriptionIncentiveAmount = Math.round((subIncentivePercent / 100) * achievedAmount);
+          const subscriptionIncentiveAmount = Math.round((subIncentivePercent / 100) * (achievedAmount*12));
           const totalIncentiveAmount = grossIncentiveAmount + subscriptionIncentiveAmount;
 
           const incentiveSlabs = [
@@ -342,8 +342,8 @@
               <div style="background:#eff6ff; padding:8px 12px; border-radius:10px; margin-bottom:12px; border:1px solid #bfdbfe;">
               <div style="font-weight:600; color:#1d4ed8;">🎯 Achieved: ₹${achievedAmount.toLocaleString()} <span class="text-gray-500">(${achievedPercent.toFixed(2)}%)</span></div>
               <div><strong>🎁 Annual Target Incentive:</strong> ${salaryMultiplier > 0 ? `${salaryMultiplier}× Gross = ₹${grossIncentiveAmount.toLocaleString()}` : '🚫 No Incentive'}</div>
-              <div><strong>📦 Subscription Incentive:</strong> ${subIncentivePercent}% = ₹${subscriptionIncentiveAmount.toLocaleString()}</div>
-              <div style="color:#10b981;"><strong>💵 Total Incentive:</strong> ₹${totalIncentiveAmount.toLocaleString()}</div>
+              <div><strong>📦 Subscription Incentive:</strong> ${subIncentivePercent}% = Approx: ₹${subscriptionIncentiveAmount.toLocaleString()}</div>
+              <div style="color:#10b981;"><strong>💵 Total Incentive:</strong> Approx" ₹${totalIncentiveAmount.toLocaleString()}</div>
               </div><strong>📈 To reach:</strong>`;
 
           incentiveSlabs.filter(slab => achievedPercent < slab.percent).forEach(slab => {
@@ -352,14 +352,14 @@
             const perMonth = monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : 0;
 
             const grossIncentive = slab.multiplier * grossMonthlySalary;
-            const subIncentive = (slab.subscription / 100) * slabTargetAmount;
+            const subIncentive = (slab.subscription / 100) * (slabTargetAmount*12);
             const totalIncentive = Math.round(grossIncentive + subIncentive);
 
             html += `
               <div style="margin-left:10px;">
                 ${slab.icon} ${slab.percent}% → ₹${remaining.toLocaleString()} more 
                 <span style="color:#6b7280; font-size:13px;">₹${perMonth.toLocaleString()}/month</span>
-                <span style="color:#10b981; font-size:13px;">🪙 approx: ₹${totalIncentive.toLocaleString()}</span>
+                <span style="color:#10b981; font-size:13px;">🪙 Approx: ₹${totalIncentive.toLocaleString()}</span>
               </div>`;
           });
 
