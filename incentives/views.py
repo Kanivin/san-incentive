@@ -615,7 +615,7 @@ def export_users_xlsx(request):
         users = users.filter(created_at__lte=end_date)
 
     # Create Excel workbook
-    wb = Workbook()
+    wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Users"
 
@@ -637,8 +637,8 @@ def export_users_xlsx(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    filename = f"users_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    response['Content-Disposition'] = f'attachment; filename={filename}'
+   
+    response['Content-Disposition'] = f'attachment; filename="users.xlsx"'
 
     wb.save(response)
     return response
@@ -648,6 +648,7 @@ def export_users_pdf(request):
     search_query = request.GET.get('search', '').strip()
     start_date = request.GET.get('start_date', '').strip()
     end_date = request.GET.get('end_date', '').strip()
+
 
     users = UserProfile.objects.all().order_by('fullname')
 
@@ -663,61 +664,16 @@ def export_users_pdf(request):
     if end_date:
         users = users.filter(created_at__lte=end_date)
 
+
+    template = get_template('owner/users/user_pdf.html')  # Create this template
+    html = template.render({'users': users})
+   
     # Create the PDF object
     response = HttpResponse(content_type='application/pdf')
-    filename = f"users_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    response['Content-Disposition'] = f'attachment; filename={filename}'
 
-    p = canvas.Canvas(response, pagesize=letter)
-    width, height = letter
+    response['Content-Disposition'] = f'attachment; filename="users.pdf"'
 
-    x_margin = inch
-    y_margin = inch
-    line_height = 14
-    y_position = height - y_margin
-
-    # Title
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(x_margin, y_position, "User List")
-    y_position -= 2 * line_height
-
-    # Header
-    p.setFont("Helvetica-Bold", 12)
-    headers = ['Employee ID', 'Full Name', 'Mail ID', 'User Type', 'Created At']
-    col_widths = [100, 150, 150, 100, 100]
-    x_positions = [x_margin]
-    for w in col_widths[:-1]:
-        x_positions.append(x_positions[-1] + w)
-
-    for i, header in enumerate(headers):
-        p.drawString(x_positions[i], y_position, header)
-    y_position -= line_height
-
-    p.setFont("Helvetica", 10)
-
-    # Data rows
-    for user in users:
-        if y_position < y_margin:
-            p.showPage()
-            y_position = height - y_margin
-            p.setFont("Helvetica-Bold", 12)
-            for i, header in enumerate(headers):
-                p.drawString(x_positions[i], y_position, header)
-            y_position -= line_height
-            p.setFont("Helvetica", 10)
-
-        row = [
-            str(user.employee_id),
-            user.fullname,
-            user.mail_id,
-            user.user_type.name if user.user_type else '',
-            user.created_at.strftime('%Y-%m-%d') if user.created_at else '',
-        ]
-        for i, data in enumerate(row):
-            p.drawString(x_positions[i], y_position, data)
-        y_position -= line_height
-
-    p.save()
+    pisa.CreatePDF(html, dest=response)
     return response
 
 
