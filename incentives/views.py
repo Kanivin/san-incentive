@@ -51,7 +51,7 @@ def login_view(request):
         next_url = request.GET.get('next')
 
         try:
-            user = UserProfile.objects.get(mail_id=username)
+            user = UserProfile.objects.get(mail_id=username, enable_login=True)
             if check_password(password, user.password):
                 request.session['mail_id'] = user.mail_id
                 request.session['user_id'] = user.id
