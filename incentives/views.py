@@ -913,31 +913,57 @@ def deal_update(request, pk):
         print(f"An unexpected error occurred: {e}") 
 
     if request.method == 'POST':
-        form = DealForm(request.POST, instance=deal)
 
-        import uuid, os
-        if request.FILES.get('refDocs'):
-            uploaded_file = request.FILES['refDocs']
-            if uploaded_file.size > 10 * 1024 * 1024:
-                form.add_error('refDocs', 'File too large (max 10MB)')
-            else:
+        if deal.yearly_rule_executed:
+            if request.FILES.get('refDocs'):
+                uploaded_file = request.FILES['refDocs']
+                import uuid, os
+                if uploaded_file.size > 10 * 1024 * 1024:
+                    messages.error(request, 'File too large (max 10MB)')
+                    return redirect(request.path)
+
                 base_name = os.path.splitext(uploaded_file.name)[0]
                 ext = os.path.splitext(uploaded_file.name)[1]
                 unique_id = uuid.uuid4().hex[:8]
                 safe_file_name = f"{base_name}_{unique_id}{ext}"
                 gcs_path = f"deals/ref_docs/{safe_file_name}"
-                #upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)
-                upload_to_locally(uploaded_file, 'san-incentive', gcs_path)           
-
-        if form.is_valid():
-            deal = form.save(commit=False)
-            if request.FILES.get('refDocs'):
+                upload_to_locally(uploaded_file, 'san-incentive', gcs_path)
                 deal.refDocs.name = gcs_path
+
+            deal.subDate = request.POST.get('subDate') or None
+            deal.subAmount = request.POST.get('subAmount') or None
+            deal.subrenewDate = request.POST.get('subrenewDate') or None
+            deal.refDocs = request.FILES.get('refDocs') or deal.refDocs
             deal.updated_by=request.session.get('mail_id')
-            deal.save()
-            return redirect('deal_list')
-        else:
-            print(form.errors)  # Optional: Debugging form errors
+            deal.save(update_fields=['subDate', 'subAmount', 'subrenewDate', 'refDocs'])
+            messages.success(request, 'Deal updated successfully (limited fields).')
+            return redirect('deal_list')  # Change to your redirect
+        else:    
+            form = DealForm(request.POST, instance=deal)
+
+            import uuid, os
+            if request.FILES.get('refDocs'):
+                uploaded_file = request.FILES['refDocs']
+                if uploaded_file.size > 10 * 1024 * 1024:
+                    form.add_error('refDocs', 'File too large (max 10MB)')
+                else:
+                    base_name = os.path.splitext(uploaded_file.name)[0]
+                    ext = os.path.splitext(uploaded_file.name)[1]
+                    unique_id = uuid.uuid4().hex[:8]
+                    safe_file_name = f"{base_name}_{unique_id}{ext}"
+                    gcs_path = f"deals/ref_docs/{safe_file_name}"
+                    #upload_to_gcs(uploaded_file, 'san-incentive', gcs_path)
+                    upload_to_locally(uploaded_file, 'san-incentive', gcs_path)           
+
+            if form.is_valid():
+                deal = form.save(commit=False)
+                if request.FILES.get('refDocs'):
+                    deal.refDocs.name = gcs_path
+                deal.updated_by=request.session.get('mail_id')
+                deal.save()
+                return redirect('deal_list')
+            else:
+                print(form.errors)  # Optional: Debugging form errors
     else:
         form = DealForm(instance=deal)
 
